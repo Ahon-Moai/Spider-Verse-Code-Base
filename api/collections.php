@@ -93,16 +93,43 @@ if ($slug || $id) {
                 'rule_value' => ''
             ];
         } else {
-            // Generic rule category match
-            $col = [
-                'id' => 'col-' . $cleanSlug,
-                'title' => ucwords(str_replace('-', ' ', $cleanSlug)),
-                'slug' => $cleanSlug,
-                'description' => 'Curated collection of ' . ucwords(str_replace('-', ' ', $cleanSlug)) . ' decants.',
-                'image' => '/src/assets/images/hero_pure_portions_arrina_1791911761493.jpg',
-                'rule_type' => 'category',
-                'rule_value' => ucwords(str_replace('-', ' ', $cleanSlug))
-            ];
+            // Check if cleanSlug matches any brand
+            $brandCheckStmt = $db->query("SELECT brand, MIN(image) as img FROM products WHERE brand IS NOT NULL AND brand != '' GROUP BY brand");
+            $allBrandRows = $brandCheckStmt->fetchAll();
+            $matchedBrand = null;
+            $brandImg = null;
+
+            foreach ($allBrandRows as $bRow) {
+                $bSlug = strtolower(trim(preg_replace('/[^a-zA-Z0-9]+/', '-', $bRow['brand']), '-'));
+                if ($bSlug === $cleanSlug || strtolower($bRow['brand']) === str_replace('-', ' ', $cleanSlug)) {
+                    $matchedBrand = $bRow['brand'];
+                    $brandImg = $bRow['img'];
+                    break;
+                }
+            }
+
+            if ($matchedBrand) {
+                $col = [
+                    'id' => 'col-brand-' . $cleanSlug,
+                    'title' => strtoupper($matchedBrand),
+                    'slug' => $cleanSlug,
+                    'description' => "Discover authentic luxury decants from " . $matchedBrand . ", decanted straight from original manufacturer bottles.",
+                    'image' => $brandImg ?: '/src/assets/images/hero_pure_portions_arrina_1791911761493.jpg',
+                    'rule_type' => 'brand',
+                    'rule_value' => $matchedBrand
+                ];
+            } else {
+                // Generic rule category match
+                $col = [
+                    'id' => 'col-' . $cleanSlug,
+                    'title' => ucwords(str_replace('-', ' ', $cleanSlug)),
+                    'slug' => $cleanSlug,
+                    'description' => 'Curated collection of ' . ucwords(str_replace('-', ' ', $cleanSlug)) . ' decants.',
+                    'image' => '/src/assets/images/hero_pure_portions_arrina_1791911761493.jpg',
+                    'rule_type' => 'category',
+                    'rule_value' => ucwords(str_replace('-', ' ', $cleanSlug))
+                ];
+            }
         }
     }
 

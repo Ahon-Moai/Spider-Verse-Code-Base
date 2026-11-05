@@ -400,7 +400,11 @@ export default function App() {
             />
 
             {/* H. Trust and shopping information section */}
-            <TrustSection storeSettings={storeSettings} />
+            <TrustSection
+              storeSettings={storeSettings}
+              products={products}
+              onNavigateToCollection={navigateToCollection}
+            />
 
             {/* I. Black FAQ section */}
             <FAQSection faqs={homepageData?.faqs} />

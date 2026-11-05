@@ -130,7 +130,10 @@ if ($collection && $collection !== 'all') {
         $colRow = $colStmt->fetch();
 
         if ($colRow) {
-            if ($colRow['rule_type'] === 'gender' && !empty($colRow['rule_value'])) {
+            if ($colRow['rule_type'] === 'brand' && !empty($colRow['rule_value'])) {
+                $where[] = "LOWER(brand) = ?";
+                $params[] = strtolower($colRow['rule_value']);
+            } elseif ($colRow['rule_type'] === 'gender' && !empty($colRow['rule_value'])) {
                 $where[] = "gender = ?";
                 $params[] = $colRow['rule_value'];
             } elseif ($colRow['rule_type'] === 'category' && !empty($colRow['rule_value'])) {
@@ -154,10 +157,28 @@ if ($collection && $collection !== 'all') {
                 }
             }
         } else {
-            // General category fallback
-            $where[] = "(LOWER(category) LIKE ? OR LOWER(scent_profile_json) LIKE ?)";
-            $params[] = '%' . str_replace('-', ' ', $cleanCol) . '%';
-            $params[] = '%' . str_replace('-', ' ', $cleanCol) . '%';
+            // Check if cleanCol is a brand slug or name
+            $brandCheckStmt = $db->query("SELECT brand FROM products WHERE brand IS NOT NULL AND brand != '' GROUP BY brand");
+            $allBrandRows = $brandCheckStmt->fetchAll();
+            $matchedBrand = null;
+
+            foreach ($allBrandRows as $bRow) {
+                $bSlug = strtolower(trim(preg_replace('/[^a-zA-Z0-9]+/', '-', $bRow['brand']), '-'));
+                if ($bSlug === $cleanCol || strtolower($bRow['brand']) === str_replace('-', ' ', $cleanCol)) {
+                    $matchedBrand = $bRow['brand'];
+                    break;
+                }
+            }
+
+            if ($matchedBrand) {
+                $where[] = "LOWER(brand) = ?";
+                $params[] = strtolower($matchedBrand);
+            } else {
+                // General category fallback
+                $where[] = "(LOWER(category) LIKE ? OR LOWER(scent_profile_json) LIKE ?)";
+                $params[] = '%' . str_replace('-', ' ', $cleanCol) . '%';
+                $params[] = '%' . str_replace('-', ' ', $cleanCol) . '%';
+            }
         }
     }
 }
