@@ -372,6 +372,7 @@ export default function App() {
               products={products}
               onSelectProduct={(p) => navigateToProduct(p)}
               onAddToCart={(p, size, price) => handleAddToCart(p, size, price, 1)}
+              onNavigateToCollection={navigateToCollection}
             />
 
             {/* E. For Him / For Her editorial banners */}
@@ -395,6 +396,7 @@ export default function App() {
               allProducts={products}
               onSelectProduct={(p) => navigateToProduct(p)}
               onAddToCart={(p, size, price) => handleAddToCart(p, size, price, 1)}
+              onNavigateToCollection={navigateToCollection}
             />
 
             {/* H. Trust and shopping information section */}
