@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { FragranceProduct } from '../types';
-import { ShoppingBag, Eye, Sparkles } from 'lucide-react';
+import { ShoppingBag, Eye, ChevronDown } from 'lucide-react';
 
 interface CustomProductSectionsProps {
   homepageData?: any;
@@ -9,12 +9,18 @@ interface CustomProductSectionsProps {
   onAddToCart: (product: FragranceProduct, size: string, price: number) => void;
 }
 
+const INITIAL_SECTION_BATCH = 4;
+const SECTION_LOAD_MORE_STEP = 4;
+
 export const CustomProductSections: React.FC<CustomProductSectionsProps> = ({
   homepageData,
   allProducts,
   onSelectProduct,
   onAddToCart
 }) => {
+  // Track visible count per section key
+  const [visibleCounts, setVisibleCounts] = useState<Record<string, number>>({});
+
   const sectionKeys = ['custom_section_1', 'custom_section_2', 'custom_section_3', 'custom_section_4'];
 
   const activeSections = sectionKeys
@@ -41,38 +47,51 @@ export const CustomProductSections: React.FC<CustomProductSectionsProps> = ({
 
   if (activeSections.length === 0) return null;
 
+  const handleShowMore = (secKey: string, totalCount: number) => {
+    setVisibleCounts((prev) => {
+      const current = prev[secKey] || INITIAL_SECTION_BATCH;
+      return {
+        ...prev,
+        [secKey]: Math.min(current + SECTION_LOAD_MORE_STEP, totalCount)
+      };
+    });
+  };
+
   return (
     <div className="w-full bg-white space-y-16 py-12 border-b border-zinc-100">
       {activeSections.map((sec, idx) => {
         if (!sec) return null;
 
+        const currentVisible = visibleCounts[sec.key] || INITIAL_SECTION_BATCH;
+        const displayedProducts = sec.products.slice(0, currentVisible);
+        const hasMore = currentVisible < sec.products.length;
+
         return (
           <section key={sec.key} className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
-            {/* Section Header */}
-            <div className="flex flex-col items-center text-center mb-8 space-y-1">
-              <div className="inline-flex items-center gap-1.5 text-[10px] font-mono tracking-widest text-amber-600 uppercase font-semibold">
-                <Sparkles className="w-3 h-3 text-amber-500" />
-                <span>CURATED SELECTION #{idx + 1}</span>
+            {/* Section Header: Matching Hero text design with bold typography and #FF1801 */}
+            <div className="mb-8 sm:mb-10">
+              <div className="flex items-center gap-3 sm:gap-4">
+                <h2 className="font-sans font-black text-2xl sm:text-3xl md:text-4xl tracking-tight text-[#FF1801] uppercase shrink-0 select-none">
+                  {sec.title}
+                </h2>
+                <div className="h-[3px] sm:h-[4px] bg-[#FF1801] flex-1 max-w-[120px] sm:max-w-[200px]" />
               </div>
-              <h2 className="font-serif text-2xl sm:text-3xl font-light tracking-[0.15em] text-zinc-950 uppercase">
-                {sec.title}
-              </h2>
               {sec.subtitle && (
-                <p className="text-xs text-zinc-500 font-sans tracking-wide max-w-xl">
+                <p className="text-xs sm:text-sm font-semibold tracking-wider text-[#FF1801]/80 uppercase mt-1.5 select-none">
                   {sec.subtitle}
                 </p>
               )}
             </div>
 
-            {/* Product Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {sec.products.map((product) => {
+            {/* Product Grid: Responsive multi-column layout across rows */}
+            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
+              {displayedProducts.map((product) => {
                 const primarySize = product.sizes?.[0] || { size: '5ml', price: product.startingPrice };
 
                 return (
                   <div
                     key={product.id}
-                    className="group bg-[#fcfcfc] border border-zinc-200/80 p-5 flex flex-col justify-between hover:border-zinc-950 transition-all duration-300 shadow-xs hover:shadow-xl relative"
+                    className="group bg-[#fcfcfc] border border-zinc-200/80 p-4 sm:p-5 flex flex-col justify-between hover:border-[#FF1801] transition-all duration-300 shadow-xs hover:shadow-xl relative"
                   >
                     {/* Image Area */}
                     <div
@@ -104,7 +123,7 @@ export const CustomProductSections: React.FC<CustomProductSectionsProps> = ({
 
                       <h3
                         onClick={() => onSelectProduct(product)}
-                        className="font-serif text-base text-zinc-950 font-normal hover:text-amber-600 transition-colors cursor-pointer truncate"
+                        className="font-serif text-sm sm:text-base text-zinc-950 font-normal hover:text-[#FF1801] transition-colors cursor-pointer truncate"
                       >
                         {product.name}
                       </h3>
@@ -131,7 +150,7 @@ export const CustomProductSections: React.FC<CustomProductSectionsProps> = ({
 
                       <button
                         onClick={() => onAddToCart(product, primarySize.size, primarySize.price)}
-                        className="bg-zinc-950 hover:bg-amber-400 hover:text-black text-white p-2 transition-all cursor-pointer"
+                        className="bg-zinc-950 hover:bg-[#FF1801] text-white p-2 transition-all cursor-pointer"
                         title="Add to Bag"
                       >
                         <ShoppingBag className="w-4 h-4" />
@@ -141,6 +160,19 @@ export const CustomProductSections: React.FC<CustomProductSectionsProps> = ({
                 );
               })}
             </div>
+
+            {/* Show More Products Button for this section */}
+            {hasMore && (
+              <div className="flex justify-center mt-8 sm:mt-10">
+                <button
+                  onClick={() => handleShowMore(sec.key, sec.products.length)}
+                  className="inline-flex items-center gap-2 border-2 border-[#FF1801] text-[#FF1801] hover:bg-[#FF1801] hover:text-white px-6 sm:px-8 py-2.5 sm:py-3 text-xs sm:text-sm font-bold tracking-widest uppercase transition-all duration-200 cursor-pointer shadow-xs active:scale-95"
+                >
+                  <span>Show More ({sec.products.length - currentVisible} remaining)</span>
+                  <ChevronDown className="w-4 h-4" />
+                </button>
+              </div>
+            )}
           </section>
         );
       })}
