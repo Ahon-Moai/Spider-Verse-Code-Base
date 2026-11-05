@@ -11,10 +11,130 @@ import {
   Filter,
   Grid,
   RefreshCw,
-  Tag
+  Tag,
+  ChevronDown,
+  Plus
 } from 'lucide-react';
-import { FragranceProduct, Collection, FilterState } from '../types';
+import { FragranceProduct, Collection, FilterState, DecantSize } from '../types';
 import { fetchCollectionBySlug, fetchPublicProducts } from '../services/api';
+
+const getSprayEstimate = (sizeStr: string): string => {
+  const match = sizeStr.match(/(\d+(\.\d+)?)/);
+  if (match) {
+    const ml = parseFloat(match[1]);
+    const sprays = Math.round(ml * 15);
+    return `${sprays}+ sprays`;
+  }
+  return 'approx. 45+ sprays';
+};
+
+// Sub-component for individual product card on Collection page with interactive size dropdown
+const CollectionProductCard: React.FC<{
+  product: FragranceProduct;
+  onNavigateToProduct: (product: FragranceProduct) => void;
+  onAddToCart: (product: FragranceProduct, size: string, price: number, qty: number) => void;
+}> = ({ product, onNavigateToProduct, onAddToCart }) => {
+  const defaultSize = product.sizes?.[0] || { size: '3ml', price: product.startingPrice };
+  const [selectedSize, setSelectedSize] = useState<DecantSize>(defaultSize);
+
+  return (
+    <div
+      onClick={() => onNavigateToProduct(product)}
+      className="group bg-white border border-zinc-200/90 hover:border-zinc-400 transition-all flex flex-col justify-between p-4 shadow-xs cursor-pointer"
+    >
+      <div>
+        {/* Product Image Stage */}
+        <div
+          className="relative w-full aspect-square bg-[#fafaf8] border border-zinc-100 p-3 flex items-center justify-center overflow-hidden mb-3"
+        >
+          <img
+            src={product.image}
+            alt={product.name}
+            className="max-h-full max-w-full object-contain group-hover:scale-105 transition-transform duration-500"
+            loading="lazy"
+          />
+
+          {/* Badges Overlay */}
+          <div className="absolute top-2 left-2 flex flex-col gap-1">
+            {product.gender && (
+              <span className="bg-amber-100 text-amber-900 border border-amber-200 text-[8px] font-sans font-bold uppercase px-1.5 py-0.5">
+                {product.gender}
+              </span>
+            )}
+          </div>
+
+          {/* Quick Add Overlay Button */}
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onAddToCart(product, selectedSize.size, selectedSize.price, 1);
+            }}
+            className="absolute bottom-2 right-2 bg-black/90 hover:bg-[#FF1801] text-white p-2 opacity-0 group-hover:opacity-100 transition-all duration-200 shadow-sm cursor-pointer"
+            aria-label={`Quick add ${selectedSize.size} ${product.name}`}
+            title={`Quick add ${selectedSize.size}`}
+          >
+            <Plus className="w-3.5 h-3.5" />
+          </button>
+        </div>
+
+        {/* Product Info */}
+        <div className="space-y-1">
+          <span className="text-[9px] font-sans tracking-widest text-amber-800 font-bold uppercase block">
+            {product.brand}
+          </span>
+          <h3
+            className="font-serif text-sm sm:text-base text-zinc-950 font-normal leading-snug line-clamp-1 group-hover:text-amber-800 transition-colors"
+          >
+            {product.name}
+          </h3>
+          <p className="text-[10px] font-sans text-zinc-500 uppercase truncate">
+            {product.category}
+          </p>
+        </div>
+      </div>
+
+      {/* Sizes Dropdown & Price CTA */}
+      <div className="pt-3 mt-3 border-t border-zinc-150 space-y-2.5" onClick={(e) => e.stopPropagation()}>
+        <div className="flex items-baseline justify-between">
+          <span className="text-[10px] text-zinc-400 font-mono uppercase">Price:</span>
+          <p className="text-zinc-900 font-sans tabular-nums">
+            <span className="font-serif text-base font-bold text-zinc-950">৳ {selectedSize.price}</span>
+            <span className="text-zinc-500 text-[10px] ml-1">({selectedSize.size})</span>
+          </p>
+        </div>
+
+        {/* Size Dropdown Selector */}
+        {product.sizes && product.sizes.length > 0 && (
+          <div className="relative">
+            <select
+              value={selectedSize.size}
+              onChange={(e) => {
+                const matched = product.sizes.find((s) => s.size === e.target.value);
+                if (matched) setSelectedSize(matched);
+              }}
+              className="w-full appearance-none bg-zinc-50 hover:bg-zinc-100 border border-zinc-200 text-zinc-800 text-[11px] font-sans py-1.5 pl-2.5 pr-7 focus:outline-none focus:border-zinc-400 cursor-pointer transition-colors"
+            >
+              {product.sizes.map((sz, idx) => (
+                <option key={sz.size || idx} value={sz.size}>
+                  {sz.size} ({getSprayEstimate(sz.size)}) — ৳{sz.price}
+                </option>
+              ))}
+            </select>
+            <ChevronDown className="w-3.5 h-3.5 text-zinc-500 absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none" />
+          </div>
+        )}
+
+        <button
+          onClick={() => onAddToCart(product, selectedSize.size, selectedSize.price, 1)}
+          className="w-full bg-zinc-950 hover:bg-[#FF1801] text-white py-2 text-[10px] font-sans uppercase tracking-widest flex items-center justify-center gap-1.5 transition-all cursor-pointer shadow-xs"
+        >
+          <ShoppingBag className="w-3 h-3" />
+          <span>Add To Bag</span>
+        </button>
+      </div>
+    </div>
+  );
+};
 
 interface CollectionPageProps {
   collectionSlug: string;
@@ -762,83 +882,12 @@ export const CollectionPage: React.FC<CollectionPageProps> = ({
             ) : (
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 sm:gap-6">
                 {filteredProducts.map((product) => (
-                  <div
+                  <CollectionProductCard
                     key={product.id}
-                    className="group bg-white border border-zinc-200/90 hover:border-zinc-400 transition-all flex flex-col justify-between p-4 shadow-xs"
-                  >
-                    <div>
-                      {/* Product Image Stage */}
-                      <div
-                        onClick={() => onNavigateToProduct(product)}
-                        className="relative w-full aspect-square bg-[#fafaf8] border border-zinc-100 p-3 flex items-center justify-center overflow-hidden cursor-pointer mb-3"
-                      >
-                        <img
-                          src={product.image}
-                          alt={product.name}
-                          className="max-h-full max-w-full object-contain group-hover:scale-105 transition-transform duration-500"
-                        />
-
-                        {/* Badges Overlay */}
-                        <div className="absolute top-2 left-2 flex flex-col gap-1">
-                          {product.gender && (
-                            <span className="bg-amber-100 text-amber-900 border border-amber-200 text-[8px] font-sans font-bold uppercase px-1.5 py-0.5">
-                              {product.gender}
-                            </span>
-                          )}
-                        </div>
-                      </div>
-
-                      {/* Product Info */}
-                      <div className="space-y-1">
-                        <span className="text-[9px] font-sans tracking-widest text-amber-800 font-bold uppercase block">
-                          {product.brand}
-                        </span>
-                        <h3
-                          onClick={() => onNavigateToProduct(product)}
-                          className="font-serif text-sm sm:text-base text-zinc-950 font-normal leading-snug line-clamp-1 cursor-pointer hover:text-amber-800 transition-colors"
-                        >
-                          {product.name}
-                        </h3>
-                        <p className="text-[10px] font-sans text-zinc-500 uppercase truncate">
-                          {product.category}
-                        </p>
-                      </div>
-                    </div>
-
-                    {/* Sizes & Price CTA */}
-                    <div className="pt-3 mt-3 border-t border-zinc-150 space-y-2">
-                      <div className="flex items-baseline justify-between">
-                        <span className="text-[10px] text-zinc-400 font-mono">FROM</span>
-                        <span className="font-serif text-base text-zinc-950 font-bold tabular-nums">
-                          ৳ {product.startingPrice}
-                        </span>
-                      </div>
-
-                      {/* Sizes Chips */}
-                      {product.sizes && product.sizes.length > 0 && (
-                        <div className="flex flex-wrap gap-1">
-                          {product.sizes.slice(0, 3).map((s) => (
-                            <button
-                              key={s.size}
-                              onClick={() => onAddToCart(product, s.size, s.price, 1)}
-                              className="text-[9px] font-mono bg-zinc-50 hover:bg-zinc-950 hover:text-white border border-zinc-200 px-1.5 py-0.5 transition-colors cursor-pointer"
-                              title={`Add ${s.size} for ৳${s.price}`}
-                            >
-                              {s.size}
-                            </button>
-                          ))}
-                        </div>
-                      )}
-
-                      <button
-                        onClick={() => onAddToCart(product, product.sizes[0]?.size || '5ml', product.sizes[0]?.price || product.startingPrice, 1)}
-                        className="w-full bg-zinc-950 hover:bg-zinc-800 text-white py-2 text-[10px] font-sans uppercase tracking-widest flex items-center justify-center gap-1.5 transition-all cursor-pointer shadow-xs"
-                      >
-                        <ShoppingBag className="w-3 h-3" />
-                        <span>Add To Bag</span>
-                      </button>
-                    </div>
-                  </div>
+                    product={product}
+                    onNavigateToProduct={onNavigateToProduct}
+                    onAddToCart={onAddToCart}
+                  />
                 ))}
               </div>
             )}
