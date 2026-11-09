@@ -55,48 +55,92 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
   ];
 
   return (
-    <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-40 w-[92%] max-w-md md:hidden pointer-events-none pb-[env(safe-area-inset-bottom)]">
-      {/* Floating Liquid-Glass Pill Container */}
+    <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-40 w-[92%] max-w-md md:hidden pointer-events-none pb-[env(safe-area-inset-bottom)] select-none">
+      {/* Floating Liquid-Glass Pill Outer Wrapper */}
       <nav
-        className="pointer-events-auto bg-white/85 backdrop-blur-xl border border-zinc-200/80 shadow-[0_8px_32px_rgba(0,0,0,0.12)] rounded-full px-3 py-1.5 flex items-center justify-between transition-all duration-300"
         aria-label="Mobile Bottom Navigation"
+        className="relative pointer-events-auto rounded-full p-[5px] transition-all duration-300 ease-out"
+        style={{
+          /* Apple Liquid Glass styling: realistic translucent substrate + multi-layer specular & ambient illumination */
+          background: 'rgba(255, 255, 255, 0.65)',
+          backdropFilter: 'blur(25px) saturate(180%)',
+          WebkitBackdropFilter: 'blur(25px) saturate(180%)',
+          boxShadow: `
+            0 20px 48px -8px rgba(0, 0, 0, 0.16),
+            0 8px 20px -4px rgba(0, 0, 0, 0.08),
+            0 0 0 1px rgba(255, 255, 255, 0.6) inset,
+            0 1px 2px 0 rgba(255, 255, 255, 0.8) inset
+          `,
+          border: '1px solid rgba(255, 255, 255, 0.45)',
+        }}
       >
-        {navItems.map((item) => {
-          const Icon = item.icon;
-          const isActive = activeTab === item.id;
+        {/* Subtle top-edge glass specular curvature sheen */}
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-x-4 top-0 h-[1px] bg-gradient-to-r from-transparent via-white/80 to-transparent"
+        />
 
-          return (
-            <button
-              key={item.id}
-              onClick={item.action}
-              className={`relative flex flex-col items-center justify-center flex-1 py-1 px-2 rounded-full transition-all duration-200 cursor-pointer ${
-                isActive
-                  ? 'bg-zinc-100/90 text-zinc-950 font-medium'
-                  : 'text-zinc-500 hover:text-zinc-900 active:scale-95'
-              }`}
-            >
-              <div className="relative flex items-center justify-center">
-                <Icon
-                  className={`w-5 h-5 transition-transform duration-200 ${
-                    isActive ? 'scale-110 stroke-[2]' : 'stroke-[1.6]'
-                  }`}
-                />
-                {item.badge !== undefined && (
-                  <span className="absolute -top-1 -right-2 bg-zinc-900 text-white text-[9px] font-mono font-bold w-4 h-4 rounded-full flex items-center justify-center shadow-xs">
-                    {item.badge > 99 ? '99+' : item.badge}
-                  </span>
-                )}
-              </div>
-              <span
-                className={`text-[10px] tracking-tight mt-0.5 transition-colors ${
-                  isActive ? 'text-zinc-950 font-semibold' : 'text-zinc-500'
+        {/* Navigation Items List */}
+        <div className="relative flex items-center justify-between gap-1">
+          {navItems.map((item) => {
+            const Icon = item.icon;
+            const isActive = activeTab === item.id;
+
+            return (
+              <button
+                key={item.id}
+                onClick={item.action}
+                className={`group relative flex flex-col items-center justify-center flex-1 py-1.5 px-1 rounded-full transition-all duration-300 ease-out cursor-pointer active:scale-95 touch-manipulation ${
+                  isActive
+                    ? 'text-zinc-950 font-semibold shadow-[0_2px_8px_rgba(0,0,0,0.06),inset_0_1px_1px_rgba(255,255,255,0.9),inset_0_0_0_1px_rgba(255,255,255,0.7)]'
+                    : 'text-zinc-600 hover:text-zinc-900 hover:bg-white/30'
                 }`}
+                style={
+                  isActive
+                    ? {
+                        background: 'rgba(255, 255, 255, 0.75)',
+                        backdropFilter: 'blur(16px)',
+                        WebkitBackdropFilter: 'blur(16px)',
+                      }
+                    : undefined
+                }
               >
-                {item.label}
-              </span>
-            </button>
-          );
-        })}
+                {/* Active inner subtle glass refraction highlight */}
+                {isActive && (
+                  <div
+                    aria-hidden="true"
+                    className="pointer-events-none absolute inset-x-2 top-0 h-[1px] bg-gradient-to-r from-transparent via-white/90 to-transparent"
+                  />
+                )}
+
+                <div className="relative flex items-center justify-center">
+                  <Icon
+                    className={`w-[19px] h-[19px] transition-transform duration-300 ease-out ${
+                      isActive ? 'scale-110 stroke-[2.2] text-zinc-950' : 'stroke-[1.6] group-hover:scale-105'
+                    }`}
+                  />
+
+                  {/* Cart Notification Counter Badge */}
+                  {item.badge !== undefined && (
+                    <span
+                      className="absolute -top-1.5 -right-2.5 bg-zinc-950 text-white text-[9px] font-medium min-w-[16px] h-4 px-1 rounded-full flex items-center justify-center shadow-[0_2px_6px_rgba(0,0,0,0.25)] border border-white/40 ring-1 ring-black/5"
+                    >
+                      {item.badge > 99 ? '99+' : item.badge}
+                    </span>
+                  )}
+                </div>
+
+                <span
+                  className={`text-[10px] tracking-tight mt-0.5 leading-tight transition-colors duration-200 ${
+                    isActive ? 'text-zinc-950 font-semibold' : 'text-zinc-600 group-hover:text-zinc-900 font-normal'
+                  }`}
+                >
+                  {item.label}
+                </span>
+              </button>
+            );
+          })}
+        </div>
       </nav>
     </div>
   );
