@@ -277,6 +277,36 @@ CREATE TABLE IF NOT EXISTS `audit_logs` (
   `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- ML-Based Perfume Stock Management System
+CREATE TABLE IF NOT EXISTS `perfume_inventory` (
+  `id` VARCHAR(64) PRIMARY KEY,
+  `product_id` VARCHAR(64) NULL,
+  `brand` VARCHAR(100) NOT NULL,
+  `name` VARCHAR(255) NOT NULL,
+  `bottle_size_ml` DECIMAL(10,2) NOT NULL DEFAULT 100.00,
+  `remaining_ml` DECIMAL(10,2) NOT NULL DEFAULT 100.00,
+  `low_stock_threshold_ml` DECIMAL(10,2) NOT NULL DEFAULT 15.00,
+  `notes` TEXT NULL,
+  `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  FOREIGN KEY (`product_id`) REFERENCES `products`(`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `inventory_transactions` (
+  `id` INT AUTO_INCREMENT PRIMARY KEY,
+  `inventory_id` VARCHAR(64) NOT NULL,
+  `order_id` INT NULL,
+  `transaction_type` VARCHAR(50) NOT NULL,
+  `change_ml` DECIMAL(10,2) NOT NULL,
+  `previous_ml` DECIMAL(10,2) NOT NULL,
+  `new_ml` DECIMAL(10,2) NOT NULL,
+  `notes` TEXT NULL,
+  `created_by` VARCHAR(100) DEFAULT 'system',
+  `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (`inventory_id`) REFERENCES `perfume_inventory`(`id`) ON DELETE CASCADE,
+  FOREIGN KEY (`order_id`) REFERENCES `orders`(`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 -- Indexes for performance
 CREATE INDEX IF NOT EXISTS idx_prod_brand ON products(brand);
 CREATE INDEX IF NOT EXISTS idx_prod_category ON products(category);

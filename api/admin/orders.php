@@ -5,6 +5,7 @@
 
 require_once __DIR__ . '/../helpers.php';
 require_once __DIR__ . '/../db.php';
+require_once __DIR__ . '/../inventory_helpers.php';
 
 sendCorsAndHeaders();
 $admin = requireAdminAuth();
@@ -73,6 +74,7 @@ if ($method === 'GET') {
     $newStatus = sanitizeString($input['order_status'] ?? $input['orderStatus'] ?? null);
     $trackingNumber = sanitizeString($input['tracking_number'] ?? null);
     $internalNotes = sanitizeString($input['internal_notes'] ?? null);
+    $newPaymentStatus = sanitizeString($input['payment_status'] ?? $input['paymentStatus'] ?? null);
 
     $stmt = $db->prepare("SELECT * FROM orders WHERE id = ? OR order_number = ? LIMIT 1");
     $stmt->execute([$id, $id]);
@@ -83,31 +85,46 @@ if ($method === 'GET') {
     }
 
     $oldStatus = $order['order_status'];
+    $oldPaymentStatus = $order['payment_status'];
 
     try {
         $db->beginTransaction();
 
-        // If status changed to cancelled and wasn't cancelled before, restore stock
-        if ($newStatus === 'cancelled' && $oldStatus !== 'cancelled') {
-            $itemsStmt = $db->prepare("SELECT * FROM order_items WHERE order_id = ?");
-            $itemsStmt->execute([$order['id']]);
-            $items = $itemsStmt->fetchAll();
+        // ML INVENTORY DEDUCTION TRIGGER:
+        // When order reaches confirmed / processing / paid status (and was not cancelled)
+        $isNowConfirmedOrPaid = in_array($newStatus, ['confirmed', 'processing', 'shipped', 'delivered']) || $newPaymentStatus === 'paid';
+        if ($isNowConfirmedOrPaid && $oldStatus !== 'cancelled') {
+            deductInventoryForOrder($db, (int)$order['id'], $admin['username']);
+        }
 
-            $restoreVar = $db->prepare("UPDATE product_variants SET stock_qty = stock_qty + ? WHERE product_id = ? AND size = ?");
-            $restoreProd = $db->prepare("UPDATE products SET inventory_qty = inventory_qty + ? WHERE id = ?");
-            $logIns = $db->prepare("INSERT INTO inventory_logs (product_id, change_qty, reason, created_by) VALUES (?, ?, 'order_cancelled', ?)");
+        // ML INVENTORY RESTORATION TRIGGER:
+        // When status changed to cancelled or payment_status to refunded
+        if (($newStatus === 'cancelled' && $oldStatus !== 'cancelled') || ($newPaymentStatus === 'refunded' && $oldPaymentStatus !== 'refunded')) {
+            $txType = ($newPaymentStatus === 'refunded') ? 'order_refund' : 'order_cancellation';
+            restoreInventoryForOrder($db, (int)$order['id'], $txType, $admin['username']);
 
-            foreach ($items as $item) {
-                $restoreVar->execute([$item['quantity'], $item['product_id'], $item['selected_size']]);
-                $restoreProd->execute([$item['quantity'], $item['product_id']]);
-                $logIns->execute([$item['product_id'], $item['quantity'], $admin['username']]);
+            // Also restore original unit stock
+            if ($newStatus === 'cancelled' && $oldStatus !== 'cancelled') {
+                $itemsStmt = $db->prepare("SELECT * FROM order_items WHERE order_id = ?");
+                $itemsStmt->execute([$order['id']]);
+                $items = $itemsStmt->fetchAll();
+
+                $restoreVar = $db->prepare("UPDATE product_variants SET stock_qty = stock_qty + ? WHERE product_id = ? AND size = ?");
+                $restoreProd = $db->prepare("UPDATE products SET inventory_qty = inventory_qty + ? WHERE id = ?");
+                $logIns = $db->prepare("INSERT INTO inventory_logs (product_id, change_qty, reason, created_by) VALUES (?, ?, 'order_cancelled', ?)");
+
+                foreach ($items as $item) {
+                    $restoreVar->execute([$item['quantity'], $item['product_id'], $item['selected_size']]);
+                    $restoreProd->execute([$item['quantity'], $item['product_id']]);
+                    $logIns->execute([$item['product_id'], $item['quantity'], $admin['username']]);
+                }
             }
         }
 
         // Update order
-        $upSql = "UPDATE orders SET order_status = COALESCE(?, order_status), tracking_number = COALESCE(?, tracking_number), internal_notes = COALESCE(?, internal_notes) WHERE id = ?";
+        $upSql = "UPDATE orders SET order_status = COALESCE(?, order_status), payment_status = COALESCE(?, payment_status), tracking_number = COALESCE(?, tracking_number), internal_notes = COALESCE(?, internal_notes) WHERE id = ?";
         $upStmt = $db->prepare($upSql);
-        $upStmt->execute([$newStatus, $trackingNumber, $internalNotes, $order['id']]);
+        $upStmt->execute([$newStatus, $newPaymentStatus, $trackingNumber, $internalNotes, $order['id']]);
 
         // Insert history record if status changed
         if ($newStatus && $newStatus !== $oldStatus) {

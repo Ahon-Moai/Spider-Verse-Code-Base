@@ -75,6 +75,55 @@ class Database {
                     // Ignore migration errors
                 }
 
+                // Auto-create ML Perfume Inventory tables if missing
+                try {
+                    self::$instance->exec("CREATE TABLE IF NOT EXISTS perfume_inventory (
+                        id VARCHAR(64) PRIMARY KEY,
+                        product_id VARCHAR(64) NULL,
+                        brand VARCHAR(100) NOT NULL,
+                        name VARCHAR(255) NOT NULL,
+                        bottle_size_ml DECIMAL(10,2) NOT NULL DEFAULT 100.00,
+                        remaining_ml DECIMAL(10,2) NOT NULL DEFAULT 100.00,
+                        low_stock_threshold_ml DECIMAL(10,2) NOT NULL DEFAULT 15.00,
+                        notes TEXT NULL,
+                        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+                    )");
+
+                    $isSqlite = ($dbConfig['driver'] === 'sqlite');
+                    $autoInc = $isSqlite ? "INTEGER PRIMARY KEY AUTOINCREMENT" : "INT AUTO_INCREMENT PRIMARY KEY";
+                    self::$instance->exec("CREATE TABLE IF NOT EXISTS inventory_transactions (
+                        id {$autoInc},
+                        inventory_id VARCHAR(64) NOT NULL,
+                        order_id INT NULL,
+                        transaction_type VARCHAR(50) NOT NULL,
+                        change_ml DECIMAL(10,2) NOT NULL,
+                        previous_ml DECIMAL(10,2) NOT NULL,
+                        new_ml DECIMAL(10,2) NOT NULL,
+                        notes TEXT NULL,
+                        created_by VARCHAR(100) DEFAULT 'system',
+                        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+                    )");
+
+                    // Initial seed if inventory is empty
+                    $chk = self::$instance->query("SELECT COUNT(*) FROM perfume_inventory")->fetchColumn();
+                    if ($chk == 0) {
+                        $prods = self::$instance->query("SELECT id, brand, name FROM products")->fetchAll();
+                        $insInv = self::$instance->prepare("INSERT INTO perfume_inventory (id, product_id, brand, name, bottle_size_ml, remaining_ml, low_stock_threshold_ml, notes) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
+                        $insTx = self::$instance->prepare("INSERT INTO inventory_transactions (inventory_id, transaction_type, change_ml, previous_ml, new_ml, notes, created_by) VALUES (?, 'initial_stock', ?, 0, ?, 'Initial system seed stock', 'system')");
+
+                        foreach ($prods as $p) {
+                            $invId = 'inv-' . substr(md5($p['id']), 0, 10);
+                            $bottleSize = 100.00;
+                            $remMl = 100.00;
+                            $insInv->execute([$invId, $p['id'], $p['brand'], $p['name'], $bottleSize, $remMl, 15.00, 'Original master perfume bottle']);
+                            $insTx->execute([$invId, $remMl, $remMl]);
+                        }
+                    }
+                } catch (\Exception $e) {
+                    // Ignore migration errors
+                }
+
             } catch (PDOException $e) {
                 // Return safe error message without leaking DB credentials
                 $msg = ($config['env'] === 'development') ? "Database connection error: " . $e->getMessage() : "Database connection failure";

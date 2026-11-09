@@ -15,7 +15,8 @@ import {
   ShieldCheck,
   ChevronRight,
   Sun,
-  Moon
+  Moon,
+  FlaskConical
 } from 'lucide-react';
 import { AnalyticsDashboard } from './AnalyticsDashboard';
 import { ProductManager } from './ProductManager';
@@ -25,6 +26,7 @@ import { CustomerManager } from './CustomerManager';
 import { HomepageCMS } from './HomepageCMS';
 import { SettingsCMS } from './SettingsCMS';
 import { MediaManager } from './MediaManager';
+import { InventoryManager } from './InventoryManager';
 
 interface AdminLayoutProps {
   user: {
@@ -43,7 +45,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
   onLogout,
   onSwitchToStorefront
 }) => {
-  const [activeTab, setActiveTab] = useState<'analytics' | 'products' | 'collections' | 'orders' | 'customers' | 'homepage' | 'settings' | 'media'>('analytics');
+  const [activeTab, setActiveTab] = useState<'analytics' | 'products' | 'inventory' | 'collections' | 'orders' | 'customers' | 'homepage' | 'settings' | 'media'>('analytics');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState<boolean>(() => {
@@ -58,7 +60,8 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
 
   const navItems = [
     { id: 'analytics', label: 'Analytics & Insights', icon: BarChart3, desc: 'Sales performance & metrics' },
-    { id: 'products', label: 'Products & Inventory', icon: Package, desc: 'Manage catalogue & stock' },
+    { id: 'products', label: 'Products & Catalogue', icon: Package, desc: 'Manage catalogue & variants' },
+    { id: 'inventory', label: 'ML Perfume Inventory', icon: FlaskConical, desc: 'Track bottle ML & stock ledger' },
     { id: 'collections', label: 'Collections & Categories', icon: Layers, desc: 'Organize store taxonomy' },
     { id: 'orders', label: 'Orders & Invoices', icon: ShoppingBag, desc: 'Track customer orders' },
     { id: 'customers', label: 'Customer Directory', icon: Users, desc: 'Customer accounts & contact' },
@@ -358,6 +361,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
         }`}>
           {activeTab === 'analytics' && <AnalyticsDashboard csrfToken={csrfToken} />}
           {activeTab === 'products' && <ProductManager csrfToken={csrfToken} />}
+          {activeTab === 'inventory' && <InventoryManager csrfToken={csrfToken} />}
           {activeTab === 'collections' && <CollectionManager csrfToken={csrfToken} />}
           {activeTab === 'orders' && <OrderManager csrfToken={csrfToken} />}
           {activeTab === 'customers' && <CustomerManager csrfToken={csrfToken} />}
