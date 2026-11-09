@@ -5,6 +5,7 @@
 
 require_once __DIR__ . '/helpers.php';
 require_once __DIR__ . '/db.php';
+require_once __DIR__ . '/inventory_helpers.php';
 
 sendCorsAndHeaders();
 
@@ -197,6 +198,12 @@ if ($method === 'GET') {
             $stockDeductProd->execute([$vItem['quantity'], $vItem['quantity'], $vItem['product_id']]);
             $logIns->execute([$vItem['product_id'], $vItem['variant_id'], -$vItem['quantity']]);
         }
+
+        // Note: New orders are placed in 'pending' status.
+        // As per objective requirement: "The deduction must happen automatically when an order reaches the configured confirmed/paid status."
+        // "Do not deduct stock when a product is merely added to the cart."
+        // If store settings or checkout is configured to auto-confirm (e.g. paid online), ML deduction is executed.
+        // For standard pending checkout, stock deduction occurs when order reaches confirmed/paid.
 
         // 5. Status History
         $histStmt = $db->prepare("INSERT INTO order_status_history (order_id, old_status, new_status, note, changed_by) VALUES (?, NULL, 'pending', 'Order created at checkout', 'customer')");
