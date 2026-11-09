@@ -66,16 +66,9 @@ foreach ($defaultSettings as $key => $val) {
 
 echo "4. Settings inserted.\n";
 
-$adminUsername = 'admin';
-$adminEmail = 'admin@aromatica.com.bd';
-$adminPass = 'admin123';
-$hash = password_hash($adminPass, PASSWORD_BCRYPT);
-
-$db->exec("DELETE FROM admin_users WHERE username = 'admin'");
-$stmtAdmin = $db->prepare("INSERT INTO admin_users (username, email, password_hash, role) VALUES (?, ?, ?, 'admin')");
-$stmtAdmin->execute([$adminUsername, $adminEmail, $hash]);
-
-echo "5. Admin account created.\n";
+// Note: To create an administrator account, run:
+// php database/create_admin.php <username> <email> <password>
+echo "5. Admin account creation skipped in seed (use database/create_admin.php).\n";
 
 $products = [
   [

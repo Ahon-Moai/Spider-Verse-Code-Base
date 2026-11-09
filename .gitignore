@@ -6,3 +6,6 @@ coverage/
 *.log
 .env*
 !.env.example
+config.local.php
+*.sqlite
+*.db
