@@ -9,44 +9,55 @@ import streetImg from '../assets/images/season_monochrome_street_1791908200992.j
 
 interface IntroSequenceProps {
   onComplete: () => void;
+  /** Whether this is a subsequent page transition (slightly snappier) or initial site entry */
+  isPageTransition?: boolean;
 }
 
-export const IntroSequence: React.FC<IntroSequenceProps> = ({ onComplete }) => {
+export const IntroSequence: React.FC<IntroSequenceProps> = ({ onComplete, isPageTransition = false }) => {
   const [isVisible, setIsVisible] = useState(true);
   const [counter, setCounter] = useState(0);
 
   // Animated Counter from 0 to 99
   useEffect(() => {
+    setIsVisible(true);
+    setCounter(0);
+
     const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
     if (prefersReducedMotion) {
       setCounter(99);
       const timer = setTimeout(() => {
         setIsVisible(false);
-      }, 1000);
+      }, 600);
       return () => clearTimeout(timer);
     }
 
-    const duration = 2200; // Total counter duration in ms
+    // Snappier duration on subsequent page transitions (~1.2s), full cinematic on initial load (~2.0s)
+    const duration = isPageTransition ? 1200 : 2000;
     const steps = 100;
-    const intervalTime = duration / steps; // ~22ms per tick
+    const intervalTime = duration / steps; // ~12ms or ~20ms per tick
+
+    let exitTimeout: ReturnType<typeof setTimeout> | null = null;
 
     const interval = setInterval(() => {
       setCounter((prev) => {
         if (prev >= 99) {
           clearInterval(interval);
           // Brief pause on 99 before triggering exit
-          setTimeout(() => {
+          exitTimeout = setTimeout(() => {
             setIsVisible(false);
-          }, 200);
+          }, 150);
           return 99;
         }
         return prev + 1;
       });
     }, intervalTime);
 
-    return () => clearInterval(interval);
-  }, []);
+    return () => {
+      clearInterval(interval);
+      if (exitTimeout) clearTimeout(exitTimeout);
+    };
+  }, [isPageTransition]);
 
   const handleExitComplete = () => {
     onComplete();

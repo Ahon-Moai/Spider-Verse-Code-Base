@@ -33,6 +33,8 @@ import { Shield } from 'lucide-react';
 
 export default function App() {
   const [showIntro, setShowIntro] = useState<boolean>(true);
+  const [introKey, setIntroKey] = useState<number>(0);
+  const [isPageTransitionIntro, setIsPageTransitionIntro] = useState<boolean>(false);
 
   const [products, setProducts] = useState<FragranceProduct[]>([]);
   const [cart, setCart] = useState<CartItem[]>([]);
@@ -43,6 +45,13 @@ export default function App() {
   // Routing State: 'home' | 'product' | 'collection' | 'admin'
   const [route, setRoute] = useState<{ path: 'home' | 'product' | 'collection' | 'admin'; productSlugOrId?: string; collectionSlug?: string }>({ path: 'home' });
 
+  // Trigger the editorial intro sequence smartly on page openings and page navigation
+  const triggerPageIntro = () => {
+    setIsPageTransitionIntro(true);
+    setIntroKey((prev) => prev + 1);
+    setShowIntro(true);
+  };
+
   // Admin View State
   const [viewMode, setViewMode] = useState<'storefront' | 'admin'>('storefront');
   const [adminUser, setAdminUser] = useState<any | null>(null);
@@ -51,6 +60,9 @@ export default function App() {
   // Live CMS & Store Settings State
   const [storeSettings, setStoreSettings] = useState<any>(null);
   const [homepageData, setHomepageData] = useState<any>(null);
+
+  // Ref to track initial load vs popstate/history navigation
+  const isInitialLoad = React.useRef(true);
 
   // Sync route state with window.location
   useEffect(() => {
@@ -62,34 +74,45 @@ export default function App() {
       if (hash === '#admin' || pathname.startsWith('/admin')) {
         setViewMode('admin');
         setRoute({ path: 'admin' });
+        isInitialLoad.current = false;
         return;
       } else {
         setViewMode('storefront');
       }
 
+      let nextRoute: { path: 'home' | 'product' | 'collection'; productSlugOrId?: string; collectionSlug?: string } = { path: 'home' };
+
       const queryProd = searchParams.get('product');
       if (queryProd) {
-        setRoute({ path: 'product', productSlugOrId: queryProd });
-        return;
-      }
-
-      if (pathname.startsWith('/products/') || pathname.startsWith('/product/')) {
+        nextRoute = { path: 'product', productSlugOrId: queryProd };
+      } else if (pathname.startsWith('/products/') || pathname.startsWith('/product/')) {
         const slugOrId = pathname.replace(/^\/(products|product)\//, '').split('/')[0];
         if (slugOrId) {
-          setRoute({ path: 'product', productSlugOrId: slugOrId });
-          return;
+          nextRoute = { path: 'product', productSlugOrId: slugOrId };
         }
-      }
-
-      if (pathname.startsWith('/collections/') || pathname.startsWith('/collection/')) {
+      } else if (pathname.startsWith('/collections/') || pathname.startsWith('/collection/')) {
         const colSlug = pathname.replace(/^\/(collections|collection)\//, '').split('/')[0];
         if (colSlug) {
-          setRoute({ path: 'collection', collectionSlug: colSlug });
-          return;
+          nextRoute = { path: 'collection', collectionSlug: colSlug };
         }
       }
 
-      setRoute({ path: 'home' });
+      // If user navigated via browser back/forward (popstate), trigger page intro transition
+      if (!isInitialLoad.current) {
+        setRoute((prev) => {
+          const routeChanged =
+            prev.path !== nextRoute.path ||
+            prev.productSlugOrId !== nextRoute.productSlugOrId ||
+            prev.collectionSlug !== nextRoute.collectionSlug;
+          if (routeChanged) {
+            triggerPageIntro();
+          }
+          return nextRoute;
+        });
+      } else {
+        isInitialLoad.current = false;
+        setRoute(nextRoute);
+      }
     };
 
     syncRouteWithUrl();
@@ -143,28 +166,40 @@ export default function App() {
   const navigateToProduct = (productOrSlug: FragranceProduct | string) => {
     const slugOrId = typeof productOrSlug === 'string' ? productOrSlug : (productOrSlug.slug || productOrSlug.id);
     const targetUrl = `/products/${slugOrId}`;
+    const isNewPage = route.path !== 'product' || route.productSlugOrId !== slugOrId;
     if (window.location.pathname !== targetUrl) {
       window.history.pushState({}, '', targetUrl);
     }
     setRoute({ path: 'product', productSlugOrId: slugOrId });
     window.scrollTo({ top: 0, behavior: 'smooth' });
+    if (isNewPage) {
+      triggerPageIntro();
+    }
   };
 
   const navigateToCollection = (slug: string) => {
     const targetUrl = `/collections/${slug}`;
+    const isNewPage = route.path !== 'collection' || route.collectionSlug !== slug;
     if (window.location.pathname !== targetUrl) {
       window.history.pushState({}, '', targetUrl);
     }
     setRoute({ path: 'collection', collectionSlug: slug });
     window.scrollTo({ top: 0, behavior: 'smooth' });
+    if (isNewPage) {
+      triggerPageIntro();
+    }
   };
 
   const navigateToHome = () => {
+    const isNewPage = route.path !== 'home';
     if (window.location.pathname !== '/' && window.location.hash !== '#admin') {
       window.history.pushState({}, '', '/');
     }
     setRoute({ path: 'home' });
     window.scrollTo({ top: 0, behavior: 'smooth' });
+    if (isNewPage) {
+      triggerPageIntro();
+    }
   };
 
   const showToast = (msg: any) => {
@@ -287,7 +322,11 @@ export default function App() {
     <div className="min-h-screen bg-white text-zinc-900 font-sans flex flex-col selection:bg-zinc-900 selection:text-white relative">
       {/* Editorial Pure Portions opening intro sequence */}
       {showIntro && (
-        <IntroSequence onComplete={() => setShowIntro(false)} />
+        <IntroSequence
+          key={`intro-${introKey}`}
+          isPageTransition={isPageTransitionIntro}
+          onComplete={() => setShowIntro(false)}
+        />
       )}
 
       {/* Admin Quick Switch floating button for store manager */}
