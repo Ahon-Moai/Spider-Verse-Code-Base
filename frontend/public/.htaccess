@@ -1,0 +1,45 @@
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteBase /
+
+  # 1. Protect private sensitive server files and configs
+  <FilesMatch "\.(env|log|sql|sqlite|md|example\.php)$">
+    <IfModule mod_authz_core.c>
+      Require all denied
+    </IfModule>
+    <IfModule !mod_authz_core.c>
+      Order allow,deny
+      Deny from all
+    </IfModule>
+  </FilesMatch>
+
+  # 2. Block script execution inside the uploads media directory
+  RewriteRule ^uploads/.*\.php$ - [F,L]
+
+  # 3. Pass through PHP REST API endpoints directly without SPA rewriting
+  RewriteCond %{REQUEST_URI} ^/api/ [NC]
+  RewriteCond %{REQUEST_FILENAME} -f [OR]
+  RewriteCond %{REQUEST_FILENAME} -d
+  RewriteRule ^ - [L]
+
+  # If an API script is requested without the .php extension
+  RewriteCond %{REQUEST_URI} ^/api/ [NC]
+  RewriteCond %{DOCUMENT_ROOT}/$1.php -f
+  RewriteRule ^api/(.*)$ api/$1.php [QSA,L]
+
+  # If API file directly exists
+  RewriteCond %{REQUEST_URI} ^/api/ [NC]
+  RewriteRule ^api/(.*)$ api/$1 [QSA,L]
+
+  # 4. Pass through uploaded media directly
+  RewriteCond %{REQUEST_URI} ^/uploads/ [NC]
+  RewriteRule ^ - [L]
+
+  # 5. Serve existing frontend static assets directly (js, css, images, fonts)
+  RewriteCond %{REQUEST_FILENAME} -f [OR]
+  RewriteCond %{REQUEST_FILENAME} -d
+  RewriteRule ^ - [L]
+
+  # 6. Fallback all React Router SPA storefront paths to index.html
+  RewriteRule ^ index.html [L]
+</IfModule>

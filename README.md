@@ -82,3 +82,61 @@ chmod 755 uploads
 ## 5. API Documentation
 
 Detailed documentation for all public storefront and protected admin REST endpoints can be found in [`docs/API.md`](docs/API.md).
+
+---
+
+## 6. Frontend Development & Deployment (Spider Verse)
+
+The storefront is a modern React + TypeScript single-page application located in `/frontend`, themed with an **F1 meets Marvel** aesthetic.
+
+### A. Local Setup & Development
+
+1. Navigate to the frontend directory:
+   ```bash
+   cd frontend
+   npm install
+   ```
+
+2. Configure environment variables:
+   Copy `.env.example` to `.env`:
+   ```bash
+   cp .env.example .env
+   ```
+   Set `VITE_API_BASE_URL` to point to your PHP API (default is `/api` or `http://localhost:8000/api` during local dev).
+
+3. Start development server:
+   ```bash
+   npm run dev
+   ```
+   Or from the root directory:
+   ```bash
+   npm run dev
+   ```
+   The Vite dev server proxies `/api` and `/uploads` directly to `http://127.0.0.1:8000`.
+
+### B. Building for Production
+
+To compile the production bundle with type checking and code splitting:
+```bash
+npm run build
+```
+Or from the root:
+```bash
+npm run build
+```
+The compiled output will be generated in `frontend/dist/`.
+
+### C. Deploying to cPanel / BDIX Shared Hosting (`public_html`)
+
+1. Build the frontend locally with `npm run build` (or on your CI runner).
+2. Upload the compiled files from `frontend/dist/` into your cPanel `public_html/`:
+   ```
+   public_html/
+   ├── index.html
+   ├── .htaccess             <-- Included in frontend/dist/ (or frontend/public/.htaccess)
+   ├── assets/               <-- Minified JS & CSS chunks
+   ├── api/                  <-- Symlink or copy of backend api/
+   └── uploads/              <-- Persistent media upload folder (chmod 755)
+   ```
+3. **Apache `.htaccess` SPA Routing**:
+   The provided `.htaccess` ensures all client-side routes (e.g. `/products`, `/about`, `/track`) are served via `index.html` while preserving direct access to `/api/*` and `/uploads/*`.
