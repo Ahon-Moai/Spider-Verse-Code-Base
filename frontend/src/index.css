@@ -1,0 +1,123 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --color-carbon-dark: #0b0d10;
+    --color-carbon-card: #131720;
+    --color-carbon-card-hover: #1c2230;
+    --color-carbon-border: #242c3d;
+    --color-racing-red: #e10600;
+    --color-racing-red-hover: #ff1812;
+    --color-marvel-yellow: #ffe600;
+    --color-electric-blue: #00d2ff;
+    --color-hero-accent: #ff2a2a;
+    --color-text-main: #f0f2f5;
+    --color-text-muted: #8e9bb0;
+  }
+
+  body {
+    background-color: var(--color-carbon-dark);
+    color: var(--color-text-main);
+    font-family: 'Rajdhani', -apple-system, BlinkMacSystemFont, sans-serif;
+    overflow-x: hidden;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Barlow Condensed', sans-serif;
+    text-transform: uppercase;
+    font-style: italic;
+    letter-spacing: 0.05em;
+  }
+
+  .font-mono-telemetry {
+    font-family: 'Orbitron', monospace;
+  }
+
+  .font-condensed {
+    font-family: 'Barlow Condensed', sans-serif;
+  }
+
+  .font-body {
+    font-family: 'Rajdhani', sans-serif;
+  }
+}
+
+/* Carbon weave texture background */
+.bg-carbon-pattern {
+  background-color: #0b0d10;
+  background-image:
+    linear-gradient(45deg, #111419 25%, transparent 25%),
+    linear-gradient(-45deg, #111419 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, #111419 75%),
+    linear-gradient(-45deg, transparent 75%, #111419 75%);
+  background-size: 16px 16px;
+  background-position: 0 0, 0 8px, 8px -8px, -8px 0px;
+}
+
+/* Comic halftone dot texture overlay */
+.bg-halftone-pattern {
+  background-image: radial-gradient(rgba(255, 230, 0, 0.12) 1.5px, transparent 1.5px);
+  background-size: 12px 12px;
+}
+
+.bg-halftone-red {
+  background-image: radial-gradient(rgba(225, 6, 0, 0.15) 1.5px, transparent 1.5px);
+  background-size: 12px 12px;
+}
+
+/* Angled racing card corners via CSS clip-path */
+.clip-corner-tr {
+  clip-path: polygon(0 0, calc(100% - 16px) 0, 100% 16px, 100% 100%, 0 100%);
+}
+
+.clip-corner-br {
+  clip-path: polygon(0 0, 100% 0, 100% calc(100% - 16px), calc(100% - 16px) 100%, 0 100%);
+}
+
+.clip-corner-both {
+  clip-path: polygon(0 0, calc(100% - 16px) 0, 100% 16px, 100% calc(100% - 16px), calc(100% - 16px) 100%, 0 100%);
+}
+
+.clip-racing-tag {
+  clip-path: polygon(0 0, 100% 0, calc(100% - 12px) 100%, 0 100%);
+}
+
+.clip-comic-panel {
+  clip-path: polygon(0 0, 100% 0, 98% 100%, 0 100%);
+}
+
+/* Checkered flag racing border */
+.border-checkered {
+  background: repeating-conic-gradient(#fff 0% 25%, #000 0% 50%) 50% / 12px 12px;
+}
+
+/* Speed stripe accents */
+.speed-stripes {
+  background: repeating-linear-gradient(
+    -45deg,
+    transparent,
+    transparent 6px,
+    rgba(225, 6, 0, 0.25) 6px,
+    rgba(225, 6, 0, 0.25) 12px
+  );
+}
+
+.speed-stripes-yellow {
+  background: repeating-linear-gradient(
+    -45deg,
+    transparent,
+    transparent 6px,
+    rgba(255, 230, 0, 0.25) 6px,
+    rgba(255, 230, 0, 0.25) 12px
+  );
+}
+
+/* Accessibility: respect prefers-reduced-motion */
+@media (prefers-reduced-motion: reduce) {
+  *, ::before, ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
