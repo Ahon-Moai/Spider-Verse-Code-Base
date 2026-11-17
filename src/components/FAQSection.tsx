@@ -6,9 +6,13 @@ interface FAQSectionProps {
   faqs?: Array<{ id: string; question: string; answer: string }>;
 }
 
+const isLegacyPerfumeFaq = (list?: Array<{ question: string }>) =>
+  !list ||
+  list.length === 0 ||
+  list.some((f) => /decant|perfume|fragrance|sniff/i.test(f.question));
+
 export const FAQSection: React.FC<FAQSectionProps> = ({ faqs }) => {
-  const faqList = faqs && faqs.length > 0 ? faqs : FAQ_ITEMS;
-  // First accordion is open by default
+  const faqList = isLegacyPerfumeFaq(faqs) ? FAQ_ITEMS : faqs!;
   const [openId, setOpenId] = useState<string>(faqList[0]?.id || 'faq-1');
 
   const toggleAccordion = (id: string) => {
@@ -16,58 +20,57 @@ export const FAQSection: React.FC<FAQSectionProps> = ({ faqs }) => {
   };
 
   return (
-    <section id="faq" className="w-full bg-[#ECE8E1] text-[#FF1801] py-14 sm:py-20 border-b border-[#FF1801]/20 select-none">
+    <section
+      id="faq"
+      className="w-full bg-[#F4F2EE] text-[#08090B] py-16 sm:py-24 border-b border-zinc-300/70 select-none"
+    >
       <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
-
-        {/* Editorial Section Header */}
-        <div className="mb-8 sm:mb-12">
-          <div className="flex items-center gap-3">
-            <span className="text-[11px] sm:text-xs tracking-[0.25em] uppercase font-bold text-[#FF1801]">
-              ++ QUESTIONS & CLARIFICATIONS
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between border-b-2 border-[#08090B] pb-4 mb-10 gap-3">
+          <div>
+            <span className="font-mono text-[11px] tracking-[0.22em] text-[#E10600] uppercase font-semibold block">
+              Technical Briefings
             </span>
-          </div>
-
-          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mt-2 mb-3">
-            <h2 className="font-sans font-black text-2xl sm:text-3xl md:text-5xl uppercase tracking-tight text-[#FF1801] leading-none">
+            <h2 className="font-display font-black text-3xl sm:text-4xl lg:text-5xl uppercase tracking-tight text-[#08090B] leading-none mt-1">
               Frequently Asked Questions
             </h2>
-            <span className="text-[11px] sm:text-xs font-mono font-bold tracking-widest uppercase text-[#FF1801]/80">
-              CONCIERGE & SUPPORT
-            </span>
           </div>
-
-          {/* Thick Solid Red Horizontal Divider matching Hero */}
-          <div className="w-full h-[3.5px] sm:h-[4.5px] md:h-[5px] bg-[#FF1801] mt-3 sm:mt-4 mb-8" />
+          <span className="font-mono text-xs text-zinc-600 uppercase tracking-[0.16em]">
+            Garage Support & Policy
+          </span>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-14 items-start">
-          {/* Left Column: Accordion Questions */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start">
+          {/* Left: Accordions */}
           <div className="lg:col-span-7 order-2 lg:order-1">
-            <div className="divide-y-2 divide-[#FF1801] border-t-2 border-b-2 border-[#FF1801]">
-              {faqList.map((item) => {
+            <div className="divide-y divide-zinc-300 border-t border-b border-zinc-300">
+              {faqList.map((item, idx) => {
                 const isOpen = openId === item.id;
                 return (
-                  <div key={item.id} className="py-4 sm:py-5 transition-colors">
+                  <div key={item.id} className="py-4 sm:py-5">
                     <button
+                      type="button"
                       onClick={() => toggleAccordion(item.id)}
-                      className="w-full flex items-center justify-between text-left group cursor-pointer focus:outline-none"
+                      className="w-full flex items-center justify-between text-left group cursor-pointer focus-visible:outline-none"
                       aria-expanded={isOpen}
                     >
-                      <div className="flex items-center gap-3 pr-2">
-                        <span className="text-[#FF1801] font-bold text-sm sm:text-base">++</span>
-                        <span className="font-sans text-xs sm:text-sm font-bold text-[#FF1801] group-hover:opacity-75 uppercase tracking-wide transition-opacity">
+                      <div className="flex items-baseline gap-3 pr-4">
+                        <span className="font-mono text-xs text-[#E10600] font-semibold tabular-nums shrink-0">
+                          {String(idx + 1).padStart(2, '0')}.
+                        </span>
+                        <span className="font-display text-lg sm:text-xl font-bold uppercase tracking-wide text-[#08090B] group-hover:text-[#E10600] transition-colors">
                           {item.question}
                         </span>
                       </div>
                       <ChevronDown
-                        className={`w-4 h-4 text-[#FF1801] transition-transform duration-300 shrink-0 ml-3 ${
-                          isOpen ? 'rotate-180' : ''
+                        className={`w-4 h-4 text-[#08090B] transition-transform duration-200 shrink-0 ${
+                          isOpen ? 'rotate-180 text-[#E10600]' : ''
                         }`}
                       />
                     </button>
 
                     {isOpen && (
-                      <div className="mt-3 pl-7 pr-4 text-xs sm:text-[13px] text-[#111111] font-sans leading-relaxed font-semibold animate-fade-in bg-[#FAF8F5] p-3.5 border-l-2 border-[#FF1801]">
+                      <div className="mt-3 ml-8 p-4 bg-white border border-zinc-200 text-xs sm:text-sm text-zinc-700 leading-relaxed animate-fade-in">
                         {item.answer}
                       </div>
                     )}
@@ -77,47 +80,58 @@ export const FAQSection: React.FC<FAQSectionProps> = ({ faqs }) => {
             </div>
           </div>
 
-          {/* Right Column: Information, Editorial Card & CTA */}
-          <div className="lg:col-span-5 order-1 lg:order-2 space-y-6">
-            <div className="bg-[#FAF8F5] border-2 border-[#FF1801] p-6 sm:p-8 space-y-4">
-              <span className="text-[10px] tracking-[0.25em] font-mono uppercase font-bold text-[#FF1801] block">
-                AROMATICA CARE
-              </span>
-              <h3 className="font-sans font-black text-xl sm:text-2xl text-[#FF1801] uppercase tracking-tight leading-snug">
-                Need Personalized Scent Advice or Order Support?
+          {/* Right: Dark Obsidian Paddock Concierge Panel */}
+          <div className="lg:col-span-5 order-1 lg:order-2 space-y-4">
+            <div className="bg-[#111317] text-[#F4F2EE] border border-[#08090B] p-6 sm:p-8 space-y-5">
+              <div className="flex items-center justify-between border-b border-white/10 pb-3">
+                <span className="font-mono text-[10px] tracking-[0.22em] uppercase text-[#E10600] font-semibold">
+                  Paddock Support
+                </span>
+                <span className="font-mono text-[10px] text-[#9CA3AF] uppercase">
+                  10AM — 11PM
+                </span>
+              </div>
+
+              <h3 className="font-display font-bold text-2xl sm:text-3xl text-white uppercase tracking-tight leading-tight">
+                Scale Matching, RC Pairing & Gift Concierge
               </h3>
-              <p className="text-xs sm:text-sm text-[#111111] font-sans font-semibold leading-relaxed">
-                Our decant studio is here to assist with notes advice, authenticity confirmation, and bulk allocations for weddings and corporate orders.
+
+              <p className="text-xs sm:text-sm text-[#C4C9D4] leading-relaxed">
+                Our model specialists assist with choosing between 1:18 alloy display pieces, 1:43 acrylic showcase grids, and kid-ready 2.4GHz RC racers for collectors and gifts.
               </p>
 
               <div className="pt-2">
                 <button
+                  type="button"
                   onClick={() => {
-                    const firstItem = document.getElementById('faq');
-                    firstItem?.scrollIntoView({ behavior: 'smooth' });
+                    const el = document.getElementById('new-arrivals');
+                    el?.scrollIntoView({ behavior: 'smooth' });
                   }}
-                  className="inline-flex items-center gap-2 border-2 border-[#FF1801] bg-[#FF1801] text-[#FAF8F5] hover:bg-transparent hover:text-[#FF1801] text-xs font-bold tracking-widest uppercase px-6 py-3 transition-all duration-200 cursor-pointer shadow-xs"
+                  className="btn-f1 bg-[#E10600] hover:bg-[#ff1e18] text-white font-display text-base font-bold tracking-[0.08em] uppercase px-7 py-3 transition-colors cursor-pointer"
                 >
-                  <span>EXPLORE ALL FAQS</span>
-                  <ArrowUpRight className="w-4 h-4" />
+                  <span className="btn-f1-inner">
+                    <span>Browse F1 Cars</span>
+                    <ArrowUpRight className="w-4 h-4" />
+                  </span>
                 </button>
               </div>
             </div>
 
-            <div className="bg-[#FAF8F5] border-2 border-[#FF1801] p-4 flex items-center justify-between">
+            <div className="bg-white border border-zinc-300 p-4 flex items-center justify-between">
               <div>
-                <p className="text-[10px] font-mono tracking-widest uppercase text-[#FF1801] font-bold">
-                  DIRECT CONCIERGE
+                <p className="font-mono text-[10px] tracking-[0.18em] uppercase text-zinc-500">
+                  Direct Garage Hotline
                 </p>
-                <p className="text-xs font-bold text-[#FF1801]">
-                  WhatsApp Hotline: +880 1700-000000
+                <p className="font-mono text-xs sm:text-sm font-bold text-[#08090B] mt-0.5 tabular-nums">
+                  +880 1700-000000
                 </p>
               </div>
-              <span className="text-xs font-mono font-bold text-[#FF1801]">10AM - 11PM</span>
+              <span className="font-mono text-[11px] font-semibold text-[#E10600] uppercase">
+                WhatsApp · DM
+              </span>
             </div>
           </div>
         </div>
-
       </div>
     </section>
   );

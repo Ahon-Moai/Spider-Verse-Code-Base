@@ -9,7 +9,6 @@ import { Hero } from './components/Hero';
 import { CategoryMarquee } from './components/CategoryMarquee';
 import { NewArrivals } from './components/NewArrivals';
 import { CampaignBanners } from './components/CampaignBanners';
-import { SeasonsGallery } from './components/SeasonsGallery';
 import { VideoSection } from './components/VideoSection';
 import { CustomProductSections } from './components/CustomProductSections';
 import { TrustSection } from './components/TrustSection';
@@ -26,9 +25,13 @@ import { MobileBottomNav } from './components/MobileBottomNav';
 import { IntroSequence } from './components/IntroSequence';
 import { AdminLogin } from './admin/AdminLogin';
 import { AdminLayout } from './admin/AdminLayout';
-import { NEW_ARRIVALS } from './data/fragranceData';
 import { FragranceProduct, CartItem, JournalArticle } from './types';
-import { fetchPublicProducts, fetchHomepageData, fetchStoreSettings, getErrorMessage } from './services/api';
+import {
+  fetchPublicProducts,
+  fetchHomepageData,
+  fetchStoreSettings,
+  getErrorMessage,
+} from './services/api';
 import { Shield } from 'lucide-react';
 
 export default function App() {
@@ -42,29 +45,27 @@ export default function App() {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
-  // Routing State: 'home' | 'product' | 'collection' | 'admin'
-  const [route, setRoute] = useState<{ path: 'home' | 'product' | 'collection' | 'admin'; productSlugOrId?: string; collectionSlug?: string }>({ path: 'home' });
+  const [route, setRoute] = useState<{
+    path: 'home' | 'product' | 'collection' | 'admin';
+    productSlugOrId?: string;
+    collectionSlug?: string;
+  }>({ path: 'home' });
 
-  // Trigger the editorial intro sequence smartly on page openings and page navigation
   const triggerPageIntro = () => {
     setIsPageTransitionIntro(true);
     setIntroKey((prev) => prev + 1);
     setShowIntro(true);
   };
 
-  // Admin View State
   const [viewMode, setViewMode] = useState<'storefront' | 'admin'>('storefront');
   const [adminUser, setAdminUser] = useState<any | null>(null);
   const [csrfToken, setCsrfToken] = useState<string>('');
 
-  // Live CMS & Store Settings State
   const [storeSettings, setStoreSettings] = useState<any>(null);
   const [homepageData, setHomepageData] = useState<any>(null);
 
-  // Ref to track initial load vs popstate/history navigation
   const isInitialLoad = React.useRef(true);
 
-  // Sync route state with window.location
   useEffect(() => {
     const syncRouteWithUrl = () => {
       const pathname = window.location.pathname;
@@ -80,7 +81,11 @@ export default function App() {
         setViewMode('storefront');
       }
 
-      let nextRoute: { path: 'home' | 'product' | 'collection'; productSlugOrId?: string; collectionSlug?: string } = { path: 'home' };
+      let nextRoute: {
+        path: 'home' | 'product' | 'collection';
+        productSlugOrId?: string;
+        collectionSlug?: string;
+      } = { path: 'home' };
 
       const queryProd = searchParams.get('product');
       if (queryProd) {
@@ -97,7 +102,6 @@ export default function App() {
         }
       }
 
-      // If user navigated via browser back/forward (popstate), trigger page intro transition
       if (!isInitialLoad.current) {
         setRoute((prev) => {
           const routeChanged =
@@ -124,13 +128,12 @@ export default function App() {
     };
   }, []);
 
-  // Fetch live products, store settings & homepage content from API on mount
   useEffect(() => {
     const loadApiData = async () => {
       const [liveProducts, settings, hpData] = await Promise.all([
         fetchPublicProducts(),
         fetchStoreSettings(),
-        fetchHomepageData()
+        fetchHomepageData(),
       ]);
 
       if (liveProducts && liveProducts.length > 0) {
@@ -146,7 +149,6 @@ export default function App() {
     loadApiData();
   }, [viewMode]);
 
-  // Check existing admin session
   useEffect(() => {
     const checkSession = async () => {
       try {
@@ -156,7 +158,7 @@ export default function App() {
           setAdminUser(data.data.user);
           setCsrfToken(data.data.csrf_token);
         }
-      } catch (e) {
+      } catch {
         // Unauthenticated
       }
     };
@@ -164,7 +166,10 @@ export default function App() {
   }, []);
 
   const navigateToProduct = (productOrSlug: FragranceProduct | string) => {
-    const slugOrId = typeof productOrSlug === 'string' ? productOrSlug : (productOrSlug.slug || productOrSlug.id);
+    const slugOrId =
+      typeof productOrSlug === 'string'
+        ? productOrSlug
+        : productOrSlug.slug || productOrSlug.id;
     const targetUrl = `/products/${slugOrId}`;
     const isNewPage = route.path !== 'product' || route.productSlugOrId !== slugOrId;
     if (window.location.pathname !== targetUrl) {
@@ -209,7 +214,12 @@ export default function App() {
     }, 3200);
   };
 
-  const handleAddToCart = (product: FragranceProduct, size: string, price: number, qty = 1) => {
+  const handleAddToCart = (
+    product: FragranceProduct,
+    size: string,
+    price: number,
+    qty = 1
+  ) => {
     setCart((prev) => {
       const existingIdx = prev.findIndex(
         (item) => item.product.id === product.id && item.selectedSize === size
@@ -218,14 +228,18 @@ export default function App() {
         const next = [...prev];
         next[existingIdx].quantity += qty;
         return next;
-      } else {
-        return [...prev, { product, selectedSize: size, price, quantity: qty }];
       }
+      return [...prev, { product, selectedSize: size, price, quantity: qty }];
     });
-    showToast(`Added ${size} ${product.brand} - ${product.name} to bag`);
+    showToast(`Added ${size} ${product.brand} — ${product.name} to bag`);
   };
 
-  const handleBuyNow = (product: FragranceProduct, size: string, price: number, qty = 1) => {
+  const handleBuyNow = (
+    product: FragranceProduct,
+    size: string,
+    price: number,
+    qty = 1
+  ) => {
     handleAddToCart(product, size, price, qty);
     setIsCartOpen(true);
   };
@@ -246,39 +260,39 @@ export default function App() {
 
   const handleRemoveFromCart = (productId: string, size: string) => {
     setCart((prev) =>
-      prev.filter(
-        (item) => !(item.product.id === productId && item.selectedSize === size)
-      )
+      prev.filter((item) => !(item.product.id === productId && item.selectedSize === size))
     );
-    showToast('Decant removed from bag');
+    showToast('Model removed from bag');
   };
 
   const handleExploreClick = () => {
     if (route.path !== 'home') {
       navigateToHome();
       setTimeout(() => {
-        const el = document.getElementById('new-arrivals');
-        el?.scrollIntoView({ behavior: 'smooth' });
+        document.getElementById('new-arrivals')?.scrollIntoView({ behavior: 'smooth' });
       }, 100);
     } else {
-      const el = document.getElementById('new-arrivals');
-      el?.scrollIntoView({ behavior: 'smooth' });
+      document.getElementById('new-arrivals')?.scrollIntoView({ behavior: 'smooth' });
     }
   };
 
   const handleSelectGenderCategory = (gender: 'Him' | 'Her') => {
     handleExploreClick();
-    showToast(`Displaying curated decants for ${gender}`);
+    showToast(
+      gender === 'Him' ? 'Displaying 1:18 Pro Diecast F1 cars' : 'Displaying 1:43 Collector Grid models'
+    );
   };
 
   const handleReadArticle = (article: JournalArticle) => {
-    showToast(`Opening article: "${article.title}"`);
+    showToast(`Reading: "${article.title}"`);
   };
 
   const handleAdminLogout = async () => {
     try {
       await fetch('/api/auth.php?action=logout');
-    } catch (e) {}
+    } catch {
+      // ignore
+    }
     setAdminUser(null);
     setCsrfToken('');
     setViewMode('storefront');
@@ -288,12 +302,13 @@ export default function App() {
 
   const totalCartCount = cart.reduce((total, item) => total + item.quantity, 0);
 
-  // Active product for detail page
-  const currentProduct = route.path === 'product' && route.productSlugOrId
-    ? products.find((p) => p.slug === route.productSlugOrId || p.id === route.productSlugOrId) || null
-    : null;
+  const currentProduct =
+    route.path === 'product' && route.productSlugOrId
+      ? products.find(
+          (p) => p.slug === route.productSlugOrId || p.id === route.productSlugOrId
+        ) || null
+      : null;
 
-  // If in Admin CMS Mode
   if (viewMode === 'admin') {
     if (!adminUser) {
       return (
@@ -319,8 +334,7 @@ export default function App() {
   }
 
   return (
-    <div className="min-h-screen bg-white text-zinc-900 font-sans flex flex-col selection:bg-zinc-900 selection:text-white relative">
-      {/* Editorial Pure Portions opening intro sequence */}
+    <div className="min-h-screen bg-[#08090B] text-[#F4F2EE] font-sans flex flex-col selection:bg-[#E10600] selection:text-white relative">
       {showIntro && (
         <IntroSequence
           key={`intro-${introKey}`}
@@ -329,33 +343,33 @@ export default function App() {
         />
       )}
 
-      {/* Admin Quick Switch floating button for store manager */}
+      {/* Admin CMS Switch Button (preserved) */}
       <button
+        type="button"
         onClick={() => {
           setViewMode('admin');
           window.location.hash = '#admin';
         }}
-        className="fixed bottom-6 left-6 z-40 bg-zinc-950 text-white hover:bg-amber-400 hover:text-black px-3 py-2 border border-zinc-700 shadow-2xl text-[10px] font-sans tracking-widest uppercase flex items-center gap-2 transition-all cursor-pointer"
+        className="fixed bottom-16 md:bottom-6 left-4 md:left-6 z-40 bg-[#111317] text-white hover:bg-[#E10600] px-3 py-2 border border-white/15 shadow-2xl text-[10px] font-mono tracking-widest uppercase flex items-center gap-2 transition-colors cursor-pointer"
         title="Open Admin CMS Dashboard"
       >
-        <Shield className="w-3.5 h-3.5" />
+        <Shield className="w-3.5 h-3.5 text-[#E10600] group-hover:text-white" />
         <span className="hidden sm:inline">ADMIN CMS</span>
       </button>
 
       {/* Toast Notification */}
       {toastMessage && (
-        <div className="fixed bottom-6 right-6 z-50 bg-zinc-950 text-white border border-zinc-700 px-4 py-2.5 shadow-2xl text-xs font-sans tracking-wide flex items-center gap-2 animate-bounce">
-          <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
+        <div className="fixed bottom-16 md:bottom-6 right-4 md:right-6 z-50 bg-[#08090B] text-white border border-[#E10600] px-4 py-3 shadow-2xl text-xs font-mono tracking-wide flex items-center gap-2.5 animate-fade-in">
+          <span className="w-2 h-[2px] bg-[#E10600] shrink-0" />
           <span>{toastMessage}</span>
         </div>
       )}
 
-      {/* A. Minimal announcement and navigation bar */}
       <Header
         cartCount={totalCartCount}
         onOpenCart={() => setIsCartOpen(true)}
         onOpenSearch={() => setIsSearchOpen(true)}
-        onOpenWishlist={() => showToast('Wishlist: 3 items saved')}
+        onOpenWishlist={() => showToast('Wishlist updated')}
         onNavigateHome={navigateToHome}
         onNavigateToCollection={navigateToCollection}
         storeSettings={storeSettings}
@@ -363,7 +377,6 @@ export default function App() {
 
       <main className="flex-1">
         {route.path === 'collection' && route.collectionSlug ? (
-          /* Dedicated Collection / Category Filter Page */
           <CollectionPage
             collectionSlug={route.collectionSlug}
             allProducts={products}
@@ -374,7 +387,6 @@ export default function App() {
             showToast={showToast}
           />
         ) : route.path === 'product' ? (
-          /* Dedicated Product Detail Page */
           <ProductDetailPage
             product={currentProduct}
             allProducts={products}
@@ -385,9 +397,7 @@ export default function App() {
             showToast={showToast}
           />
         ) : (
-          /* Storefront Homepage */
           <>
-            {/* B. Editorial Pure Portions Hero Section with Seasons boxes */}
             <Hero
               products={products}
               onSelectProduct={(p) => navigateToProduct(p)}
@@ -400,13 +410,11 @@ export default function App() {
               seasonsData={homepageData?.sections?.seasons_gallery?.content}
             />
 
-            {/* C. Oversized category marquee */}
             <CategoryMarquee
               items={homepageData?.sections?.category_marquee?.content?.items}
               onNavigateToCollection={navigateToCollection}
             />
 
-            {/* D. New Arrivals product carousel */}
             <NewArrivals
               products={products}
               onSelectProduct={(p) => navigateToProduct(p)}
@@ -414,22 +422,22 @@ export default function App() {
               onNavigateToCollection={navigateToCollection}
             />
 
-            {/* E. For Him / For Her editorial banners */}
             <CampaignBanners
               onSelectCategory={handleSelectGenderCategory}
               onNavigateToCollection={navigateToCollection}
               campaignData={homepageData?.sections?.campaign_banners?.content}
             />
 
-            {/* G. Premium Video Product Showcase Carousel */}
             <VideoSection
-              videoData={homepageData?.sections?.video_showcase?.content || homepageData?.sections?.video_hero?.content}
+              videoData={
+                homepageData?.sections?.video_showcase?.content ||
+                homepageData?.sections?.video_hero?.content
+              }
               products={products}
               onSelectProduct={(p) => navigateToProduct(p)}
               onExploreClick={handleExploreClick}
             />
 
-            {/* Dynamic Custom Product Sections */}
             <CustomProductSections
               homepageData={homepageData}
               allProducts={products}
@@ -438,23 +446,18 @@ export default function App() {
               onNavigateToCollection={navigateToCollection}
             />
 
-            {/* H. Trust and shopping information section */}
             <TrustSection
               storeSettings={storeSettings}
               products={products}
               onNavigateToCollection={navigateToCollection}
             />
 
-            {/* I. Black FAQ section */}
             <FAQSection faqs={homepageData?.faqs} />
 
-            {/* J. Customer reviews section */}
             <ReviewsSection reviews={homepageData?.reviews} />
 
-            {/* K. Our Studio social-content section */}
             <StudioSection socialCards={homepageData?.socialCards} />
 
-            {/* L. Editorial blog and fragrance guides */}
             <JournalSection
               onReadArticle={handleReadArticle}
               articles={homepageData?.articles}
@@ -463,10 +466,8 @@ export default function App() {
         )}
       </main>
 
-      {/* M. Oversized AROMATICA brand footer */}
       <Footer storeSettings={storeSettings} />
 
-      {/* N. Premium Mobile Floating Bottom Navigation */}
       <MobileBottomNav
         activeTab={
           isSearchOpen
@@ -475,8 +476,6 @@ export default function App() {
             ? 'bag'
             : route.path === 'collection'
             ? 'shop'
-            : route.path === 'home'
-            ? 'home'
             : 'home'
         }
         cartCount={totalCartCount}
@@ -484,10 +483,8 @@ export default function App() {
         onNavigateShop={() => navigateToCollection('all')}
         onOpenSearch={() => setIsSearchOpen(true)}
         onOpenCart={() => setIsCartOpen(true)}
-        onSelectAI={() => showToast('AromaAI Concierge: Scent recommendation engine ready')}
       />
 
-      {/* Interactive Drawers & Search Modal */}
       <CartDrawer
         isOpen={isCartOpen}
         onClose={() => setIsCartOpen(false)}

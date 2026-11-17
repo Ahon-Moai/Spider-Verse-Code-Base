@@ -1,57 +1,52 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 
-// Fashion images from assets
-import portraitImg from '../assets/images/season_dark_forest_1791908203381.jpg';
-import himImg from '../assets/images/campaign_for_him_1791908163466.jpg';
-import heroImg from '../assets/images/season_dune_red_sun_1791908201156.jpg';
-import streetImg from '../assets/images/season_monochrome_street_1791908200992.jpg';
+import heroF1Img from '../assets/images/hero_f1_diecast_studio_1794664768996.jpg';
+import pro118Img from '../assets/images/campaign_f1_pro_118_1794664772367.jpg';
+import display143Img from '../assets/images/campaign_f1_display_143_1794664770809.jpg';
 
 interface IntroSequenceProps {
   onComplete: () => void;
-  /** Whether this is a subsequent page transition (slightly snappier) or initial site entry */
+  /** Whether this is a subsequent page transition (snappier) or initial site entry */
   isPageTransition?: boolean;
 }
 
-export const IntroSequence: React.FC<IntroSequenceProps> = ({ onComplete, isPageTransition = false }) => {
+export const IntroSequence: React.FC<IntroSequenceProps> = ({
+  onComplete,
+  isPageTransition = false,
+}) => {
   const [isVisible, setIsVisible] = useState(true);
   const [counter, setCounter] = useState(0);
 
-  // Animated Counter from 0 to 99
   useEffect(() => {
     setIsVisible(true);
     setCounter(0);
 
     const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-
     if (prefersReducedMotion) {
-      setCounter(99);
-      const timer = setTimeout(() => {
-        setIsVisible(false);
-      }, 600);
+      setCounter(100);
+      const timer = setTimeout(() => setIsVisible(false), 350);
       return () => clearTimeout(timer);
     }
 
-    // Snappier duration on subsequent page transitions (~1.2s), full cinematic on initial load (~2.0s)
-    const duration = isPageTransition ? 1200 : 2000;
+    const duration = isPageTransition ? 850 : 1450;
     const steps = 100;
-    const intervalTime = duration / steps; // ~12ms or ~20ms per tick
+    const intervalTime = duration / steps;
 
     let exitTimeout: ReturnType<typeof setTimeout> | null = null;
 
     const interval = setInterval(() => {
       setCounter((prev) => {
-        if (prev >= 99) {
+        if (prev >= 100) {
           clearInterval(interval);
-          // Brief pause on 99 before triggering exit
           exitTimeout = setTimeout(() => {
             setIsVisible(false);
-          }, 150);
-          return 99;
+          }, 120);
+          return 100;
         }
-        return prev + 1;
+        return prev + 2 > 100 ? 100 : prev + 2;
       });
-    }, intervalTime);
+    }, intervalTime * 2);
 
     return () => {
       clearInterval(interval);
@@ -59,183 +54,115 @@ export const IntroSequence: React.FC<IntroSequenceProps> = ({ onComplete, isPage
     };
   }, [isPageTransition]);
 
-  const handleExitComplete = () => {
-    onComplete();
-  };
-
   const handleSkip = () => {
     setIsVisible(false);
   };
 
-  // Letters array for staggered sequence animation
-  const letters = [
-    { char: 'P', delay: 0.25 },
-    { char: 'U', delay: 0.28 },
-    { char: 'R', delay: 0.31 },
-    { char: 'E', delay: 0.34 },
-    { char: '\u00A0', delay: 0.37 },
-    { char: 'P', delay: 0.40 },
-    { char: 'O', delay: 0.43 },
-    { char: 'R', delay: 0.46 },
-    { char: 'T', delay: 0.49 },
-    { char: 'I', delay: 0.52 },
-    { char: 'O', delay: 0.55 },
-    { char: 'N', delay: 0.58 },
-    { char: 'S', delay: 0.61 },
-    { char: '.', delay: 0.64 },
-  ];
-
   return (
-    <AnimatePresence onExitComplete={handleExitComplete}>
+    <AnimatePresence onExitComplete={onComplete}>
       {isVisible && (
         <motion.div
-          className="fixed inset-0 z-[9999] bg-black text-[#eee9e0] flex items-center justify-center overflow-hidden select-none cursor-pointer"
-          initial={{ y: '0%' }}
-          animate={{ y: '0%' }}
+          className="fixed inset-0 z-[9999] bg-[#08090B] text-[#F4F2EE] flex flex-col justify-between overflow-hidden select-none cursor-pointer apex-grid-dark"
+          initial={{ opacity: 1, y: '0%' }}
+          animate={{ opacity: 1, y: '0%' }}
           exit={{ y: '-100%' }}
-          transition={{ duration: 0.85, ease: [0.76, 0, 0.24, 1] }}
+          transition={{ duration: 0.65, ease: [0.76, 0, 0.24, 1] }}
           onClick={handleSkip}
-          aria-label="Intro animation. Click to skip."
+          aria-label="Intro sequence. Click anywhere to enter."
         >
-          {/* Main composition container */}
-          <div className="relative w-full max-w-[1280px] h-[90vh] flex items-center justify-center px-4">
+          {/* Top Motorsport Telemetry Header */}
+          <div className="w-full px-6 sm:px-10 pt-6 flex items-center justify-between border-b border-white/10 pb-4">
+            <span className="font-display font-bold tracking-[0.22em] text-sm sm:text-base uppercase text-[#F4F2EE]">
+              APEX PADDOCK
+            </span>
+            <span className="font-mono text-[11px] tracking-[0.24em] uppercase text-[#9CA3AF]">
+              TAP TO ENTER
+            </span>
+          </div>
 
-            {/* Layered Fashion Image Collage (Left tilted, Right tilted, Normal center top) */}
-            <motion.div
-              className="relative w-[170px] sm:w-[220px] md:w-[310px] lg:w-[350px] aspect-[3/4] flex items-center justify-center z-0"
-              initial={{ opacity: 0, scale: 0.88 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.82, y: 60 }}
-              transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-            >
-
-              {/* LAYER 1: LEFT-TILTED IMAGE STACK (-15deg rotation) */}
-              {/* Left Backing Red Accent Frame */}
+          {/* Center Composition: Layered F1 Diecast Studio Frames */}
+          <div className="relative flex-1 flex items-center justify-center px-6">
+            <div className="relative w-full max-w-4xl flex items-center justify-center">
+              {/* Left Angled 1:18 Frame */}
               <motion.div
-                className="absolute inset-0 bg-[#ff0001] rounded-[1px] shadow-2xl"
-                initial={{ opacity: 0, scale: 0.85, rotate: 0, x: 0, y: 0 }}
-                animate={{ opacity: 1, scale: 1, rotate: -18, x: -28, y: 12 }}
-                exit={{ rotate: 0, x: 0, y: 40, opacity: 0 }}
-                transition={{ delay: 0.1, duration: 0.65, ease: [0.22, 1, 0.36, 1] }}
-              />
-
-              {/* Left Image Card: Monochrome / Fashion Shot */}
-              <motion.div
-                className="absolute inset-0 bg-white p-[2px] rounded-[1px] shadow-2xl overflow-hidden"
-                initial={{ opacity: 0, scale: 0.88, rotate: 0, x: 0, y: 0 }}
-                animate={{ opacity: 1, scale: 1, rotate: -15, x: -22, y: 6 }}
-                exit={{ rotate: 0, x: 0, y: 40, opacity: 0 }}
-                transition={{ delay: 0.2, duration: 0.65, ease: [0.22, 1, 0.36, 1] }}
+                className="hidden sm:block absolute w-48 md:w-64 aspect-[16/10] border border-white/15 bg-[#111317] overflow-hidden shadow-2xl"
+                initial={{ opacity: 0, x: -40, rotate: -6 }}
+                animate={{ opacity: 0.72, x: -165, y: 18, rotate: -7 }}
+                exit={{ opacity: 0, y: -30 }}
+                transition={{ duration: 0.55, ease: [0.16, 1, 0.3, 1] }}
               >
-                <div className="w-full h-full bg-neutral-900 overflow-hidden">
-                  <img
-                    src={streetImg}
-                    alt="Left tilted fashion layer"
-                    className="w-full h-full object-cover filter grayscale contrast-125 brightness-90"
-                  />
-                </div>
+                <img
+                  src={pro118Img}
+                  alt="1:18 Scale Carbon Formula 1 Diecast Model"
+                  className="w-full h-full object-cover brightness-75 contrast-125"
+                />
+                <div className="absolute inset-x-0 bottom-0 h-[2px] bg-[#E10600]" />
               </motion.div>
 
-              {/* LAYER 2: RIGHT-TILTED IMAGE STACK (+15deg rotation) */}
-              {/* Right Backing Red Accent Frame */}
+              {/* Right Angled 1:43 Frame */}
               <motion.div
-                className="absolute inset-0 bg-[#ff0001] rounded-[1px] shadow-2xl"
-                initial={{ opacity: 0, scale: 0.85, rotate: 0, x: 0, y: 0 }}
-                animate={{ opacity: 1, scale: 1, rotate: 18, x: 28, y: 12 }}
-                exit={{ rotate: 0, x: 0, y: 40, opacity: 0 }}
-                transition={{ delay: 0.15, duration: 0.65, ease: [0.22, 1, 0.36, 1] }}
-              />
-
-              {/* Right Image Card: Dune Editorial Shot */}
-              <motion.div
-                className="absolute inset-0 bg-white p-[2px] rounded-[1px] shadow-2xl overflow-hidden"
-                initial={{ opacity: 0, scale: 0.88, rotate: 0, x: 0, y: 0 }}
-                animate={{ opacity: 1, scale: 1, rotate: 15, x: 22, y: 6 }}
-                exit={{ rotate: 0, x: 0, y: 40, opacity: 0 }}
-                transition={{ delay: 0.3, duration: 0.65, ease: [0.22, 1, 0.36, 1] }}
+                className="hidden sm:block absolute w-48 md:w-64 aspect-[16/10] border border-white/15 bg-[#111317] overflow-hidden shadow-2xl"
+                initial={{ opacity: 0, x: 40, rotate: 6 }}
+                animate={{ opacity: 0.72, x: 165, y: -18, rotate: 7 }}
+                exit={{ opacity: 0, y: -30 }}
+                transition={{ duration: 0.55, ease: [0.16, 1, 0.3, 1], delay: 0.06 }}
               >
-                <div className="w-full h-full bg-neutral-900 overflow-hidden">
-                  <img
-                    src={heroImg}
-                    alt="Right tilted fashion showcase"
-                    className="w-full h-full object-cover filter contrast-110"
-                  />
-                </div>
+                <img
+                  src={display143Img}
+                  alt="1:43 Collector Edition F1 Display Cars"
+                  className="w-full h-full object-cover brightness-75 contrast-125"
+                />
+                <div className="absolute inset-x-0 bottom-0 h-[2px] bg-[#E10600]" />
               </motion.div>
 
-              {/* LAYER 3: TOP MAIN IMAGE CARD (TOTALLY NORMAL / 0deg rotation) */}
+              {/* Center Hero Plate */}
               <motion.div
-                className="absolute inset-0 bg-white p-[2px] rounded-[1px] shadow-2xl overflow-hidden border border-neutral-200 z-10"
-                initial={{ opacity: 0, scale: 0.92, rotate: 0, x: 0, y: 0 }}
-                animate={{ opacity: 1, scale: 1, rotate: 0, x: 0, y: 0 }}
-                exit={{ opacity: 0, scale: 0.88, y: 40 }}
-                transition={{ delay: 0.45, duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+                className="relative w-64 sm:w-80 md:w-96 aspect-[16/10] border border-white/25 bg-[#111317] overflow-hidden shadow-[0_30px_80px_rgba(0,0,0,0.85)] z-10"
+                initial={{ opacity: 0, scale: 0.92 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.96 }}
+                transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
               >
-                <div className="relative w-full h-full overflow-hidden bg-[#e8e4dc]">
-                  <img
-                    src={portraitImg}
-                    alt="Pure Portions Main Editorial Cutout"
-                    className="w-full h-full object-cover object-center filter contrast-115 brightness-105"
-                  />
-                  {/* Subtle ++ fashion mark matching reference screenshot */}
-                  <div className="absolute bottom-4 right-4 text-black text-xl sm:text-2xl font-black tracking-tighter opacity-90">
-                    ++
-                  </div>
-                </div>
+                <img
+                  src={heroF1Img}
+                  alt="Apex Paddock 1:18 Signature Formula 1 Toy Car"
+                  className="w-full h-full object-cover"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-transparent to-black/20" />
+                <div className="absolute top-0 inset-x-0 h-[2px] bg-[#E10600]" />
               </motion.div>
 
-            </motion.div>
-
-            {/* Oversized PURE PORTIONS. Typography with blend mode negative effect and staggered entrance/exit */}
-            <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-20 mix-blend-difference">
-              <h1 className="text-white font-black uppercase tracking-tighter text-[11vw] sm:text-[9.5vw] md:text-[8.5vw] lg:text-[9vw] leading-none flex items-baseline font-sans whitespace-nowrap">
-                {letters.map((item, idx) => (
-                  <motion.span
-                    key={idx}
-                    className="inline-block"
-                    initial={{ y: 65, opacity: 0 }}
-                    animate={{ y: 0, opacity: 1 }}
-                    exit={{ y: 80, opacity: 0 }}
-                    transition={{
-                      delay: item.delay,
-                      duration: 0.55,
-                      ease: [0.215, 0.61, 0.355, 1],
-                    }}
-                  >
-                    {item.char}
-                  </motion.span>
-                ))}
-
-                {/* Registered Trademark Symbol */}
-                <motion.span
-                  className="text-[0.14em] font-bold self-baseline ml-[0.3vw] tracking-normal inline-block"
-                  initial={{ y: 30, opacity: 0 }}
-                  animate={{ y: 0, opacity: 1 }}
-                  exit={{ y: 40, opacity: 0 }}
-                  transition={{
-                    delay: 0.75,
-                    duration: 0.45,
-                  }}
-                >
-                  ®
-                </motion.span>
-              </h1>
+              {/* Oversized Display Lockup */}
+              <motion.div
+                className="absolute inset-0 flex flex-col items-center justify-center z-20 pointer-events-none text-center"
+                initial={{ opacity: 0, y: 16 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.45, delay: 0.12 }}
+              >
+                <span className="font-mono text-[10px] sm:text-xs tracking-[0.35em] uppercase text-[#E10600] font-semibold mb-1.5 bg-[#08090B]/80 px-2.5 py-0.5 border border-white/10">
+                  F1 DIECAST & RC
+                </span>
+                <h1 className="font-display font-black uppercase tracking-[-0.02em] text-5xl sm:text-7xl md:text-8xl leading-[0.88] text-white drop-shadow-[0_10px_30px_rgba(0,0,0,0.9)]">
+                  APEX PADDOCK
+                </h1>
+              </motion.div>
             </div>
+          </div>
 
-            {/* Counter Number Animated 00 - 99 Positioned at Lower Right Composition Area */}
-            <motion.div
-              className="absolute bottom-[20%] right-[10%] sm:right-[15%] md:right-[18%] text-xl sm:text-2xl md:text-3xl font-sans tracking-tight text-[#eee9e0] font-semibold z-30 tabular-nums"
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 20 }}
-              transition={{
-                delay: 0.2,
-                duration: 0.5,
-              }}
-            >
-              {String(counter).padStart(2, '0')}
-            </motion.div>
-
+          {/* Bottom Pit-Wall Progress Bar & Lap Counter */}
+          <div className="w-full px-6 sm:px-10 pb-6 pt-4 border-t border-white/10 space-y-3">
+            <div className="flex items-center justify-between text-xs font-mono uppercase tracking-[0.2em]">
+              <span className="text-[#9CA3AF]">FORMULA 1 TOY CARS & SCALE MODELS</span>
+              <span className="text-white font-semibold tabular-nums">
+                {String(counter).padStart(3, '0')}%
+              </span>
+            </div>
+            <div className="w-full h-[2px] bg-white/10 overflow-hidden">
+              <div
+                className="h-full bg-[#E10600] origin-left transition-transform duration-100 ease-out"
+                style={{ transform: `scaleX(${counter / 100})` }}
+              />
+            </div>
           </div>
         </motion.div>
       )}

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Home, LayoutGrid, Search, ShoppingBag, Sparkles } from 'lucide-react';
+import { Home, LayoutGrid, Search, ShoppingBag } from 'lucide-react';
 
 interface MobileBottomNavProps {
   activeTab: 'home' | 'shop' | 'search' | 'bag' | 'ai';
@@ -8,7 +8,7 @@ interface MobileBottomNavProps {
   onNavigateShop: () => void;
   onOpenSearch: () => void;
   onOpenCart: () => void;
-  onSelectAI: () => void;
+  onSelectAI?: () => void;
 }
 
 export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
@@ -18,7 +18,6 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
   onNavigateShop,
   onOpenSearch,
   onOpenCart,
-  onSelectAI,
 }) => {
   const navItems = [
     {
@@ -46,101 +45,43 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
       action: onOpenCart,
       badge: cartCount > 0 ? cartCount : undefined,
     },
-    {
-      id: 'ai' as const,
-      label: 'AI',
-      icon: Sparkles,
-      action: onSelectAI,
-    },
   ];
 
   return (
-    <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-40 w-[92%] max-w-md md:hidden pointer-events-none pb-[env(safe-area-inset-bottom)] select-none">
-      {/* Floating Liquid-Glass Pill Outer Wrapper */}
-      <nav
-        aria-label="Mobile Bottom Navigation"
-        className="relative pointer-events-auto rounded-full p-[5px] transition-all duration-300 ease-out"
-        style={{
-          /* Apple Liquid Glass styling: realistic translucent substrate + multi-layer specular & ambient illumination */
-          background: 'rgba(255, 255, 255, 0.65)',
-          backdropFilter: 'blur(25px) saturate(180%)',
-          WebkitBackdropFilter: 'blur(25px) saturate(180%)',
-          boxShadow: `
-            0 20px 48px -8px rgba(0, 0, 0, 0.16),
-            0 8px 20px -4px rgba(0, 0, 0, 0.08),
-            0 0 0 1px rgba(255, 255, 255, 0.6) inset,
-            0 1px 2px 0 rgba(255, 255, 255, 0.8) inset
-          `,
-          border: '1px solid rgba(255, 255, 255, 0.45)',
-        }}
-      >
-        {/* Subtle top-edge glass specular curvature sheen */}
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-x-4 top-0 h-[1px] bg-gradient-to-r from-transparent via-white/80 to-transparent"
-        />
+    <div className="fixed bottom-0 inset-x-0 z-40 md:hidden bg-[#08090B]/95 backdrop-blur-md border-t border-white/15 pb-[env(safe-area-inset-bottom)] select-none">
+      <nav aria-label="Mobile Bottom Navigation" className="grid grid-cols-4 h-14">
+        {navItems.map((item) => {
+          const Icon = item.icon;
+          const isActive = activeTab === item.id;
 
-        {/* Navigation Items List */}
-        <div className="relative flex items-center justify-between gap-1">
-          {navItems.map((item) => {
-            const Icon = item.icon;
-            const isActive = activeTab === item.id;
+          return (
+            <button
+              key={item.id}
+              type="button"
+              onClick={item.action}
+              className={`relative flex flex-col items-center justify-center gap-0.5 transition-colors cursor-pointer touch-manipulation ${
+                isActive ? 'text-white' : 'text-[#9CA3AF] hover:text-white'
+              }`}
+            >
+              {isActive && (
+                <span className="absolute top-0 inset-x-4 h-[2px] bg-[#E10600]" />
+              )}
 
-            return (
-              <button
-                key={item.id}
-                onClick={item.action}
-                className={`group relative flex flex-col items-center justify-center flex-1 py-1.5 px-1 rounded-full transition-all duration-300 ease-out cursor-pointer active:scale-95 touch-manipulation ${
-                  isActive
-                    ? 'text-zinc-950 font-semibold shadow-[0_2px_8px_rgba(0,0,0,0.06),inset_0_1px_1px_rgba(255,255,255,0.9),inset_0_0_0_1px_rgba(255,255,255,0.7)]'
-                    : 'text-zinc-600 hover:text-zinc-900 hover:bg-white/30'
-                }`}
-                style={
-                  isActive
-                    ? {
-                        background: 'rgba(255, 255, 255, 0.75)',
-                        backdropFilter: 'blur(16px)',
-                        WebkitBackdropFilter: 'blur(16px)',
-                      }
-                    : undefined
-                }
-              >
-                {/* Active inner subtle glass refraction highlight */}
-                {isActive && (
-                  <div
-                    aria-hidden="true"
-                    className="pointer-events-none absolute inset-x-2 top-0 h-[1px] bg-gradient-to-r from-transparent via-white/90 to-transparent"
-                  />
+              <div className="relative flex items-center justify-center">
+                <Icon className="w-[18px] h-[18px]" />
+                {item.badge !== undefined && (
+                  <span className="absolute -top-1.5 -right-2.5 bg-[#E10600] text-white text-[9px] font-mono font-bold min-w-[16px] h-4 px-1 flex items-center justify-center tabular-nums">
+                    {item.badge > 99 ? '99+' : item.badge}
+                  </span>
                 )}
+              </div>
 
-                <div className="relative flex items-center justify-center">
-                  <Icon
-                    className={`w-[19px] h-[19px] transition-transform duration-300 ease-out ${
-                      isActive ? 'scale-110 stroke-[2.2] text-zinc-950' : 'stroke-[1.6] group-hover:scale-105'
-                    }`}
-                  />
-
-                  {/* Cart Notification Counter Badge */}
-                  {item.badge !== undefined && (
-                    <span
-                      className="absolute -top-1.5 -right-2.5 bg-zinc-950 text-white text-[9px] font-medium min-w-[16px] h-4 px-1 rounded-full flex items-center justify-center shadow-[0_2px_6px_rgba(0,0,0,0.25)] border border-white/40 ring-1 ring-black/5"
-                    >
-                      {item.badge > 99 ? '99+' : item.badge}
-                    </span>
-                  )}
-                </div>
-
-                <span
-                  className={`text-[10px] tracking-tight mt-0.5 leading-tight transition-colors duration-200 ${
-                    isActive ? 'text-zinc-950 font-semibold' : 'text-zinc-600 group-hover:text-zinc-900 font-normal'
-                  }`}
-                >
-                  {item.label}
-                </span>
-              </button>
-            );
-          })}
-        </div>
+              <span className="text-[10px] font-mono uppercase tracking-wider">
+                {item.label}
+              </span>
+            </button>
+          );
+        })}
       </nav>
     </div>
   );

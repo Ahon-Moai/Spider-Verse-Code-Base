@@ -1,19 +1,68 @@
 @import "tailwindcss";
 
 @theme {
-  --font-sans: "Urbanist", system-ui, -apple-system, sans-serif;
-  --font-serif: "Urbanist", system-ui, -apple-system, sans-serif;
-  --font-display: "Urbanist", system-ui, -apple-system, sans-serif;
-  --font-bodoni: "Urbanist", system-ui, -apple-system, sans-serif;
-  --font-editorial: "Urbanist", system-ui, -apple-system, sans-serif;
+  --font-sans: "Plus Jakarta Sans", system-ui, -apple-system, sans-serif;
+  --font-serif: "Barlow Condensed", "Plus Jakarta Sans", system-ui, sans-serif;
+  --font-display: "Barlow Condensed", system-ui, sans-serif;
+  --font-bodoni: "Barlow Condensed", system-ui, sans-serif;
+  --font-editorial: "Barlow Condensed", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
 }
 
-* {
-  font-family: "Urbanist", sans-serif;
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    background-color: #08090b;
+    color: #f4f2ee;
+    font-family: "Plus Jakarta Sans", system-ui, -apple-system, sans-serif;
+  }
+
+  body {
+    font-family: "Plus Jakarta Sans", system-ui, -apple-system, sans-serif;
+    overflow-x: hidden;
+  }
 }
 
-.font-bodoni {
-  font-family: "Urbanist", sans-serif;
+.font-display,
+.font-serif,
+.font-bodoni,
+.font-editorial {
+  font-family: "Barlow Condensed", system-ui, sans-serif;
+}
+
+.font-mono {
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-variant-numeric: tabular-nums;
+}
+
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Subtle Motorsport Telemetry Grid Surfaces */
+.apex-grid-dark {
+  background-image:
+    linear-gradient(to right, rgba(255, 255, 255, 0.035) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.035) 1px, transparent 1px);
+  background-size: 64px 64px;
+}
+
+.apex-grid-light {
+  background-image:
+    linear-gradient(to right, rgba(17, 19, 23, 0.04) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(17, 19, 23, 0.04) 1px, transparent 1px);
+  background-size: 64px 64px;
+}
+
+/* Precision diagonal racing slash texture */
+.apex-carbon-weave {
+  background-image: repeating-linear-gradient(
+    -45deg,
+    rgba(255, 255, 255, 0.025) 0px,
+    rgba(255, 255, 255, 0.025) 1px,
+    transparent 1px,
+    transparent 10px
+  );
 }
 
 /* Custom smooth marquee */
@@ -29,15 +78,37 @@
 .animate-marquee-smooth {
   display: flex;
   width: max-content;
-  animation: marquee 40s linear infinite;
+  animation: marquee 34s linear infinite;
 }
 
 .animate-marquee-smooth:hover {
   animation-play-state: paused;
 }
 
+/* Fade-in utility */
+@keyframes apexFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in {
+  animation: apexFadeIn 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
 @media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
   .animate-marquee-smooth {
+    animation: none;
+  }
+  .animate-fade-in {
     animation: none;
   }
 }
@@ -50,3 +121,17 @@
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
+
+/* Motorsport slanted parallelogram button geometry */
+.btn-f1 {
+  transform: skewX(-18deg);
+  border-radius: 0;
+}
+.btn-f1-inner {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  transform: skewX(18deg);
+}
+

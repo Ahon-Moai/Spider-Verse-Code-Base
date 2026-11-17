@@ -8,7 +8,7 @@ interface BrandFilterStripProps {
 
 export const BrandFilterStrip: React.FC<BrandFilterStripProps> = ({ onSelectBrand, brands }) => {
   const list = brands && brands.length > 0 ? brands : BRANDS_LIST;
-  const [activeItem, setActiveItem] = useState<string>(list[0]?.name || 'HERRERA');
+  const [activeItem, setActiveItem] = useState<string>(list[0]?.name || 'BBURAGO');
 
   const handleSelect = (name: string) => {
     setActiveItem(name);
@@ -18,7 +18,7 @@ export const BrandFilterStrip: React.FC<BrandFilterStripProps> = ({ onSelectBran
   };
 
   return (
-    <div id="brands" className="w-full bg-white py-6 border-b border-zinc-100 overflow-hidden">
+    <div id="brands" className="w-full bg-[#111317] py-5 border-b border-white/10 overflow-hidden">
       <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-1">
           {list.map((brand) => {
@@ -26,20 +26,19 @@ export const BrandFilterStrip: React.FC<BrandFilterStripProps> = ({ onSelectBran
             return (
               <button
                 key={brand.name}
+                type="button"
                 onClick={() => handleSelect(brand.name)}
-                className={`whitespace-nowrap px-4 py-1.5 rounded-full border text-[11px] sm:text-xs font-sans tracking-wider uppercase transition-all duration-150 flex items-center gap-1.5 cursor-pointer shrink-0 ${
+                className={`whitespace-nowrap px-4 py-2 border text-[11px] font-mono tracking-[0.14em] uppercase transition-colors flex items-center gap-2 cursor-pointer shrink-0 ${
                   isSelected
-                    ? 'border-zinc-950 bg-zinc-950 text-white'
-                    : 'border-zinc-200 bg-white text-zinc-700 hover:border-zinc-400 hover:text-zinc-950'
+                    ? 'border-[#E10600] bg-[#E10600] text-white'
+                    : 'border-white/15 bg-[#08090B] text-[#C4C9D4] hover:border-white/40 hover:text-white'
                 }`}
               >
                 <span>{brand.name}</span>
                 {brand.isNew && (
                   <span
-                    className={`text-[8px] font-bold px-1.5 py-0.2 rounded-full uppercase tracking-tight ${
-                      isSelected
-                        ? 'bg-red-600 text-white'
-                        : 'bg-zinc-900 text-white'
+                    className={`text-[9px] font-bold uppercase ${
+                      isSelected ? 'text-white' : 'text-[#E10600]'
                     }`}
                   >
                     NEW

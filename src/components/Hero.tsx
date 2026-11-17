@@ -1,6 +1,28 @@
-import React from 'react';
+import React, { useRef, useState, useEffect } from 'react';
+import { motion, useScroll, useTransform } from 'motion/react';
 import { FragranceProduct, SeasonsGalleryData } from '../types';
 import { SeasonsGallery } from './SeasonsGallery';
+
+const HERO_SLIDES = [
+  {
+    image: '/src/assets/images/hero_f1_diecast_studio_1794664768996.jpg',
+    eyebrow: "SEASON '26",
+    headline: 'COLLECTION IS LIVE',
+    alt: 'Apex Paddock 1:18 Formula 1 diecast race car model in dark studio lighting',
+  },
+  {
+    image: '/src/assets/images/campaign_f1_pro_118_1794664772367.jpg',
+    eyebrow: '1:18 PRO DIECAST',
+    headline: 'BUILT FOR THE GRID',
+    alt: 'Precision 1:18 alloy Formula 1 model car with exposed front wing assembly',
+  },
+  {
+    image: '/src/assets/images/campaign_f1_display_143_1794664770809.jpg',
+    eyebrow: '1:43 & 2.4GHZ RC',
+    headline: 'RACE OR DISPLAY',
+    alt: 'Two 1:43 scale diecast Formula 1 collector cars in acrylic display cases',
+  },
+];
 
 interface HeroProps {
   products?: FragranceProduct[];
@@ -12,143 +34,160 @@ interface HeroProps {
   seasonsData?: SeasonsGalleryData;
 }
 
+const isLegacyPerfumeCopy = (text?: string) =>
+  !text || /fragrance|decant|flacon|sillage|perfume|portion|olfactory|aromatica/i.test(text);
+
 export const Hero: React.FC<HeroProps> = ({
   onExploreClick,
   onNavigateToCollection,
+  heroData,
   seasonsData,
 }) => {
+  const sectionRef = useRef<HTMLElement>(null);
+  const [activeSlide, setActiveSlide] = useState(0);
+
+  const { scrollYProgress } = useScroll({
+    target: sectionRef,
+    offset: ['start start', 'end start'],
+  });
+
+  const bgY = useTransform(scrollYProgress, [0, 1], ['0%', '12%']);
+  const bgScale = useTransform(scrollYProgress, [0, 1], [1.01, 1.08]);
+
+  const rawHeroImg = heroData?.image;
+  const customHeroImage =
+    rawHeroImg && !/perfume|pure_portions|arrina/i.test(rawHeroImg) ? rawHeroImg : null;
+
+  const slides = HERO_SLIDES.map((s, idx) =>
+    idx === 0
+      ? {
+          ...s,
+          image: customHeroImage || s.image,
+          headline: !isLegacyPerfumeCopy(heroData?.headline) ? heroData.headline : s.headline,
+        }
+      : s
+  );
+
+  useEffect(() => {
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (prefersReducedMotion) return;
+
+    const timer = setInterval(() => {
+      setActiveSlide((prev) => (prev + 1) % slides.length);
+    }, 6000);
+    return () => clearInterval(timer);
+  }, [slides.length]);
+
+  const current = slides[activeSlide] || slides[0];
 
   return (
-    <section className="w-full bg-[#ECE8E1] text-[#FF1801] pt-1 sm:pt-2 pb-12 sm:pb-20 select-none">
-      <div className="w-full px-5 sm:px-8 md:px-12">
-        {/* Massive Centered Pure Portions By Arrina Branding Header */}
-        <div className="w-full overflow-hidden select-none py-2 sm:py-4">
-          <h1 className="w-full text-center text-[#FF1801] font-black tracking-tight uppercase leading-[0.88] select-none flex flex-col items-center justify-center">
-            {/* Line 1: Pure Portions */}
-            <span className="block text-[11.5vw] sm:text-[11vw] md:text-[10vw] lg:text-[9.5vw] tracking-[-0.035em] whitespace-nowrap">
-              Pure Portions
-            </span>
-            {/* Line 2: By Arrina with trademark */}
-            <span className="relative inline-flex items-center justify-center text-[10vw] sm:text-[9.5vw] md:text-[8.5vw] lg:text-[8vw] tracking-[-0.03em] whitespace-nowrap mt-1 sm:mt-2">
-              <span>By Arrina</span>
-              <span className="text-[3vw] sm:text-[2.5vw] md:text-[2vw] font-bold align-top -mt-3 sm:-mt-5 md:-mt-6 ml-1 sm:ml-1.5 inline-block">
-                ®
-              </span>
-            </span>
-          </h1>
-        </div>
+    <section
+      ref={sectionRef}
+      className="relative w-full bg-[#08090B] text-[#F4F2EE] overflow-hidden border-b border-white/10"
+    >
+      {/* Full-bleed Clean Cinematic Hero Stage */}
+      <div className="relative min-h-[78vh] lg:min-h-[86vh] flex flex-col justify-end">
+        {/* Parallax Backdrop Photography */}
+        <motion.div
+          style={{ y: bgY, scale: bgScale }}
+          className="absolute inset-0 pointer-events-none will-change-transform"
+        >
+          {slides.map((slide, idx) => (
+            <img
+              key={slide.image}
+              src={slide.image}
+              alt={slide.alt}
+              className={`absolute inset-0 w-full h-full object-cover object-center transition-opacity duration-700 ${
+                idx === activeSlide ? 'opacity-100' : 'opacity-0'
+              }`}
+              referrerPolicy="no-referrer"
+            />
+          ))}
+        </motion.div>
 
-        {/* Thick Solid Red Horizontal Divider */}
-        <div className="w-full h-[3.5px] sm:h-[4.5px] md:h-[5.5px] bg-[#FF1801] mt-2 sm:mt-3 mb-6 sm:mb-8" />
+        {/* Measured Contrast Scrim at Bottom-Left */}
+        <div
+          aria-hidden="true"
+          className="absolute inset-0 bg-gradient-to-t from-[#08090B]/90 via-[#08090B]/30 to-[#08090B]/20 pointer-events-none"
+        />
+        <div
+          aria-hidden="true"
+          className="absolute inset-0 bg-gradient-to-r from-[#08090B]/75 via-[#08090B]/20 to-transparent pointer-events-none"
+        />
 
-        {/* Editorial Information Section */}
-        {/* Desktop Layout (4 columns matching reference screenshot) */}
-        <div className="hidden md:grid md:grid-cols-12 gap-8 text-[15px] lg:text-[16px] xl:text-[17px] font-semibold leading-[1.3] text-[#FF1801] mb-12 lg:mb-16">
-          {/* Column 1: Brand & Links */}
-          <div className="md:col-span-3 flex flex-col justify-between">
-            <span className="tracking-tight uppercase font-bold text-base lg:text-lg">PURE PORTIONS</span>
-            <div className="space-y-2 mt-8 lg:mt-12 text-sm lg:text-[15px] font-bold tracking-tight">
-              <div>
-                <a
-                  href="#about"
-                  className="hover:opacity-75 transition-opacity inline-block uppercase"
-                >
-                  VISIT ++ WEBSITE
-                </a>
-              </div>
-              <div>
-                <button
-                  onClick={() => {
-                    const el = document.getElementById('faq') || document.getElementById('trust-section');
-                    el?.scrollIntoView({ behavior: 'smooth' });
-                  }}
-                  className="hover:opacity-75 transition-opacity uppercase text-left cursor-pointer"
-                >
-                  SHIPPING & RETURNS
-                </button>
-              </div>
-            </div>
-          </div>
-
-          {/* Column 2: WHY */}
-          <div className="md:col-span-4 pr-4">
-            <span className="tracking-tight uppercase font-bold text-base lg:text-lg block mb-3">
-              WHY
-            </span>
-            <p className="font-semibold text-sm lg:text-[15px] leading-snug">
-              Created by the ++hellohello team, this store and signature collection celebrates our collective creativity and passion for apparel. Carefully designed.
-            </p>
-          </div>
-
-          {/* Column 3: WHERE */}
-          <div className="md:col-span-4 pr-4">
-            <span className="tracking-tight uppercase font-bold text-base lg:text-lg block mb-3">
-              WHERE
-            </span>
-            <p className="font-semibold text-sm lg:text-[15px] leading-snug">
-              Shop the collection here, or drop by our studio at 100 Main St. to say hello and try on pieces in person.
-            </p>
-          </div>
-
-          {/* Column 4: Year */}
-          <div className="md:col-span-1 text-right font-bold text-sm lg:text-[15px]">
-            <span>© 2026</span>
-          </div>
-        </div>
-
-        {/* Mobile Layout (exact stack from mobile screenshot) */}
-        <div className="md:hidden flex flex-col space-y-6 text-[#FF1801] font-semibold mb-8 text-[13px] sm:text-[14px]">
-          {/* Row 1: Brand (left) & WHY + Description (right) */}
-          <div className="grid grid-cols-12 gap-3 sm:gap-4">
-            <div className="col-span-4 sm:col-span-3">
-              <span className="tracking-tight uppercase font-bold text-sm sm:text-base">
-                PURE PORTIONS
-              </span>
-            </div>
-            <div className="col-span-8 sm:col-span-9 space-y-2">
-              <span className="tracking-tight uppercase font-bold text-sm sm:text-base block">
-                WHY
-              </span>
-              <p className="font-semibold leading-snug text-xs sm:text-sm">
-                Created by the ++hellohello team, this store and signature collection celebrates our collective creativity and passion for apparel. Carefully designed.
+        {/* Bottom-Left Editorial Copy + Slanted Racing Buttons + Bottom-Center Indicators */}
+        <div className="relative z-10 max-w-[1440px] w-full mx-auto px-6 sm:px-10 lg:px-12 pb-10 sm:pb-14 pt-24">
+          <div className="max-w-3xl space-y-4 sm:space-y-5">
+            <motion.div
+              key={activeSlide}
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
+              className="space-y-1.5"
+            >
+              <p className="font-sans text-xs sm:text-sm font-semibold tracking-[0.14em] uppercase text-[#F4F2EE]/90">
+                {current.eyebrow}
               </p>
+
+              <h1
+                className="font-display font-black uppercase tracking-[0.01em] leading-[0.94] text-white"
+                style={{
+                  fontSize: 'clamp(2.5rem, 5.2vw, 4.75rem)',
+                  textWrap: 'balance',
+                }}
+              >
+                {current.headline}
+              </h1>
+            </motion.div>
+
+            {/* Slanted Parallelogram Motorsport CTAs */}
+            <div className="flex flex-wrap items-center gap-4 pt-1">
+              <button
+                type="button"
+                onClick={onExploreClick}
+                className="btn-f1 bg-[#E10600] hover:bg-[#ff1e18] text-white px-8 py-3 font-display text-base sm:text-lg font-bold tracking-[0.08em] uppercase transition-colors duration-200 cursor-pointer shadow-[0_12px_30px_rgba(225,6,0,0.3)]"
+              >
+                <span className="btn-f1-inner">Explore Models</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => onNavigateToCollection?.('all')}
+                className="btn-f1 border border-white/40 bg-[#08090B]/60 hover:bg-white hover:text-[#08090B] text-white px-8 py-3 font-display text-base sm:text-lg font-bold tracking-[0.08em] uppercase transition-colors duration-200 cursor-pointer backdrop-blur-sm"
+              >
+                <span className="btn-f1-inner">Shop Now</span>
+              </button>
             </div>
           </div>
 
-          {/* Row 2: VISIT ++ WEBSITE (left) & © 2026 (right) */}
-          <div className="flex items-center justify-between font-bold text-xs sm:text-sm pt-2">
-            <a
-              href="#about"
-              className="hover:opacity-75 transition-opacity uppercase tracking-tight"
-            >
-              VISIT ++ WEBSITE
-            </a>
-            <span className="text-right">© 2026</span>
-          </div>
-
-          {/* Row 3: SHIPPING & RETURNS (left) */}
-          <div className="font-bold text-xs sm:text-sm">
-            <button
-              onClick={() => {
-                const el = document.getElementById('faq') || document.getElementById('trust-section');
-                el?.scrollIntoView({ behavior: 'smooth' });
-              }}
-              className="hover:opacity-75 transition-opacity uppercase text-left cursor-pointer tracking-tight"
-            >
-              SHIPPING & RETURNS
-            </button>
+          {/* Bottom-Center 3 Slide Indicator Bars */}
+          <div className="flex items-center justify-center gap-2.5 mt-8 sm:mt-4">
+            {slides.map((slide, idx) => (
+              <button
+                key={slide.eyebrow}
+                type="button"
+                onClick={() => setActiveSlide(idx)}
+                aria-label={`View slide ${idx + 1}: ${slide.eyebrow}`}
+                className={`h-[2px] w-8 transition-all duration-300 cursor-pointer ${
+                  idx === activeSlide ? 'bg-white' : 'bg-white/30 hover:bg-white/60'
+                }`}
+              />
+            ))}
           </div>
         </div>
 
-        {/* Seasonal Boxes Grid - Reusing Seasons Component without Header */}
-        <div className="w-full pt-1">
-          <SeasonsGallery
-            seasonsData={seasonsData}
-            onExploreClick={onExploreClick}
-            onNavigateToCollection={onNavigateToCollection}
-            hideHeader={true}
-          />
-        </div>
+        {/* Racing-Red Speed Divider */}
+        <div className="relative z-10 w-full h-[2px] bg-[#E10600]" />
+      </div>
+
+      {/* Integrated 4-Column F1 Series Strip */}
+      <div className="relative z-10 max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-12">
+        <SeasonsGallery
+          seasonsData={seasonsData}
+          onExploreClick={onExploreClick}
+          onNavigateToCollection={onNavigateToCollection}
+          hideHeader={true}
+        />
       </div>
     </section>
   );

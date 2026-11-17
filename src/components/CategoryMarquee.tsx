@@ -5,39 +5,52 @@ interface CategoryMarqueeProps {
   onNavigateToCollection?: (slug: string) => void;
 }
 
-export const CategoryMarquee: React.FC<CategoryMarqueeProps> = ({ items, onNavigateToCollection }) => {
+const isLegacyPerfumeItems = (arr?: string[]) =>
+  !arr ||
+  arr.length === 0 ||
+  arr.some((w) => /curate|extract|calibrate|wear|scent|fragrance|decant/i.test(w));
+
+export const CategoryMarquee: React.FC<CategoryMarqueeProps> = ({
+  items,
+  onNavigateToCollection,
+}) => {
   const defaultItems = [
-    'CURATE',
-    'JUDGE',
-    'REFINE',
-    'TEST',
-    'CURATE',
-    'JUDGE',
-    'REFINE',
-    'TEST'
+    '1:18 DIECAST',
+    '1:43 COLLECTOR',
+    '2.4GHZ RC',
+    'AERO WINGS',
+    '1:18 DIECAST',
+    '1:43 COLLECTOR',
+    '2.4GHZ RC',
+    'AERO WINGS',
   ];
 
-  const marqueeItems = items && items.length > 0 ? items : defaultItems;
+  const marqueeItems = isLegacyPerfumeItems(items) ? defaultItems : items!;
 
   return (
-    <div className="w-full bg-white border-b border-zinc-200 overflow-hidden py-3 sm:py-5 select-none">
+    <div className="w-full bg-[#111317] border-b border-white/10 overflow-hidden py-4 sm:py-5 select-none">
       <div className="relative w-full overflow-hidden flex items-center">
-        {/* Infinite scrolling track */}
-        <div className="animate-marquee-smooth flex items-center gap-12 sm:gap-20 whitespace-nowrap">
+        <div className="animate-marquee-smooth flex items-center gap-10 sm:gap-16 whitespace-nowrap">
           {marqueeItems.concat(marqueeItems).map((word, idx) => (
-            <div key={idx} className="flex items-center gap-12 sm:gap-20">
+            <div key={idx} className="flex items-center gap-10 sm:gap-16">
               <button
                 type="button"
                 onClick={() => {
-                  const slug = word.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+                  const slug = word
+                    .toLowerCase()
+                    .replace(/[^a-z0-9]+/g, '-')
+                    .replace(/^-|-$/g, '');
                   if (onNavigateToCollection) onNavigateToCollection(slug || 'all');
                 }}
-                className="font-serif text-3xl sm:text-5xl lg:text-6xl font-normal tracking-[0.18em] text-[#0d3b2e] uppercase transition-colors hover:text-amber-800 cursor-pointer"
+                className="font-display text-3xl sm:text-5xl lg:text-[54px] font-extrabold tracking-[0.1em] text-[#F4F2EE] hover:text-[#E10600] uppercase transition-colors cursor-pointer"
               >
                 {word}
               </button>
-              <span className="text-[#0d3b2e]/60 text-2xl sm:text-3xl font-serif">
-                —
+              <span
+                aria-hidden="true"
+                className="text-[#E10600] text-2xl sm:text-3xl font-display font-black"
+              >
+                /
               </span>
             </div>
           ))}

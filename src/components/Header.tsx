@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Search } from 'lucide-react';
+import { X, Search, ShoppingBag, Menu } from 'lucide-react';
 
 interface HeaderProps {
   cartCount: number;
@@ -11,15 +11,27 @@ interface HeaderProps {
   storeSettings?: any;
 }
 
+const resolveBrandName = (rawName?: string) => {
+  if (!rawName || /aromatica/i.test(rawName)) return 'APEX PADDOCK';
+  return rawName;
+};
+
+const resolveEmail = (rawEmail?: string) => {
+  if (!rawEmail || /aromatica/i.test(rawEmail)) return 'concierge@apexpaddock.com.bd';
+  return rawEmail;
+};
+
 export const Header: React.FC<HeaderProps> = ({
   cartCount,
   onOpenCart,
   onOpenSearch,
   onNavigateHome,
   onNavigateToCollection,
-  storeSettings
+  storeSettings,
 }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  const brandName = resolveBrandName(storeSettings?.store_name);
 
   const handleCollectionClick = (slug: string) => {
     setMobileMenuOpen(false);
@@ -30,152 +42,170 @@ export const Header: React.FC<HeaderProps> = ({
     }
   };
 
-  return (
-    <header className="sticky top-0 z-40 w-full bg-[#ECE8E1] transition-all duration-200">
-      {/* Main Top Navigation matching reference */}
-      <div className="w-full px-5 sm:px-8 md:px-12 pt-5 pb-3 flex items-center justify-between">
-        {/* Left: Red ++ Brand Symbol */}
-        <div className="flex items-center">
-          <a
-            href="/"
-            onClick={(e) => {
-              if (onNavigateHome) {
-                e.preventDefault();
-                onNavigateHome();
-              }
-            }}
-            className="text-[#FF1801] text-3xl sm:text-4xl font-black tracking-[-0.15em] hover:opacity-85 transition-opacity inline-flex items-center select-none"
-            aria-label="Home"
-          >
-            ++
-          </a>
-        </div>
+  const scrollToSection = (id: string, fallbackSlug?: string) => {
+    setMobileMenuOpen(false);
+    const el = document.getElementById(id);
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth' });
+    } else if (fallbackSlug) {
+      handleCollectionClick(fallbackSlug);
+    } else if (onNavigateHome) {
+      onNavigateHome();
+      setTimeout(() => {
+        document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
+      }, 120);
+    }
+  };
 
-        {/* Center: Desktop Navigation Links (Shop, Explore Decants, About Us) */}
-        <nav className="hidden md:flex items-center gap-10 lg:gap-14 text-[#FF1801] text-lg lg:text-xl font-medium tracking-tight">
+  return (
+    <header className="sticky top-0 z-40 w-full bg-[#08090B]/95 backdrop-blur-md border-b border-white/10 transition-colors duration-200">
+      <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-8">
+        {/* Zone 1: Single-line Brand Wordmark */}
+        <a
+          href="/"
+          onClick={(e) => {
+            if (onNavigateHome) {
+              e.preventDefault();
+              onNavigateHome();
+            }
+          }}
+          className="font-display font-extrabold text-2xl sm:text-[26px] tracking-[0.14em] uppercase text-[#F4F2EE] hover:text-white transition-colors whitespace-nowrap shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#E10600]"
+          aria-label={`${brandName} Home`}
+        >
+          {brandName}
+        </a>
+
+        {/* Zone 2: Concise Single-Line Navigation Links */}
+        <nav className="hidden md:flex items-center gap-8 text-xs font-medium tracking-[0.16em] uppercase text-[#C4C9D4]">
           <button
+            type="button"
             onClick={() => handleCollectionClick('all')}
-            className="hover:opacity-75 transition-opacity cursor-pointer"
+            className="relative py-1 hover:text-white transition-colors whitespace-nowrap shrink-0 cursor-pointer after:content-[''] after:absolute after:left-0 after:bottom-0 after:w-full after:h-[2px] after:bg-[#E10600] after:scale-x-0 hover:after:scale-x-100 after:origin-left after:transition-transform after:duration-200"
           >
             Shop
           </button>
           <button
-            onClick={() => {
-              const el = document.getElementById('new-arrivals');
-              if (el) {
-                el.scrollIntoView({ behavior: 'smooth' });
-              } else {
-                handleCollectionClick('all');
-              }
-            }}
-            className="hover:opacity-75 transition-opacity cursor-pointer"
+            type="button"
+            onClick={() => scrollToSection('new-arrivals', 'new-arrivals')}
+            className="relative py-1 hover:text-white transition-colors whitespace-nowrap shrink-0 cursor-pointer after:content-[''] after:absolute after:left-0 after:bottom-0 after:w-full after:h-[2px] after:bg-[#E10600] after:scale-x-0 hover:after:scale-x-100 after:origin-left after:transition-transform after:duration-200"
           >
-            Explore Decants
+            New Arrivals
           </button>
           <button
-            onClick={() => {
-              const el = document.getElementById('studio-section') || document.getElementById('why-section');
-              el?.scrollIntoView({ behavior: 'smooth' });
-            }}
-            className="hover:opacity-75 transition-opacity cursor-pointer"
+            type="button"
+            onClick={() => scrollToSection('for-him-her', 'featured')}
+            className="relative py-1 hover:text-white transition-colors whitespace-nowrap shrink-0 cursor-pointer after:content-[''] after:absolute after:left-0 after:bottom-0 after:w-full after:h-[2px] after:bg-[#E10600] after:scale-x-0 hover:after:scale-x-100 after:origin-left after:transition-transform after:duration-200"
           >
-            About Us
+            Scales
+          </button>
+          <button
+            type="button"
+            onClick={() => scrollToSection('trust-section')}
+            className="relative py-1 hover:text-white transition-colors whitespace-nowrap shrink-0 cursor-pointer after:content-[''] after:absolute after:left-0 after:bottom-0 after:w-full after:h-[2px] after:bg-[#E10600] after:scale-x-0 hover:after:scale-x-100 after:origin-left after:transition-transform after:duration-200"
+          >
+            Garage
           </button>
         </nav>
 
-        {/* Right: Actions (Bag (count), Menu) */}
-        <div className="flex items-center gap-6 sm:gap-8 text-[#FF1801] text-lg lg:text-xl font-medium tracking-tight">
+        {/* Zone 3: Primary Action & Search */}
+        <div className="flex items-center gap-3 shrink-0">
           <button
-            onClick={onOpenCart}
-            className="hover:opacity-75 transition-opacity cursor-pointer inline-flex items-center gap-1"
-            aria-label={`Shopping Bag (${cartCount})`}
+            type="button"
+            onClick={onOpenSearch}
+            className="p-2.5 text-[#C4C9D4] hover:text-white border border-white/10 hover:border-white/30 bg-[#111317] transition-colors cursor-pointer whitespace-nowrap shrink-0"
+            aria-label="Search F1 Models"
+            title="Search F1 Models"
           >
-            Bag ({cartCount})
+            <Search className="w-4 h-4" />
           </button>
 
           <button
+            type="button"
+            onClick={onOpenCart}
+            className="btn-f1 px-5 py-2.5 bg-[#E10600] hover:bg-[#ff1e18] text-white text-sm font-display font-bold tracking-[0.08em] uppercase transition-colors cursor-pointer whitespace-nowrap shrink-0"
+            aria-label={`Shopping Bag (${cartCount})`}
+          >
+            <span className="btn-f1-inner">
+              <ShoppingBag className="w-3.5 h-3.5" />
+              <span className="tabular-nums">Bag ({cartCount})</span>
+            </span>
+          </button>
+
+          <button
+            type="button"
             onClick={() => setMobileMenuOpen(true)}
-            className="hover:opacity-75 transition-opacity cursor-pointer"
+            className="md:hidden p-2.5 text-[#F4F2EE] border border-white/15 bg-[#111317] hover:border-[#E10600] transition-colors cursor-pointer shrink-0"
             aria-label="Open Navigation Menu"
           >
-            Menu
+            <Menu className="w-4 h-4" />
           </button>
         </div>
       </div>
 
-      {/* Slide-out Menu Drawer for both Mobile and Desktop Menu */}
+      {/* Slide-out Navigation Drawer */}
       {mobileMenuOpen && (
-        <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm animate-fade-in flex justify-end">
-          <div className="bg-[#ECE8E1] text-[#FF1801] w-full max-w-sm sm:max-w-md h-full p-6 sm:p-8 shadow-2xl flex flex-col justify-between overflow-y-auto">
+        <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex justify-end animate-fade-in">
+          <div className="bg-[#0B0D11] text-[#F4F2EE] w-full max-w-sm h-full p-6 sm:p-8 border-l border-white/10 shadow-2xl flex flex-col justify-between overflow-y-auto">
             <div className="space-y-8">
-              {/* Drawer Header */}
-              <div className="flex items-center justify-between border-b border-[#FF1801]/30 pb-4">
-                <span className="text-3xl font-black tracking-[-0.15em]">++</span>
+              <div className="flex items-center justify-between border-b border-white/10 pb-4">
+                <span className="font-display font-extrabold text-2xl tracking-[0.14em] uppercase">
+                  {brandName}
+                </span>
                 <button
+                  type="button"
                   onClick={() => setMobileMenuOpen(false)}
-                  className="p-1 hover:opacity-70 transition-opacity cursor-pointer"
+                  className="p-2 border border-white/15 text-[#C4C9D4] hover:text-white hover:border-[#E10600] transition-colors cursor-pointer"
                   aria-label="Close menu"
                 >
-                  <X className="w-6 h-6 stroke-[2.5]" />
+                  <X className="w-5 h-5" />
                 </button>
               </div>
 
-              {/* Navigation Links */}
-              <nav className="flex flex-col space-y-4 text-2xl font-semibold tracking-tight">
+              <nav className="flex flex-col space-y-2">
+                {[
+                  { label: 'Shop All F1 Cars', action: () => handleCollectionClick('all') },
+                  { label: '1:18 Pro Diecast', action: () => handleCollectionClick('forhim') },
+                  { label: '1:43 Acrylic Grid', action: () => handleCollectionClick('forher') },
+                  { label: 'New Arrivals', action: () => scrollToSection('new-arrivals', 'new-arrivals') },
+                  { label: 'Garage & Standards', action: () => scrollToSection('trust-section') },
+                  { label: 'Collector Reviews & FAQ', action: () => scrollToSection('faq') },
+                ].map((item) => (
+                  <button
+                    key={item.label}
+                    type="button"
+                    onClick={item.action}
+                    className="w-full text-left py-3 px-2 font-display text-2xl font-bold uppercase tracking-wide text-[#F4F2EE] hover:text-[#E10600] border-b border-white/5 transition-colors cursor-pointer"
+                  >
+                    {item.label}
+                  </button>
+                ))}
+
                 <button
-                  onClick={() => handleCollectionClick('all')}
-                  className="text-left hover:opacity-75 transition-opacity"
-                >
-                  Shop
-                </button>
-                <button
-                  onClick={() => {
-                    setMobileMenuOpen(false);
-                    const el = document.getElementById('new-arrivals');
-                    if (el) {
-                      el.scrollIntoView({ behavior: 'smooth' });
-                    } else {
-                      handleCollectionClick('all');
-                    }
-                  }}
-                  className="text-left hover:opacity-75 transition-opacity"
-                >
-                  Explore Decants
-                </button>
-                <button
-                  onClick={() => {
-                    setMobileMenuOpen(false);
-                    const el = document.getElementById('studio-section') || document.getElementById('why-section');
-                    el?.scrollIntoView({ behavior: 'smooth' });
-                  }}
-                  className="text-left hover:opacity-75 transition-opacity"
-                >
-                  About Us
-                </button>
-                <button
+                  type="button"
                   onClick={() => {
                     setMobileMenuOpen(false);
                     onOpenSearch();
                   }}
-                  className="text-left hover:opacity-75 transition-opacity inline-flex items-center gap-2 pt-2 text-xl"
+                  className="w-full text-left py-3 px-2 font-sans text-sm font-semibold uppercase tracking-[0.14em] text-[#C4C9D4] hover:text-white inline-flex items-center gap-2.5 pt-4 cursor-pointer"
                 >
-                  <Search className="w-5 h-5 stroke-[2.5]" />
-                  <span>Search Catalog</span>
+                  <Search className="w-4 h-4 text-[#E10600]" />
+                  <span>Search Models</span>
                 </button>
               </nav>
 
-              {/* Store & Contact Information */}
-              <div className="pt-6 border-t border-[#FF1801]/30 space-y-2 text-sm text-[#FF1801]/90">
-                <p className="font-bold tracking-wider uppercase text-xs">Customer Care & Studio</p>
-                <p>Location: 100 Main St., Studio</p>
-                <p>Email: {storeSettings?.contact_email || 'hello@outfitstore.com'}</p>
-                <p>Phone: {storeSettings?.contact_phone || '+1 (555) 019-2834'}</p>
+              <div className="pt-4 border-t border-white/10 space-y-2 text-xs text-[#9CA3AF]">
+                <p className="font-mono tracking-[0.2em] uppercase text-[10px] text-[#E10600]">
+                  Paddock Concierge
+                </p>
+                <p>{storeSettings?.address || 'Banani High Street, Block 11, Dhaka 1213'}</p>
+                <p className="font-mono">{resolveEmail(storeSettings?.contact_email)}</p>
+                <p className="font-mono">{storeSettings?.contact_phone || '+880 1700-000000'}</p>
               </div>
             </div>
 
-            <div className="pt-6 border-t border-[#FF1801]/30 text-xs text-[#FF1801]/80 flex justify-between items-center">
-              <span>VISIT ++ WEBSITE</span>
-              <span>© 2026</span>
+            <div className="pt-6 border-t border-white/10 text-[11px] font-mono text-[#9CA3AF] flex justify-between items-center">
+              <span>{brandName}</span>
+              <span>© {new Date().getFullYear()}</span>
             </div>
           </div>
         </div>

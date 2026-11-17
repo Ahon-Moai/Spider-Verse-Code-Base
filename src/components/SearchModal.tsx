@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Search, X, ArrowRight, Sparkles, TrendingUp } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Search, X, ArrowRight } from 'lucide-react';
 import { FragranceProduct } from '../types';
 
 interface SearchModalProps {
@@ -10,90 +10,104 @@ interface SearchModalProps {
 }
 
 const POPULAR_SEARCH_TAGS = [
-  'Vanilla',
-  'Woody & Oud',
-  'Pure Portions',
-  'For Him',
-  'For Her',
-  'Extrait',
-  'Fresh Citrus'
+  '1:18 Scale',
+  'Ferrari',
+  'Red Bull',
+  'Mercedes',
+  '1:43 Display',
+  'RC Car',
+  'Classic',
 ];
 
 export const SearchModal: React.FC<SearchModalProps> = ({
   isOpen,
   onClose,
   products,
-  onSelectProduct
+  onSelectProduct,
 }) => {
   const [query, setQuery] = useState('');
 
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
+
   if (!isOpen) return null;
 
-  const filtered = query.trim() === ''
-    ? []
-    : products.filter(
-        (p) =>
-          p.name.toLowerCase().includes(query.toLowerCase()) ||
-          p.brand.toLowerCase().includes(query.toLowerCase()) ||
-          p.category.toLowerCase().includes(query.toLowerCase()) ||
-          p.notes?.some((n) => n.toLowerCase().includes(query.toLowerCase()))
-      );
+  const filtered =
+    query.trim() === ''
+      ? []
+      : products.filter(
+          (p) =>
+            p.name.toLowerCase().includes(query.toLowerCase()) ||
+            p.brand.toLowerCase().includes(query.toLowerCase()) ||
+            p.category.toLowerCase().includes(query.toLowerCase()) ||
+            p.notes?.some((n) => n.toLowerCase().includes(query.toLowerCase()))
+        );
 
   const featuredShowcase = products.slice(0, 4);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-start justify-center pt-4 sm:pt-16 p-3 sm:p-4 bg-black/70 backdrop-blur-md animate-fade-in">
-      <div className="w-full max-w-2xl bg-white shadow-2xl border border-zinc-200 rounded-2xl overflow-hidden flex flex-col max-h-[85vh]">
-
-        {/* Top Header & Search Bar */}
-        <div className="p-4 sm:p-5 border-b border-zinc-150 bg-white sticky top-0 z-10 space-y-3">
+    <div
+      className="fixed inset-0 z-50 flex items-start justify-center pt-6 sm:pt-16 p-3 sm:p-4 bg-black/80 backdrop-blur-md animate-fade-in"
+      onClick={onClose}
+    >
+      <div
+        className="w-full max-w-2xl bg-[#111317] text-[#F4F2EE] shadow-2xl border border-white/15 overflow-hidden flex flex-col max-h-[85vh]"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Top Bar */}
+        <div className="p-4 sm:p-5 border-b border-white/10 bg-[#08090B] space-y-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Sparkles className="w-4 h-4 text-zinc-900" />
-              <span className="text-xs font-semibold uppercase tracking-wider text-zinc-900">
-                Fragrance Catalog Search
-              </span>
-            </div>
+            <span className="font-mono text-[11px] font-semibold uppercase tracking-[0.2em] text-[#E10600]">
+              Garage Search
+            </span>
             <button
+              type="button"
               onClick={onClose}
-              className="p-1.5 rounded-full hover:bg-zinc-100 text-zinc-500 hover:text-zinc-950 transition-colors cursor-pointer"
+              className="p-1.5 border border-white/15 text-[#9CA3AF] hover:text-white hover:border-[#E10600] transition-colors cursor-pointer"
               aria-label="Close search"
             >
-              <X className="w-5 h-5" />
+              <X className="w-4 h-4" />
             </button>
           </div>
 
           <div className="relative flex items-center">
-            <Search className="w-5 h-5 absolute left-3.5 text-zinc-400 pointer-events-none" />
+            <Search className="w-4 h-4 absolute left-3.5 text-[#9CA3AF] pointer-events-none" />
             <input
               type="text"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search by perfume, brand, or note (e.g. Vanilla, ARRINA, Oud)..."
-              className="w-full bg-zinc-50 border border-zinc-200/80 rounded-xl pl-10 pr-16 py-3 text-sm text-zinc-900 placeholder-zinc-400 focus:outline-none focus:bg-white focus:border-zinc-900 transition-all font-sans"
+              placeholder="Search F1 team, driver, scale or car (e.g. 1:18, Ferrari, Red Bull, RC)..."
+              className="w-full bg-[#111317] border border-white/15 pl-10 pr-16 py-3 text-sm text-white placeholder-[#9CA3AF] focus:outline-none focus:border-[#E10600] transition-colors"
               autoFocus
             />
             {query && (
               <button
+                type="button"
                 onClick={() => setQuery('')}
-                className="absolute right-3 text-xs font-medium text-zinc-400 hover:text-zinc-900 uppercase tracking-wider px-2 py-1 rounded cursor-pointer"
+                className="absolute right-3 text-[11px] font-mono text-[#9CA3AF] hover:text-white uppercase tracking-wider px-2 py-1 cursor-pointer"
               >
                 Clear
               </button>
             )}
           </div>
 
-          {/* Quick Filter Search Pills */}
-          <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pt-1">
-            <TrendingUp className="w-3.5 h-3.5 text-zinc-400 shrink-0 mr-1" />
+          {/* Interactive Filter Buttons */}
+          <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar">
             {POPULAR_SEARCH_TAGS.map((tag) => (
               <button
                 key={tag}
+                type="button"
                 onClick={() => setQuery(tag)}
-                className={`text-[11px] font-medium px-2.5 py-1 rounded-full whitespace-nowrap transition-all cursor-pointer ${
+                className={`text-[11px] font-mono px-2.5 py-1 border whitespace-nowrap transition-colors cursor-pointer ${
                   query === tag
-                    ? 'bg-zinc-950 text-white'
-                    : 'bg-zinc-100 text-zinc-600 hover:bg-zinc-200 hover:text-zinc-900'
+                    ? 'bg-[#E10600] text-white border-[#E10600]'
+                    : 'bg-[#171A20] text-[#C4C9D4] border-white/10 hover:border-white/30 hover:text-white'
                 }`}
               >
                 {tag}
@@ -102,72 +116,79 @@ export const SearchModal: React.FC<SearchModalProps> = ({
           </div>
         </div>
 
-        {/* Scrollable Results / Pre-search State */}
+        {/* Results */}
         <div className="flex-1 overflow-y-auto p-4 sm:p-5 no-scrollbar">
           {query.trim() === '' ? (
-            /* Initial State: Popular / Featured Catalog Showcase */
             <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <h4 className="text-xs font-semibold uppercase tracking-wider text-zinc-500 font-sans">
-                  Featured & Trending Decants
-                </h4>
-                <span className="text-[10px] font-mono text-zinc-400">
-                  {products.length} Products Available
+              <div className="flex items-center justify-between text-xs font-mono">
+                <span className="uppercase tracking-[0.16em] text-[#9CA3AF]">
+                  Featured Chassis
+                </span>
+                <span className="text-[#C4C9D4] tabular-nums">
+                  {products.length} Available
                 </span>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {featuredShowcase.map((item) => (
-                  <div
-                    key={item.id}
-                    onClick={() => {
-                      onSelectProduct(item);
-                      onClose();
-                    }}
-                    className="flex items-center gap-3 p-3 bg-zinc-50/70 hover:bg-zinc-100/90 border border-zinc-200/60 rounded-xl transition-all cursor-pointer group"
-                  >
-                    <div className="w-14 h-14 bg-white rounded-lg p-1 border border-zinc-200/60 flex items-center justify-center shrink-0">
-                      <img
-                        src={item.image}
-                        alt={item.name}
-                        className="max-h-full max-w-full object-contain group-hover:scale-105 transition-transform duration-300"
-                      />
+              {featuredShowcase.length > 0 ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {featuredShowcase.map((item) => (
+                    <div
+                      key={item.id}
+                      onClick={() => {
+                        onSelectProduct(item);
+                        onClose();
+                      }}
+                      className="flex items-center gap-3 p-3 bg-[#08090B] hover:border-[#E10600] border border-white/10 transition-colors cursor-pointer group"
+                    >
+                      <div className="w-14 h-14 bg-white p-1.5 flex items-center justify-center shrink-0">
+                        <img
+                          src={item.image}
+                          alt={item.name}
+                          className="max-h-full max-w-full object-contain group-hover:scale-105 transition-transform duration-300"
+                          referrerPolicy="no-referrer"
+                        />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <span className="text-[10px] font-mono tracking-[0.14em] text-[#9CA3AF] uppercase block truncate">
+                          {item.brand}
+                        </span>
+                        <h5 className="font-display text-base font-bold uppercase text-white truncate group-hover:text-[#E10600] transition-colors">
+                          {item.name}
+                        </h5>
+                        <p className="text-xs font-mono text-[#C4C9D4] mt-0.5 tabular-nums">
+                          ৳ {item.startingPrice}
+                        </p>
+                      </div>
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <span className="text-[9px] font-semibold tracking-widest text-zinc-400 uppercase block">
-                        {item.brand}
-                      </span>
-                      <h5 className="font-serif text-sm text-zinc-900 font-normal truncate">
-                        {item.name}
-                      </h5>
-                      <p className="text-[11px] font-medium text-zinc-600 mt-0.5">
-                        ৳ {item.startingPrice} <span className="text-[10px] text-zinc-400 font-normal">/ decant</span>
-                      </p>
-                    </div>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-xs text-[#9CA3AF] py-6 text-center">
+                  Type a team name, car chassis, driver, or scale size above to search live inventory.
+                </p>
+              )}
             </div>
           ) : filtered.length === 0 ? (
-            /* Empty Search State */
-            <div className="py-12 text-center space-y-2">
-              <p className="font-serif text-base text-zinc-800">No decants found for "{query}"</p>
-              <p className="text-xs text-zinc-500 font-sans max-w-xs mx-auto">
-                Try searching for a different scent profile, family name, or brand.
+            <div className="py-12 text-center space-y-3">
+              <p className="font-display text-2xl font-bold uppercase text-white">
+                No Models Found For "{query}"
+              </p>
+              <p className="text-xs text-[#9CA3AF] max-w-xs mx-auto">
+                Try another constructor, driver number, or scale ratio (1:18, 1:43, RC).
               </p>
               <button
+                type="button"
                 onClick={() => setQuery('')}
-                className="mt-3 text-xs font-semibold text-zinc-900 underline underline-offset-4 cursor-pointer"
+                className="mt-2 text-xs font-mono font-semibold text-[#E10600] hover:underline uppercase cursor-pointer"
               >
-                Clear query and view all fragrances
+                Reset Search
               </button>
             </div>
           ) : (
-            /* Active Search Results Grid */
             <div className="space-y-3">
-              <div className="flex items-center justify-between text-xs text-zinc-500">
-                <span>Matching Decants</span>
-                <span className="font-mono text-[11px]">{filtered.length} found</span>
+              <div className="flex items-center justify-between text-xs font-mono text-[#9CA3AF]">
+                <span>Matching F1 Models</span>
+                <span className="tabular-nums">{filtered.length} found</span>
               </div>
 
               <div className="space-y-2">
@@ -178,40 +199,37 @@ export const SearchModal: React.FC<SearchModalProps> = ({
                       onSelectProduct(item);
                       onClose();
                     }}
-                    className="flex items-center justify-between p-3 bg-zinc-50/50 hover:bg-zinc-100 border border-zinc-200/60 rounded-xl transition-colors cursor-pointer group"
+                    className="flex items-center justify-between p-3 bg-[#08090B] border border-white/10 hover:border-[#E10600] transition-colors cursor-pointer group"
                   >
                     <div className="flex items-center gap-3.5 min-w-0">
-                      <div className="w-12 h-12 bg-white rounded-lg p-1 border border-zinc-200/60 flex items-center justify-center shrink-0">
+                      <div className="w-12 h-12 bg-white p-1 flex items-center justify-center shrink-0">
                         <img
                           src={item.image}
                           alt={item.name}
-                          className="max-h-full max-w-full object-contain group-hover:scale-105 transition-transform duration-200"
+                          className="max-h-full max-w-full object-contain"
+                          referrerPolicy="no-referrer"
                         />
                       </div>
                       <div className="min-w-0">
-                        <span className="text-[9px] font-semibold tracking-widest text-zinc-400 uppercase block">
+                        <span className="text-[10px] font-mono tracking-[0.14em] text-[#9CA3AF] uppercase block">
                           {item.brand}
                         </span>
-                        <h4 className="font-serif text-sm font-normal text-zinc-900 truncate">
+                        <h4 className="font-display text-base font-bold uppercase text-white truncate group-hover:text-[#E10600] transition-colors">
                           {item.name}
                         </h4>
-                        <p className="text-[11px] text-zinc-500 mt-0.5">
-                          {item.category} &bull; <span className="font-semibold text-zinc-900">৳ {item.startingPrice}</span>
+                        <p className="text-[11px] font-mono text-[#9CA3AF] mt-0.5 tabular-nums">
+                          {item.category} · <span className="text-white font-semibold">৳ {item.startingPrice}</span>
                         </p>
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-1.5 text-xs text-zinc-400 group-hover:text-zinc-950 transition-colors shrink-0 pl-2">
-                      <span className="hidden sm:inline font-medium">Explore</span>
-                      <ArrowRight className="w-4 h-4" />
-                    </div>
+                    <ArrowRight className="w-4 h-4 text-[#9CA3AF] group-hover:text-[#E10600] shrink-0 ml-2" />
                   </div>
                 ))}
               </div>
             </div>
           )}
         </div>
-
       </div>
     </div>
   );

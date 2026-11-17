@@ -1,179 +1,192 @@
 import { FragranceProduct, ReviewItem, SocialCard, JournalArticle } from '../types';
 
-// Asset references matching generated images
+// Asset references matching generated Formula 1 toy car & diecast model images
 export const IMAGES = {
-  hero: '/src/assets/images/hero_pure_portions_arrina_1791911761493.jpg',
-  heroArchitecturalOriginal: '/src/assets/images/hero_perfume_architectural_1791908158566.jpg',
-  purePortionsBottle: '/src/assets/images/element_pure_portions_bottle_1791911761812.jpg',
-  purePortionsIngredients: '/src/assets/images/element_vanilla_neroli_1791911761343.jpg',
+  hero: '/src/assets/images/hero_f1_diecast_studio_1794664768996.jpg',
+  heroArchitecturalOriginal: '/src/assets/images/hero_f1_diecast_studio_1794664768996.jpg',
+  purePortionsBottle: '/src/assets/images/campaign_f1_pro_118_1794664772367.jpg',
+  purePortionsIngredients: '/src/assets/images/campaign_f1_display_143_1794664770809.jpg',
   products: {
-    purePortions: '/src/assets/images/element_pure_portions_bottle_1791911761812.jpg',
-    rose01: '/src/assets/images/perfume_rose01_1791908158391.jpg',
-    vanilla01: '/src/assets/images/perfume_vanilla01_1791908158466.jpg',
-    genesisLeo: '/src/assets/images/perfume_genesis_leo_1791908160379.jpg',
-    venena: '/src/assets/images/perfume_venena_1791908161282.jpg',
-    asdaafRaneen: '/src/assets/images/perfume_asdaaf_raneen_1791908163183.jpg'
+    purePortions: '/src/assets/images/campaign_f1_pro_118_1794664772367.jpg',
+    rose01: '/src/assets/images/series_f1_classic_red_1794664772823.jpg',
+    vanilla01: '/src/assets/images/campaign_f1_display_143_1794664770809.jpg',
+    genesisLeo: '/src/assets/images/series_f1_carbon_stealth_1794664773109.jpg',
+    venena: '/src/assets/images/series_f1_night_aero_1794664771085.jpg',
+    asdaafRaneen: '/src/assets/images/series_f1_rc_sprint_1794664772832.jpg',
   },
   campaigns: {
-    forHim: '/src/assets/images/campaign_for_him_1791908163466.jpg',
-    forHer: '/src/assets/images/campaign_for_her_1791908163547.jpg'
+    forHim: '/src/assets/images/campaign_f1_pro_118_1794664772367.jpg',
+    forHer: '/src/assets/images/campaign_f1_display_143_1794664770809.jpg',
   },
   seasons: {
-    autumnDune: '/src/assets/images/season_dune_red_sun_1791908201156.jpg',
-    winterStreet: '/src/assets/images/season_monochrome_street_1791908200992.jpg',
-    summerRoses: '/src/assets/images/season_sculptural_roses_1791908202058.jpg',
-    springForest: '/src/assets/images/season_dark_forest_1791908203381.jpg'
+    autumnDune: '/src/assets/images/series_f1_night_aero_1794664771085.jpg',
+    winterStreet: '/src/assets/images/series_f1_classic_red_1794664772823.jpg',
+    summerRoses: '/src/assets/images/series_f1_carbon_stealth_1794664773109.jpg',
+    springForest: '/src/assets/images/series_f1_rc_sprint_1794664772832.jpg',
   },
   studio: {
-    travertine: '/src/assets/images/studio_social_travertine_1791908203434.jpg',
-    handDecant: '/src/assets/images/studio_social_hand_decant_1791908204628.jpg',
-    goldFlacon: '/src/assets/images/studio_social_gold_flacon_1791908204833.jpg',
-    amberMist: '/src/assets/images/studio_social_amber_spray_1791908204588.jpg'
+    travertine: '/src/assets/images/series_f1_night_aero_1794664771085.jpg',
+    handDecant: '/src/assets/images/series_f1_classic_red_1794664772823.jpg',
+    goldFlacon: '/src/assets/images/series_f1_carbon_stealth_1794664773109.jpg',
+    amberMist: '/src/assets/images/series_f1_rc_sprint_1794664772832.jpg',
   },
   articles: {
-    buyersGuide: '/src/assets/images/article_decant_buyers_guide_1791908274237.jpg',
-    perfumeRoses: '/src/assets/images/article_perfume_roses_water_1791908274460.jpg',
-    lilacPricing: '/src/assets/images/article_lilac_pricing_1791908274975.jpg'
-  }
+    buyersGuide: '/src/assets/images/workshop_f1_pit_bench_1794664770942.jpg',
+    perfumeRoses: '/src/assets/images/series_f1_carbon_stealth_1794664773109.jpg',
+    lilacPricing: '/src/assets/images/series_f1_rc_sprint_1794664772832.jpg',
+  },
 };
 
+// Live catalog comes from fetchPublicProducts(); kept empty so backend integration stays authoritative
 export const NEW_ARRIVALS: FragranceProduct[] = [];
 
 export const BRANDS_LIST = [
-  { name: 'HERRERA', isNew: false },
-  { name: 'ARMAF', isNew: true },
-  { name: 'DOLCE & GABBANA', isNew: false },
-  { name: 'LATTAFA', isNew: true },
-  { name: 'GIORGIO ARMANI', isNew: false },
-  { name: 'CALVIN KLEIN', isNew: true },
-  { name: 'CHANEL', isNew: false },
-  { name: 'RIFFS', isNew: false },
-  { name: 'DAVIDOFF', isNew: false },
-  { name: 'CREED', isNew: false },
-  { name: 'AHMED', isNew: false }
+  { name: 'BBURAGO', isNew: true },
+  { name: 'MINICHAMPS', isNew: false },
+  { name: 'SPARK MODEL', isNew: true },
+  { name: 'MAISTO TECH', isNew: false },
+  { name: 'RASTAR RC', isNew: true },
+  { name: 'SOLIDO', isNew: false },
+  { name: 'AUTOART', isNew: false },
+  { name: 'KYOSHO', isNew: false },
+  { name: 'LOOKSMART', isNew: false },
+  { name: 'AMALGAM', isNew: false },
+  { name: 'GT SPIRIT', isNew: false },
 ];
 
 export const REVIEWS_LIST: ReviewItem[] = [
   {
     id: 'rev-1',
-    quote: '...and videos. It seemed to be an existing fetched the ...ng more from...',
-    content: '...and videos. It seemed to be an existing fetched the original blend without any evaporation or adulteration. Ordering more from here next week.',
+    quote: 'The 1:18 alloy finish and Pirelli slicks look unreal on my desk.',
+    content:
+      'Picked up the 1:18 carbon edition and the front wing detail, suspension arms, and crisp sponsor decals exceeded expectations. Arrived foam-cradled with zero wing damage.',
     author: 'Tahmidur Rahman',
     rating: 5,
-    verified: true
+    verified: true,
   },
   {
     id: 'rev-2',
-    quote: '"Best in business. Absolute class."',
-    content: 'Best in business. Absolute class. Packaging was bulletproof, and the 5ml spray atomizers give the exact same fine mist dispersion as a full retail bottle.',
+    quote: 'Best F1 toy & model shop in the city. Zero compromises.',
+    content:
+      'Ordered a pair of 1:43 display cars in acrylic cases plus a 2.4GHz RC F1 racer for my nephew. The alloy paintwork is flawless and the RC steering responds instantaneously.',
     author: 'Jubayer Islam Bhuiyan',
     rating: 5,
-    verified: true
+    verified: true,
   },
   {
     id: 'rev-3',
-    quote: 'Very wide range of products...',
-    content: 'Very wide range of products, bottle designs, perfume authenticity, customer service, everything is high quality 💯 Top notch. The customer service is also especially excellent, they are very responsive and also answers and provides your needs/enquiries well. 👌',
+    quote: 'Incredible range of scales and team liveries.',
+    content:
+      'Everything from pocket 1:64 racers to heavyweight 1:18 diecast builds is authentic and cleanly packed. Customer support helped me pick matching Ferrari and Red Bull display sets.',
     author: 'Faiyaz Masud',
     rating: 5,
-    verified: true
+    verified: true,
   },
   {
     id: 'rev-4',
-    quote: 'Great packaging, great decants...',
-    content: 'Great packaging, great decants, highly recommend! Even came with protective shrink seals on each glass tube.',
+    quote: 'Bulletproof packaging for delicate front wings.',
+    content:
+      'Usually online toy sellers ship models loose, but Apex Paddock double-boxed my 1:18 car with corner guards. Straight onto my shelf in mint collector condition.',
     author: 'Samiul Masuk Dihan',
     rating: 5,
-    verified: true
-  }
+    verified: true,
+  },
 ];
 
 export const SOCIAL_CARDS: SocialCard[] = [
   {
     id: 'soc-1',
-    handle: '@aromaticone',
-    image: '/src/assets/images/studio_social_travertine_1791908203434.jpg',
-    likes: 223,
-    comments: 2,
-    tag: 'REALITY ≠ REVIEWS'
+    handle: '@apexpaddock',
+    image: '/src/assets/images/series_f1_night_aero_1794664771085.jpg',
+    likes: 418,
+    comments: 19,
+    tag: 'NIGHT CIRCUIT SPEC',
   },
   {
     id: 'soc-2',
-    handle: '@aromaticone',
-    image: '/src/assets/images/studio_social_hand_decant_1791908204628.jpg',
-    likes: 234,
-    comments: 1,
-    tag: 'AUTHENTIC DECANTS'
+    handle: '@apexpaddock',
+    image: '/src/assets/images/series_f1_classic_red_1794664772823.jpg',
+    likes: 362,
+    comments: 14,
+    tag: '1990S HERITAGE RED',
   },
   {
     id: 'soc-3',
-    handle: '@aromaticone',
-    image: '/src/assets/images/studio_social_gold_flacon_1791908204833.jpg',
-    likes: 86,
-    comments: 8,
-    tag: 'AUTHENTIC DECANTS'
+    handle: '@apexpaddock',
+    image: '/src/assets/images/series_f1_carbon_stealth_1794664773109.jpg',
+    likes: 289,
+    comments: 11,
+    tag: '1:18 CARBON AERO',
   },
   {
     id: 'soc-4',
-    handle: '@aromaticone',
-    image: '/src/assets/images/studio_social_amber_spray_1791908204588.jpg',
-    likes: 85,
-    comments: 5,
-    tag: 'STUDIO AROMA'
-  }
+    handle: '@apexpaddock',
+    image: '/src/assets/images/series_f1_rc_sprint_1794664772832.jpg',
+    likes: 312,
+    comments: 23,
+    tag: '2.4GHZ RC SPRINT',
+  },
 ];
 
 export const JOURNAL_ARTICLES: JournalArticle[] = [
   {
     id: 'art-1',
     date: 'FEB 01, 2026',
-    publisher: 'AROMATICA ONE',
-    title: "Don't Buy Decants From Us Before Reading This!",
-    description: 'Read this before you buy your first decant. Especially the part about why we genuinely cannot guarantee longevity, and what factors actually control skin chemistry...',
-    image: '/src/assets/images/article_decant_buyers_guide_1791908274237.jpg'
+    publisher: 'APEX PADDOCK',
+    title: '1:18 vs 1:43 Scale: Choosing Your First F1 Grid',
+    description:
+      'Read this before starting your diecast shelf. From 31cm centerpiece alloy builds with steerable wheels to compact acrylic-cased 1:43 grid lineups...',
+    image: '/src/assets/images/workshop_f1_pit_bench_1794664770942.jpg',
   },
   {
     id: 'art-2',
     date: 'FEB 01, 2026',
-    publisher: 'AROMATICA ONE',
-    title: 'Why Did You Mix Water With My Decant?',
-    description: 'Weak fragrance does not mean fake decant. Here is what is actually going on, and what you can do about maceration, temperature shock, and olfactory fatigue.',
-    image: '/src/assets/images/article_perfume_roses_water_1791908274460.jpg'
+    publisher: 'APEX PADDOCK',
+    title: 'Diecast Alloy vs 2.4GHz RC: Display Or Track Speed?',
+    description:
+      'Static collector models prioritize microscopic aero winglets and tampo decals, while RC F1 toy cars feature impact-resilient polymers and proportional throttle.',
+    image: '/src/assets/images/series_f1_carbon_stealth_1794664773109.jpg',
   },
   {
     id: 'art-3',
     date: 'FEB 01, 2026',
-    publisher: 'AROMATICA ONE',
-    title: 'Hidden Reality Of Our Pricing!',
-    description: 'Our pricing is not just random numbers. Here is the full, unvarnished math behind decant margins, high-pressure glass bottling, and genuine retail procurement.',
-    image: '/src/assets/images/article_lilac_pricing_1791908274975.jpg'
-  }
+    publisher: 'APEX PADDOCK',
+    title: 'Inside Every Box: Rubber Compounds, Wings & Tampos',
+    description:
+      'Why collector diecast pricing varies across tooling generations—comparing zinc alloy density, pad-printed liveries, and licensed Pirelli-style rubber compounds.',
+    image: '/src/assets/images/series_f1_rc_sprint_1794664772832.jpg',
+  },
 ];
 
 export const FAQ_ITEMS = [
   {
     id: 'faq-1',
-    question: 'What is a decant?',
-    answer: 'A decant is a smaller atomizer that contains a portion of perfume from the original bottle. Decanting means transferring perfume from the main bottle into a smaller bottle. It allows you to test luxury scents on skin for several weeks without committing to full retail prices.'
+    question: 'What is the difference between 1:18, 1:43, and 1:64 scale F1 toy cars?',
+    answer:
+      '1:18 models measure roughly 30–31 cm long with heavy zinc-alloy bodies, steerable front wheels, and cockpit harness detail. 1:43 models (around 13 cm) come mounted on collector bases with clear acrylic covers, while 1:64 models (about 8 cm) are compact pocket racers ideal for desktop grids and kids.',
   },
   {
     id: 'faq-2',
-    question: 'But I can just test at a perfume shop by sniffing?',
-    answer: 'Sniffing perfume on a paper strip in a boutique only reveals the volatile top notes (first 5-10 minutes). A decant lets you experience the true dry-down, skin chemistry, projection, and sillage over an entire day in your natural climate and routines.'
+    question: 'Are these models for display or active racing play?',
+    answer:
+      'We carry both. Our 2.4GHz RC F1 toy cars and 1:64 pull-back editions are built with crash-resilient ABS wings for high-speed floor racing, while our 1:18 and 1:43 diecast replicas are precision-cast for shelf display.',
   },
   {
     id: 'faq-3',
-    question: 'Are the fragrances 100% Genuine?',
-    answer: 'Every milliliter is extracted directly from original brand flacons sourced from authorized European and Middle Eastern distributors. We never dilute, alter, or mix scents with carrier oils.'
+    question: 'Are the team liveries and race numbers officially licensed?',
+    answer:
+      'Yes. Every scale model and RC racer is sourced directly from authorized motorsport toy and diecast manufacturers including Bburago, Minichamps, Spark, Solido, and Rastar with authentic sponsor and driver markings.',
   },
   {
     id: 'faq-4',
     question: 'What is the shipping cost?',
-    answer: 'Standard door-to-door delivery inside Dhaka is BDT 70, and outside Dhaka nationwide is BDT 130. We offer free shipping on orders above BDT 3,000.'
+    answer:
+      'Standard door-to-door delivery inside Dhaka is BDT 70, and nationwide outside Dhaka is BDT 130. Orders above BDT 3,000 qualify for free wing-protected express shipping.',
   },
   {
     id: 'faq-5',
-    question: 'How long does shipping take?',
-    answer: 'Orders are freshly decanted within 24 hours of confirmation. Delivery within Dhaka takes 1-2 business days, and all other districts take 2-4 business days via verified express couriers.'
-  }
+    question: 'How do you protect delicate front and rear wings in transit?',
+    answer:
+      'Every car is checked at our pit garage before dispatch and shipped inside multi-layer foam cradles and reinforced outer cartons. Delivery takes 1–2 days inside Dhaka and 2–4 days nationwide.',
+  },
 ];
