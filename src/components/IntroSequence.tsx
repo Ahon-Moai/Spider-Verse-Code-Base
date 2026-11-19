@@ -72,7 +72,7 @@ export const IntroSequence: React.FC<IntroSequenceProps> = ({
         >
           {/* Top Motorsport Telemetry Header */}
           <div className="w-full px-6 sm:px-10 pt-6 flex items-center justify-between border-b border-white/10 pb-4">
-            <span className="font-display font-bold tracking-[0.22em] text-sm sm:text-base uppercase text-[#F4F2EE]">
+            <span className="font-logo marvel-logo-badge text-lg sm:text-xl uppercase">
               APEX PADDOCK
             </span>
             <span className="font-mono text-[11px] tracking-[0.24em] uppercase text-[#9CA3AF]">
@@ -142,7 +142,7 @@ export const IntroSequence: React.FC<IntroSequenceProps> = ({
                 <span className="font-mono text-[10px] sm:text-xs tracking-[0.35em] uppercase text-[#E10600] font-semibold mb-1.5 bg-[#08090B]/80 px-2.5 py-0.5 border border-white/10">
                   F1 DIECAST & RC
                 </span>
-                <h1 className="font-display font-black uppercase tracking-[-0.02em] text-5xl sm:text-7xl md:text-8xl leading-[0.88] text-white drop-shadow-[0_10px_30px_rgba(0,0,0,0.9)]">
+                <h1 className="font-logo bg-[#EC1D24] text-white px-5 sm:px-8 py-2 sm:py-3 uppercase tracking-[-0.02em] text-5xl sm:text-7xl md:text-8xl leading-[0.86] drop-shadow-[0_10px_30px_rgba(0,0,0,0.9)]">
                   APEX PADDOCK
                 </h1>
               </motion.div>

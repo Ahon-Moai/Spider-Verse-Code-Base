@@ -20,8 +20,8 @@ export const HomepageCMS: React.FC<HomepageCMSProps> = ({ csrfToken }) => {
     headline: 'COLLECTION IS LIVE',
     tagline: '',
     specifier: "SEASON '26",
-    primary_cta_text: 'Explore Models',
-    secondary_cta_text: 'Shop Now',
+    primary_cta_text: 'Explore Model',
+    secondary_cta_text: 'Shop All',
     image: '/src/assets/images/hero_f1_diecast_studio_1794664768996.jpg',
     video_url: ''
   });
@@ -30,6 +30,8 @@ export const HomepageCMS: React.FC<HomepageCMSProps> = ({ csrfToken }) => {
     Array<{
       eyebrow: string;
       headline: string;
+      cta_text: string;
+      product_id: string;
       image: string;
       video_url: string;
       media_type: 'image' | 'video';
@@ -38,6 +40,8 @@ export const HomepageCMS: React.FC<HomepageCMSProps> = ({ csrfToken }) => {
     {
       eyebrow: "SEASON '26",
       headline: 'COLLECTION IS LIVE',
+      cta_text: 'Explore Model',
+      product_id: '',
       image: '/src/assets/images/hero_f1_diecast_studio_1794664768996.jpg',
       video_url: '',
       media_type: 'image'
@@ -45,6 +49,8 @@ export const HomepageCMS: React.FC<HomepageCMSProps> = ({ csrfToken }) => {
     {
       eyebrow: '1:18 PRO DIECAST',
       headline: 'BUILT FOR THE GRID',
+      cta_text: 'Explore Model',
+      product_id: '',
       image: '/src/assets/images/campaign_f1_pro_118_1794664772367.jpg',
       video_url: '',
       media_type: 'image'
@@ -52,6 +58,8 @@ export const HomepageCMS: React.FC<HomepageCMSProps> = ({ csrfToken }) => {
     {
       eyebrow: '1:43 & 2.4GHZ RC',
       headline: 'RACE OR DISPLAY',
+      cta_text: 'Explore Model',
+      product_id: '',
       image: '/src/assets/images/campaign_f1_display_143_1794664770809.jpg',
       video_url: '',
       media_type: 'image'
@@ -204,6 +212,8 @@ export const HomepageCMS: React.FC<HomepageCMSProps> = ({ csrfToken }) => {
                 return {
                   eyebrow: s.eyebrow ?? def.eyebrow,
                   headline: s.headline ?? def.headline,
+                  cta_text: s.cta_text ?? def.cta_text,
+                  product_id: s.product_id ?? def.product_id,
                   image: s.image ?? def.image,
                   video_url: s.video_url ?? '',
                   media_type: s.media_type === 'video' ? 'video' : 'image'
@@ -553,6 +563,8 @@ export const HomepageCMS: React.FC<HomepageCMSProps> = ({ csrfToken }) => {
     updates: Partial<{
       eyebrow: string;
       headline: string;
+      cta_text: string;
+      product_id: string;
       image: string;
       video_url: string;
       media_type: 'image' | 'video';
@@ -569,6 +581,7 @@ export const HomepageCMS: React.FC<HomepageCMSProps> = ({ csrfToken }) => {
       ...heroForm,
       specifier: firstSlide.eyebrow,
       headline: firstSlide.headline,
+      primary_cta_text: firstSlide.cta_text,
       image: firstSlide.image,
       video_url: firstSlide.media_type === 'video' ? firstSlide.video_url : '',
       slides: heroSlides
@@ -840,38 +853,25 @@ export const HomepageCMS: React.FC<HomepageCMSProps> = ({ csrfToken }) => {
           <div className="flex items-center justify-between gap-2 pb-3 border-b border-[#EAEAEA] text-[#111111]">
             <div className="flex items-center gap-2">
               <Sparkles className="w-4 h-4" />
-              <h3 className="font-serif text-base text-[#111111]">Hero 3-Carousel Settings (Image / Video + Text)</h3>
+              <h3 className="font-serif text-base text-[#111111]">Hero 3-Carousel Settings (Media + Text + Product CTA)</h3>
             </div>
             <span className="text-[10px] font-mono uppercase tracking-widest text-[#737373]">
               3 Slides Active
             </span>
           </div>
 
-          {/* Shared CTA Buttons */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-[#F8F8F8] border border-[#EAEAEA] p-4">
-            <div>
-              <label className="block text-[10px] tracking-widest text-[#737373] uppercase mb-1">
-                Primary Red Button Text
-              </label>
-              <input
-                type="text"
-                value={heroForm.primary_cta_text}
-                onChange={(e) => setHeroForm({ ...heroForm, primary_cta_text: e.target.value })}
-                className="w-full bg-white border border-[#EAEAEA] px-3 py-2 text-xs text-[#111111] focus:border-[#111111]"
-              />
-            </div>
-
-            <div>
-              <label className="block text-[10px] tracking-widest text-[#737373] uppercase mb-1">
-                Secondary Outline Button Text
-              </label>
-              <input
-                type="text"
-                value={heroForm.secondary_cta_text}
-                onChange={(e) => setHeroForm({ ...heroForm, secondary_cta_text: e.target.value })}
-                className="w-full bg-white border border-[#EAEAEA] px-3 py-2 text-xs text-[#111111] focus:border-[#111111]"
-              />
-            </div>
+          {/* Shared Secondary "Shop All" Button Text */}
+          <div className="bg-[#F8F8F8] border border-[#EAEAEA] p-4 max-w-md">
+            <label className="block text-[10px] tracking-widest text-[#737373] uppercase mb-1">
+              Second Button Text (Links to Shop All Collection)
+            </label>
+            <input
+              type="text"
+              value={heroForm.secondary_cta_text}
+              onChange={(e) => setHeroForm({ ...heroForm, secondary_cta_text: e.target.value })}
+              placeholder="Shop All"
+              className="w-full bg-white border border-[#EAEAEA] px-3 py-2 text-xs text-[#111111] focus:border-[#111111]"
+            />
           </div>
 
           {/* 3 Carousel Slide Cards */}
@@ -943,6 +943,39 @@ export const HomepageCMS: React.FC<HomepageCMSProps> = ({ csrfToken }) => {
                         placeholder="e.g. COLLECTION IS LIVE"
                         className="w-full bg-white border border-[#EAEAEA] px-3 py-2 text-xs text-[#111111] focus:border-[#111111]"
                       />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-[10px] tracking-widest text-[#737373] uppercase mb-1">
+                        Red CTA Button Text
+                      </label>
+                      <input
+                        type="text"
+                        value={slide.cta_text}
+                        onChange={(e) => handleUpdateHeroSlide(idx, { cta_text: e.target.value })}
+                        placeholder="e.g. View Car / Shop Model"
+                        className="w-full bg-white border border-[#EAEAEA] px-3 py-2 text-xs text-[#111111] focus:border-[#111111]"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-[10px] tracking-widest text-[#737373] uppercase mb-1">
+                        Assigned Product (Button Link)
+                      </label>
+                      <select
+                        value={slide.product_id}
+                        onChange={(e) => handleUpdateHeroSlide(idx, { product_id: e.target.value })}
+                        className="w-full bg-white border border-[#EAEAEA] px-3 py-2 text-xs text-[#111111] focus:border-[#111111] cursor-pointer"
+                      >
+                        <option value="">-- Select Product (or scroll to grid) --</option>
+                        {availableProducts.map((prod) => (
+                          <option key={prod.id} value={prod.id}>
+                            {prod.brand} — {prod.name}
+                          </option>
+                        ))}
+                      </select>
                     </div>
                   </div>
 

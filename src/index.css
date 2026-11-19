@@ -135,3 +135,32 @@
   transform: skewX(18deg);
 }
 
+/* Marvel-inspired Logo Typography: Benton Sans Extra Comp Black + compressed grotesque fallback */
+@font-face {
+  font-family: "Benton Sans Extra Comp Black";
+  src:
+    local("Benton Sans Extra Comp Black"),
+    local("BentonSansExtraComp-Black"),
+    local("BentonSansExtraComp Black"),
+    url("/fonts/BentonSansExtraComp-Black.woff2") format("woff2"),
+    url("/fonts/BentonSansExtraComp-Black.woff") format("woff"),
+    url("/fonts/BentonSansExtraComp-Black.ttf") format("truetype");
+  font-weight: 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+.font-logo {
+  font-family: "Benton Sans Extra Comp Black", "BentonSansExtraComp-Black", "Anton", "Barlow Condensed", sans-serif;
+  font-weight: 900;
+}
+
+.marvel-logo-badge {
+  background-color: #EC1D24;
+  color: #FFFFFF;
+  display: inline-block;
+  padding: 0.22rem 0.55rem 0.16rem;
+  letter-spacing: -0.02em;
+  line-height: 0.86;
+  transform: scaleY(1.06);
+}

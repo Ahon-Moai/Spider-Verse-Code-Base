@@ -42,10 +42,10 @@ export const Footer: React.FC<FooterProps> = ({ storeSettings }) => {
       id="account-section"
       className="w-full bg-[#07080A] text-[#F4F2EE] pt-10 pb-20 md:pb-12 overflow-hidden border-t border-white/10"
     >
-      {/* Oversized Motorsport Wordmark Banner */}
-      <div className="w-full border-b border-white/10 bg-[#08090B] py-6 sm:py-10 select-none overflow-hidden">
+      {/* Oversized Marvel-Style Brand Wordmark Banner */}
+      <div className="w-full border-b border-white/10 bg-[#08090B] py-8 sm:py-12 select-none overflow-hidden">
         <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 text-center flex items-center justify-center">
-          <p className="font-display font-black text-[10vw] sm:text-[8vw] lg:text-[6.5vw] tracking-[0.12em] text-white uppercase leading-none whitespace-nowrap">
+          <p className="font-logo bg-[#EC1D24] text-white px-5 sm:px-8 py-2 sm:py-3 text-[11vw] sm:text-[8.5vw] lg:text-[6.8vw] tracking-[-0.02em] uppercase leading-[0.86] whitespace-nowrap">
             {storeName}
           </p>
         </div>

@@ -6,6 +6,8 @@ import { SeasonsGallery } from './SeasonsGallery';
 export interface HeroSlideConfig {
   eyebrow: string;
   headline: string;
+  cta_text?: string;
+  product_id?: string;
   image: string;
   video_url?: string;
   media_type?: 'image' | 'video';
@@ -19,6 +21,8 @@ const DEFAULT_HERO_SLIDES: HeroSlideConfig[] = [
     media_type: 'image',
     eyebrow: "SEASON '26",
     headline: 'COLLECTION IS LIVE',
+    cta_text: 'Explore Model',
+    product_id: '',
     alt: 'Apex Paddock 1:18 Formula 1 diecast race car model in dark studio lighting',
   },
   {
@@ -27,6 +31,8 @@ const DEFAULT_HERO_SLIDES: HeroSlideConfig[] = [
     media_type: 'image',
     eyebrow: '1:18 PRO DIECAST',
     headline: 'BUILT FOR THE GRID',
+    cta_text: 'Explore Model',
+    product_id: '',
     alt: 'Precision 1:18 alloy Formula 1 model car with exposed front wing assembly',
   },
   {
@@ -35,6 +41,8 @@ const DEFAULT_HERO_SLIDES: HeroSlideConfig[] = [
     media_type: 'image',
     eyebrow: '1:43 & 2.4GHZ RC',
     headline: 'RACE OR DISPLAY',
+    cta_text: 'Explore Model',
+    product_id: '',
     alt: 'Two 1:43 scale diecast Formula 1 collector cars in acrylic display cases',
   },
 ];
@@ -53,6 +61,8 @@ const isLegacyPerfumeCopy = (text?: string) =>
   !text || /fragrance|decant|flacon|sillage|perfume|portion|olfactory|aromatica/i.test(text);
 
 export const Hero: React.FC<HeroProps> = ({
+  products = [],
+  onSelectProduct,
   onExploreClick,
   onNavigateToCollection,
   heroData,
@@ -83,6 +93,11 @@ export const Hero: React.FC<HeroProps> = ({
         return {
           eyebrow: s.eyebrow?.trim() || fallback.eyebrow,
           headline: s.headline?.trim() || fallback.headline,
+          cta_text:
+            s.cta_text?.trim() && !isLegacyPerfumeCopy(s.cta_text)
+              ? s.cta_text.trim()
+              : fallback.cta_text,
+          product_id: s.product_id?.trim() || '',
           image: s.image?.trim() || fallback.image,
           video_url: s.video_url?.trim() || '',
           media_type: s.media_type === 'video' ? 'video' : 'image',
@@ -99,12 +114,24 @@ export const Hero: React.FC<HeroProps> = ({
           : s
       );
 
-  const primaryCtaText = !isLegacyPerfumeCopy(heroData?.primary_cta_text)
-    ? heroData.primary_cta_text
-    : 'Explore Models';
-  const secondaryCtaText = !isLegacyPerfumeCopy(heroData?.secondary_cta_text)
+  const shopAllText = !isLegacyPerfumeCopy(heroData?.secondary_cta_text)
     ? heroData.secondary_cta_text
-    : 'Shop Now';
+    : 'Shop All';
+
+  const handleSlideCtaClick = (slide: HeroSlideConfig) => {
+    if (slide.product_id && onSelectProduct) {
+      const matched = products.find(
+        (p) => p.id === slide.product_id || p.slug === slide.product_id
+      );
+      if (matched) {
+        onSelectProduct(matched);
+        return;
+      }
+      onSelectProduct({ id: slide.product_id, slug: slide.product_id } as FragranceProduct);
+      return;
+    }
+    onExploreClick?.();
+  };
 
   useEffect(() => {
     const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -187,22 +214,22 @@ export const Hero: React.FC<HeroProps> = ({
               </h1>
             </motion.div>
 
-            {/* Slanted Parallelogram Motorsport CTAs */}
+            {/* Slanted Motorsport CTAs: Per-Slide Product CTA + Shop All */}
             <div className="flex flex-wrap items-center gap-4 pt-1">
               <button
                 type="button"
-                onClick={onExploreClick}
+                onClick={() => handleSlideCtaClick(current)}
                 className="btn-f1 bg-[#E10600] hover:bg-[#ff1e18] text-white px-8 py-3 font-display text-base sm:text-lg font-bold tracking-[0.08em] uppercase transition-colors duration-200 cursor-pointer shadow-[0_12px_30px_rgba(225,6,0,0.3)]"
               >
-                <span className="btn-f1-inner">{primaryCtaText}</span>
+                <span className="btn-f1-inner">{current.cta_text || 'Explore Model'}</span>
               </button>
 
               <button
                 type="button"
                 onClick={() => onNavigateToCollection?.('all')}
-                className="btn-f1 border border-white/60 bg-[#08090B]/60 hover:bg-white hover:text-[#08090B] text-white px-8 py-3 font-display text-base sm:text-lg font-bold tracking-[0.08em] uppercase transition-colors duration-200 cursor-pointer backdrop-blur-sm"
+                className="btn-f1 border border-white/70 bg-[#08090B]/60 hover:bg-white hover:text-[#08090B] text-white px-8 py-3 font-display text-base sm:text-lg font-bold tracking-[0.08em] uppercase transition-colors duration-200 cursor-pointer backdrop-blur-sm"
               >
-                <span className="btn-f1-inner">{secondaryCtaText}</span>
+                <span className="btn-f1-inner">{shopAllText}</span>
               </button>
             </div>
           </div>

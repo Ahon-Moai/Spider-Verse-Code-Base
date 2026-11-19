@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Search, ShoppingBag, Menu } from 'lucide-react';
+import { X, Search, ShoppingBag } from 'lucide-react';
 
 interface HeaderProps {
   cartCount: number;
@@ -59,8 +59,21 @@ export const Header: React.FC<HeaderProps> = ({
 
   return (
     <header className="sticky top-0 z-40 w-full bg-[#08090B]/95 backdrop-blur-md border-b border-white/10 transition-colors duration-200">
-      <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-8">
-        {/* Zone 1: Single-line Brand Wordmark */}
+      <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 h-11 md:h-12 flex items-center justify-between gap-4 md:gap-8">
+        {/* Mobile Left: Clean Search Icon (no bg, no border) */}
+        <div className="flex items-center justify-start w-10 md:hidden">
+          <button
+            type="button"
+            onClick={onOpenSearch}
+            className="p-2 -ml-2 text-[#F4F2EE] hover:text-[#E10600] bg-transparent border-0 transition-colors cursor-pointer shrink-0"
+            aria-label="Search F1 Models"
+            title="Search F1 Models"
+          >
+            <Search className="w-5 h-5" />
+          </button>
+        </div>
+
+        {/* Zone 1: Marvel-style Compressed Block Brand Wordmark (Flush Top-to-Bottom of Navbar) */}
         <a
           href="/"
           onClick={(e) => {
@@ -69,13 +82,13 @@ export const Header: React.FC<HeaderProps> = ({
               onNavigateHome();
             }
           }}
-          className="font-display font-extrabold text-2xl sm:text-[26px] tracking-[0.14em] uppercase text-[#F4F2EE] hover:text-white transition-colors whitespace-nowrap shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#E10600]"
+          className="h-full inline-flex items-center justify-center bg-[#EC1D24] text-white px-1 sm:px-1.5 font-logo text-[32px] md:text-[38px] tracking-[-0.035em] leading-[0.78] uppercase hover:brightness-110 transition-all whitespace-nowrap shrink-0 overflow-hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
           aria-label={`${brandName} Home`}
         >
-          {brandName}
+          <span className="inline-block scale-y-[1.08] translate-y-[0.02em]">{brandName}</span>
         </a>
 
-        {/* Zone 2: Concise Single-Line Navigation Links */}
+        {/* Zone 2: Concise Single-Line Navigation Links (PC) */}
         <nav className="hidden md:flex items-center gap-8 text-xs font-medium tracking-[0.16em] uppercase text-[#C4C9D4]">
           <button
             type="button"
@@ -107,12 +120,29 @@ export const Header: React.FC<HeaderProps> = ({
           </button>
         </nav>
 
-        {/* Zone 3: Primary Action & Search */}
-        <div className="flex items-center gap-3 shrink-0">
+        {/* Mobile Right: Just the Cart Icon */}
+        <div className="flex items-center justify-end w-10 md:hidden">
+          <button
+            type="button"
+            onClick={onOpenCart}
+            className="relative p-2 -mr-2 text-[#F4F2EE] hover:text-[#E10600] bg-transparent border-0 transition-colors cursor-pointer shrink-0"
+            aria-label={`Shopping Bag (${cartCount})`}
+          >
+            <ShoppingBag className="w-5 h-5" />
+            {cartCount > 0 && (
+              <span className="absolute top-0.5 right-0 min-w-[16px] h-4 px-1 bg-[#E10600] text-white font-mono text-[10px] font-bold flex items-center justify-center rounded-full tabular-nums">
+                {cartCount}
+              </span>
+            )}
+          </button>
+        </div>
+
+        {/* Zone 3: PC Primary Action & Search (Unchanged on Desktop) */}
+        <div className="hidden md:flex items-center gap-3 shrink-0">
           <button
             type="button"
             onClick={onOpenSearch}
-            className="p-2.5 text-[#C4C9D4] hover:text-white border border-white/10 hover:border-white/30 bg-[#111317] transition-colors cursor-pointer whitespace-nowrap shrink-0"
+            className="p-2 text-[#C4C9D4] hover:text-white border border-white/10 hover:border-white/30 bg-[#111317] transition-colors cursor-pointer whitespace-nowrap shrink-0"
             aria-label="Search F1 Models"
             title="Search F1 Models"
           >
@@ -122,22 +152,13 @@ export const Header: React.FC<HeaderProps> = ({
           <button
             type="button"
             onClick={onOpenCart}
-            className="btn-f1 px-5 py-2.5 bg-[#E10600] hover:bg-[#ff1e18] text-white text-sm font-display font-bold tracking-[0.08em] uppercase transition-colors cursor-pointer whitespace-nowrap shrink-0"
+            className="btn-f1 px-4 py-1.5 bg-[#E10600] hover:bg-[#ff1e18] text-white text-sm font-display font-bold tracking-[0.08em] uppercase transition-colors cursor-pointer whitespace-nowrap shrink-0"
             aria-label={`Shopping Bag (${cartCount})`}
           >
             <span className="btn-f1-inner">
               <ShoppingBag className="w-3.5 h-3.5" />
               <span className="tabular-nums">Bag ({cartCount})</span>
             </span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setMobileMenuOpen(true)}
-            className="md:hidden p-2.5 text-[#F4F2EE] border border-white/15 bg-[#111317] hover:border-[#E10600] transition-colors cursor-pointer shrink-0"
-            aria-label="Open Navigation Menu"
-          >
-            <Menu className="w-4 h-4" />
           </button>
         </div>
       </div>
