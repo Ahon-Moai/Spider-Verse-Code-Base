@@ -15,16 +15,48 @@ export const HomepageCMS: React.FC<HomepageCMSProps> = ({ csrfToken }) => {
   const [saving, setSaving] = useState(false);
   const [availableProducts, setAvailableProducts] = useState<Array<{ id: string; name: string; brand: string; image?: string }>>([]);
 
-  // Hero Form
+  // Hero Form + 3 Carousel Slides
   const [heroForm, setHeroForm] = useState({
-    headline: 'LUXURY, BY THE ML',
-    tagline: 'Weightless neroli blossom, cured Madagascar bourbon vanilla, and radiant golden amber suspended in pure olfactory clarity. Engineered for pocket elegance.',
-    specifier: '5 ML ( 75+ SPRAYS )',
-    primary_cta_text: 'ORDER PURE PORTIONS · ৳ 490',
-    secondary_cta_text: 'EXPLORE ALL DECANTS',
-    image: '/src/assets/images/hero_pure_portions_arrina_1791911761493.jpg',
-    video_url: 'https://ik.imagekit.io/t1q0n1ovm/pchero%20vid.mp4'
+    headline: 'COLLECTION IS LIVE',
+    tagline: '',
+    specifier: "SEASON '26",
+    primary_cta_text: 'Explore Models',
+    secondary_cta_text: 'Shop Now',
+    image: '/src/assets/images/hero_f1_diecast_studio_1794664768996.jpg',
+    video_url: ''
   });
+
+  const [heroSlides, setHeroSlides] = useState<
+    Array<{
+      eyebrow: string;
+      headline: string;
+      image: string;
+      video_url: string;
+      media_type: 'image' | 'video';
+    }>
+  >([
+    {
+      eyebrow: "SEASON '26",
+      headline: 'COLLECTION IS LIVE',
+      image: '/src/assets/images/hero_f1_diecast_studio_1794664768996.jpg',
+      video_url: '',
+      media_type: 'image'
+    },
+    {
+      eyebrow: '1:18 PRO DIECAST',
+      headline: 'BUILT FOR THE GRID',
+      image: '/src/assets/images/campaign_f1_pro_118_1794664772367.jpg',
+      video_url: '',
+      media_type: 'image'
+    },
+    {
+      eyebrow: '1:43 & 2.4GHZ RC',
+      headline: 'RACE OR DISPLAY',
+      image: '/src/assets/images/campaign_f1_display_143_1794664770809.jpg',
+      video_url: '',
+      media_type: 'image'
+    }
+  ]);
 
   // Campaign Banners Form (For Him / For Her)
   const [campaignForm, setCampaignForm] = useState({
@@ -148,7 +180,37 @@ export const HomepageCMS: React.FC<HomepageCMSProps> = ({ csrfToken }) => {
         // Hero
         const heroSec = payload.sections?.hero;
         if (heroSec && heroSec.content) {
-          setHeroForm((prev) => ({ ...prev, ...heroSec.content }));
+          const c = heroSec.content;
+          setHeroForm((prev) => ({
+            ...prev,
+            headline: c.headline && !/by the ml/i.test(c.headline) ? c.headline : prev.headline,
+            primary_cta_text:
+              c.primary_cta_text && !/portions|decant/i.test(c.primary_cta_text)
+                ? c.primary_cta_text
+                : prev.primary_cta_text,
+            secondary_cta_text:
+              c.secondary_cta_text && !/decant/i.test(c.secondary_cta_text)
+                ? c.secondary_cta_text
+                : prev.secondary_cta_text,
+            image: c.image || prev.image,
+            video_url: c.video_url || ''
+          }));
+
+          if (Array.isArray(c.slides) && c.slides.length > 0) {
+            setHeroSlides((prev) =>
+              prev.map((def, idx) => {
+                const s = c.slides[idx];
+                if (!s) return def;
+                return {
+                  eyebrow: s.eyebrow ?? def.eyebrow,
+                  headline: s.headline ?? def.headline,
+                  image: s.image ?? def.image,
+                  video_url: s.video_url ?? '',
+                  media_type: s.media_type === 'video' ? 'video' : 'image'
+                };
+              })
+            );
+          }
         }
 
         // Campaign Banners (For Him | Her)
@@ -486,9 +548,32 @@ export const HomepageCMS: React.FC<HomepageCMSProps> = ({ csrfToken }) => {
     setSeasonCards(next);
   };
 
+  const handleUpdateHeroSlide = (
+    index: number,
+    updates: Partial<{
+      eyebrow: string;
+      headline: string;
+      image: string;
+      video_url: string;
+      media_type: 'image' | 'video';
+    }>
+  ) => {
+    setHeroSlides((prev) => prev.map((slide, idx) => (idx === index ? { ...slide, ...updates } : slide)));
+  };
+
   const handleSaveHero = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
+    const firstSlide = heroSlides[0];
+    const heroPayload = {
+      ...heroForm,
+      specifier: firstSlide.eyebrow,
+      headline: firstSlide.headline,
+      image: firstSlide.image,
+      video_url: firstSlide.media_type === 'video' ? firstSlide.video_url : '',
+      slides: heroSlides
+    };
+
     try {
       const res = await fetch('/api/admin/homepage.php', {
         method: 'PUT',
@@ -499,9 +584,9 @@ export const HomepageCMS: React.FC<HomepageCMSProps> = ({ csrfToken }) => {
         body: JSON.stringify({
           type: 'section',
           section_key: 'hero',
-          title: 'LUXURY, BY THE ML',
-          subtitle: 'THE SIGNATURE DECANTS EDITION · ARRINA ATELIER',
-          content: heroForm,
+          title: firstSlide.headline || 'COLLECTION IS LIVE',
+          subtitle: firstSlide.eyebrow || "SEASON '26",
+          content: heroPayload,
           is_enabled: true,
           display_order: 1
         })
@@ -509,7 +594,7 @@ export const HomepageCMS: React.FC<HomepageCMSProps> = ({ csrfToken }) => {
 
       const data = await res.json();
       if (data.success) {
-        alert('Hero Section saved successfully!');
+        alert('Hero 3-Slide Carousel saved successfully!');
         fetchCMSData();
       } else {
         alert(getErrorMessage(data?.error || data, 'Failed to save Hero section'));
@@ -749,83 +834,142 @@ export const HomepageCMS: React.FC<HomepageCMSProps> = ({ csrfToken }) => {
         ))}
       </div>
 
-      {/* Tab 1: Hero Banner Form */}
+      {/* Tab 1: Hero 3-Carousel Banner Form */}
       {activeTab === 'hero' && (
-        <form onSubmit={handleSaveHero} className="bg-white border border-[#EAEAEA] p-6 space-y-5 text-xs text-[#111111]">
-          <div className="flex items-center gap-2 pb-3 border-b border-[#EAEAEA] text-[#111111]">
-            <Sparkles className="w-4 h-4" />
-            <h3 className="font-serif text-base text-[#111111]">Hero Campaign Banner Settings</h3>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-[10px] tracking-widest text-[#737373] uppercase mb-1">Main Headline</label>
-              <input
-                type="text"
-                value={heroForm.headline}
-                onChange={(e) => setHeroForm({ ...heroForm, headline: e.target.value })}
-                className="w-full bg-[#F8F8F8] border border-[#EAEAEA] px-3 py-2 text-xs text-[#111111] focus:border-[#111111]"
-              />
+        <form onSubmit={handleSaveHero} className="bg-white border border-[#EAEAEA] p-6 space-y-6 text-xs text-[#111111]">
+          <div className="flex items-center justify-between gap-2 pb-3 border-b border-[#EAEAEA] text-[#111111]">
+            <div className="flex items-center gap-2">
+              <Sparkles className="w-4 h-4" />
+              <h3 className="font-serif text-base text-[#111111]">Hero 3-Carousel Settings (Image / Video + Text)</h3>
             </div>
-
-            <div>
-              <label className="block text-[10px] tracking-widest text-[#737373] uppercase mb-1">Volume Specifier Ribbon</label>
-              <input
-                type="text"
-                value={heroForm.specifier}
-                onChange={(e) => setHeroForm({ ...heroForm, specifier: e.target.value })}
-                className="w-full bg-[#F8F8F8] border border-[#EAEAEA] px-3 py-2 text-xs text-[#111111] focus:border-[#111111]"
-              />
-            </div>
+            <span className="text-[10px] font-mono uppercase tracking-widest text-[#737373]">
+              3 Slides Active
+            </span>
           </div>
 
-          <div>
-            <label className="block text-[10px] tracking-widest text-[#737373] uppercase mb-1">Editorial Tagline / Story</label>
-            <textarea
-              value={heroForm.tagline}
-              onChange={(e) => setHeroForm({ ...heroForm, tagline: e.target.value })}
-              rows={3}
-              className="w-full bg-[#F8F8F8] border border-[#EAEAEA] px-3 py-2 text-xs text-[#111111] focus:border-[#111111]"
-            />
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {/* Shared CTA Buttons */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-[#F8F8F8] border border-[#EAEAEA] p-4">
             <div>
-              <label className="block text-[10px] tracking-widest text-[#737373] uppercase mb-1">Primary CTA Button Label</label>
+              <label className="block text-[10px] tracking-widest text-[#737373] uppercase mb-1">
+                Primary Red Button Text
+              </label>
               <input
                 type="text"
                 value={heroForm.primary_cta_text}
                 onChange={(e) => setHeroForm({ ...heroForm, primary_cta_text: e.target.value })}
-                className="w-full bg-[#F8F8F8] border border-[#EAEAEA] px-3 py-2 text-xs text-[#111111] focus:border-[#111111]"
+                className="w-full bg-white border border-[#EAEAEA] px-3 py-2 text-xs text-[#111111] focus:border-[#111111]"
               />
             </div>
 
             <div>
-              <label className="block text-[10px] tracking-widest text-[#737373] uppercase mb-1">Secondary CTA Button Label</label>
+              <label className="block text-[10px] tracking-widest text-[#737373] uppercase mb-1">
+                Secondary Outline Button Text
+              </label>
               <input
                 type="text"
                 value={heroForm.secondary_cta_text}
                 onChange={(e) => setHeroForm({ ...heroForm, secondary_cta_text: e.target.value })}
-                className="w-full bg-[#F8F8F8] border border-[#EAEAEA] px-3 py-2 text-xs text-[#111111] focus:border-[#111111]"
+                className="w-full bg-white border border-[#EAEAEA] px-3 py-2 text-xs text-[#111111] focus:border-[#111111]"
               />
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <ImageUploader
-              label="Hero Backdrop Image (Fallback or Image Mode)"
-              value={heroForm.image}
-              onChange={(url) => setHeroForm({ ...heroForm, image: url })}
-              csrfToken={csrfToken}
-            />
+          {/* 3 Carousel Slide Cards */}
+          <div className="space-y-5">
+            {heroSlides.map((slide, idx) => {
+              const slotLabel =
+                idx === 0
+                  ? 'First Carousel (Slide 1)'
+                  : idx === 1
+                  ? 'Second Carousel (Slide 2)'
+                  : 'Third / Last Carousel (Slide 3)';
 
-            <VideoUploader
-              label="Hero Background Video (.mp4 / .webm)"
-              value={heroForm.video_url || ''}
-              onChange={(url) => setHeroForm({ ...heroForm, video_url: url })}
-              csrfToken={csrfToken}
-              placeholder="e.g. /uploads/hero_video.mp4"
-            />
+              return (
+                <div key={idx} className="bg-[#F8F8F8] border border-[#EAEAEA] p-5 space-y-4">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[#EAEAEA]">
+                    <h4 className="font-serif text-sm font-semibold text-[#111111] uppercase tracking-wider">
+                      {slotLabel}
+                    </h4>
+
+                    <div className="flex items-center gap-2">
+                      <span className="text-[10px] tracking-widest text-[#737373] uppercase">Media Type:</span>
+                      <button
+                        type="button"
+                        onClick={() => handleUpdateHeroSlide(idx, { media_type: 'image' })}
+                        className={`px-3 py-1 text-[10px] font-mono uppercase tracking-wider border cursor-pointer transition-colors ${
+                          slide.media_type === 'image'
+                            ? 'bg-[#111111] text-white border-[#111111]'
+                            : 'bg-white text-[#737373] border-[#EAEAEA] hover:text-[#111111]'
+                        }`}
+                      >
+                        Image
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleUpdateHeroSlide(idx, { media_type: 'video' })}
+                        className={`px-3 py-1 text-[10px] font-mono uppercase tracking-wider border cursor-pointer transition-colors ${
+                          slide.media_type === 'video'
+                            ? 'bg-[#111111] text-white border-[#111111]'
+                            : 'bg-white text-[#737373] border-[#EAEAEA] hover:text-[#111111]'
+                        }`}
+                      >
+                        Video
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-[10px] tracking-widest text-[#737373] uppercase mb-1">
+                        Small Top Text (Eyebrow)
+                      </label>
+                      <input
+                        type="text"
+                        value={slide.eyebrow}
+                        onChange={(e) => handleUpdateHeroSlide(idx, { eyebrow: e.target.value })}
+                        placeholder="e.g. SEASON '26"
+                        className="w-full bg-white border border-[#EAEAEA] px-3 py-2 text-xs text-[#111111] focus:border-[#111111]"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-[10px] tracking-widest text-[#737373] uppercase mb-1">
+                        Main Headline Text
+                      </label>
+                      <input
+                        type="text"
+                        value={slide.headline}
+                        onChange={(e) => handleUpdateHeroSlide(idx, { headline: e.target.value })}
+                        placeholder="e.g. COLLECTION IS LIVE"
+                        className="w-full bg-white border border-[#EAEAEA] px-3 py-2 text-xs text-[#111111] focus:border-[#111111]"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <ImageUploader
+                      label={slide.media_type === 'video' ? 'Poster / Fallback Image' : 'Slide Background Image'}
+                      value={slide.image}
+                      onChange={(url) => handleUpdateHeroSlide(idx, { image: url })}
+                      csrfToken={csrfToken}
+                    />
+
+                    <VideoUploader
+                      label="Slide Background Video (.mp4 / .webm)"
+                      value={slide.video_url}
+                      onChange={(url) =>
+                        handleUpdateHeroSlide(idx, {
+                          video_url: url,
+                          media_type: url ? 'video' : slide.media_type
+                        })
+                      }
+                      csrfToken={csrfToken}
+                      placeholder="Upload video or paste .mp4 URL"
+                    />
+                  </div>
+                </div>
+              );
+            })}
           </div>
 
           <div className="pt-4 border-t border-[#EAEAEA] flex justify-end">
@@ -835,7 +979,7 @@ export const HomepageCMS: React.FC<HomepageCMSProps> = ({ csrfToken }) => {
               className="px-6 py-2.5 bg-[#111111] text-white hover:bg-amber-300 hover:text-[#111111] text-xs font-semibold uppercase tracking-wider flex items-center gap-2 cursor-pointer"
             >
               <Save className="w-4 h-4" />
-              <span>{saving ? 'Saving...' : 'Save Hero Section'}</span>
+              <span>{saving ? 'Saving...' : 'Save Hero Carousel (3 Slides)'}</span>
             </button>
           </div>
         </form>
