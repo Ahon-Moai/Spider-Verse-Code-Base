@@ -1,40 +1,55 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Edit2, Trash2, Search, X, Layers, Eye, EyeOff } from 'lucide-react';
+import {
+  Plus,
+  Edit2,
+  Trash2,
+  Search,
+  X,
+  Eye,
+  EyeOff,
+  ChevronDown,
+  ChevronUp,
+  ChevronLeft,
+  ChevronRight
+} from 'lucide-react';
 import { getErrorMessage } from '../services/api';
 import { ImageUploader } from './ImageUploader';
-import { Collection, FragranceProduct } from '../types';
+import { Collection } from '../types';
 
 interface CollectionManagerProps {
   csrfToken: string;
 }
 
+const toSlug = (text: string) =>
+  text
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-|-$/g, '');
+
+const PAGE_SIZE = 12;
+
 export const CollectionManager: React.FC<CollectionManagerProps> = ({ csrfToken }) => {
   const [collections, setCollections] = useState<Collection[]>([]);
-  const [products, setProducts] = useState<FragranceProduct[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
+  const [page, setPage] = useState(1);
   const [editingCol, setEditingCol] = useState<Partial<Collection> | null>(null);
+  const [slugManuallyEdited, setSlugManuallyEdited] = useState(false);
+  const [showAdvanced, setShowAdvanced] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [saving, setSaving] = useState(false);
 
   const fetchData = async () => {
     setLoading(true);
     try {
-      const [colRes, prodRes] = await Promise.all([
-        fetch('/api/admin/collections.php'),
-        fetch('/api/admin/products.php')
-      ]);
+      const colRes = await fetch('/api/admin/collections.php');
       const colData = await colRes.json();
-      const prodData = await prodRes.json();
-
       if (colData.success && Array.isArray(colData.data)) {
         setCollections(colData.data);
       }
-      if (prodData.success && Array.isArray(prodData.data)) {
-        setProducts(prodData.data);
-      }
     } catch (e) {
-      console.error('Failed to fetch collection data', e);
+      console.error('Failed to fetch categories', e);
     } finally {
       setLoading(false);
     }
@@ -44,19 +59,25 @@ export const CollectionManager: React.FC<CollectionManagerProps> = ({ csrfToken 
     fetchData();
   }, []);
 
+  useEffect(() => {
+    setPage(1);
+  }, [search]);
+
   const handleOpenCreate = () => {
     setEditingCol({
-      id: 'col-' + Math.random().toString(36).substr(2, 6),
+      id: 'cat-' + Math.random().toString(36).substring(2, 8),
       title: '',
       slug: '',
       description: '',
-      image: '/src/assets/images/hero_pure_portions_arrina_1791911761493.jpg',
+      image: '',
       rule_type: 'category',
-      rule_value: 'Woody',
+      rule_value: '',
       display_order: collections.length + 1,
       is_enabled: true,
       mapped_product_ids: []
     });
+    setSlugManuallyEdited(false);
+    setShowAdvanced(false);
     setIsModalOpen(true);
   };
 
@@ -65,19 +86,29 @@ export const CollectionManager: React.FC<CollectionManagerProps> = ({ csrfToken 
       ...col,
       mapped_product_ids: Array.isArray(col.mapped_product_ids) ? col.mapped_product_ids : []
     });
+    setSlugManuallyEdited(true);
+    setShowAdvanced(col.rule_type !== 'category');
     setIsModalOpen(true);
   };
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!editingCol || !editingCol.title) return;
+    if (!editingCol || !editingCol.title?.trim()) return;
 
     setSaving(true);
     const isNew = !collections.some((c) => c.id === editingCol.id);
     const method = isNew ? 'POST' : 'PUT';
-    const url = isNew ? '/api/admin/collections.php' : `/api/admin/collections.php?id=${editingCol.id}`;
+    const url = isNew
+      ? '/api/admin/collections.php'
+      : `/api/admin/collections.php?id=${editingCol.id}`;
 
-    const slug = editingCol.slug || editingCol.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+    const cleanTitle = editingCol.title.trim();
+    const cleanSlug = toSlug(editingCol.slug || cleanTitle);
+    const ruleType = editingCol.rule_type || 'category';
+    const ruleValue =
+      ruleType === 'category'
+        ? editingCol.rule_value?.trim() || cleanTitle
+        : editingCol.rule_value || '';
 
     try {
       const res = await fetch(url, {
@@ -86,7 +117,13 @@ export const CollectionManager: React.FC<CollectionManagerProps> = ({ csrfToken 
           'Content-Type': 'application/json',
           'X-CSRF-Token': csrfToken
         },
-        body: JSON.stringify({ ...editingCol, slug })
+        body: JSON.stringify({
+          ...editingCol,
+          title: cleanTitle,
+          slug: cleanSlug,
+          rule_type: ruleType,
+          rule_value: ruleValue
+        })
       });
 
       const data = await res.json();
@@ -95,17 +132,17 @@ export const CollectionManager: React.FC<CollectionManagerProps> = ({ csrfToken 
         setEditingCol(null);
         fetchData();
       } else {
-        alert(getErrorMessage(data?.error || data, 'Failed to save collection'));
+        alert(getErrorMessage(data?.error || data, 'Failed to save category'));
       }
     } catch (err) {
-      alert('Error saving collection');
+      alert('Error saving category');
     } finally {
       setSaving(false);
     }
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this collection?')) return;
+    if (!confirm('Are you sure you want to delete this category?')) return;
 
     try {
       const res = await fetch(`/api/admin/collections.php?id=${id}`, {
@@ -117,7 +154,7 @@ export const CollectionManager: React.FC<CollectionManagerProps> = ({ csrfToken 
         fetchData();
       }
     } catch (err) {
-      alert('Error deleting collection');
+      alert('Error deleting category');
     }
   };
 
@@ -128,128 +165,213 @@ export const CollectionManager: React.FC<CollectionManagerProps> = ({ csrfToken 
       (c.description && c.description.toLowerCase().includes(search.toLowerCase()))
   );
 
+  const totalPages = Math.max(1, Math.ceil(filteredCollections.length / PAGE_SIZE));
+  const currentPage = Math.min(page, totalPages);
+  const paginatedCollections = filteredCollections.slice(
+    (currentPage - 1) * PAGE_SIZE,
+    currentPage * PAGE_SIZE
+  );
+
+  const inputCls =
+    'w-full h-9 rounded-md bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 px-3 text-xs text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 focus:outline-none focus:border-zinc-900 dark:focus:border-zinc-400 focus:ring-2 focus:ring-zinc-900/5 transition-colors';
+
   return (
     <div className="space-y-6 font-sans">
       {/* Header Bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white border border-[#EAEAEA] p-6 rounded">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b border-zinc-200/80 dark:border-zinc-800/80">
         <div>
-          <h2 className="text-lg font-bold text-[#111111] tracking-tight">Collections & Categories</h2>
-          <p className="text-xs text-[#737373] mt-0.5">
-            Organize store taxonomy, create landing collections, and assign matching rules
+          <h1 className="text-lg font-semibold text-zinc-950 dark:text-zinc-100 tracking-tight">
+            Categories &amp; Collections
+          </h1>
+          <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">
+            Create store categories and URL slugs—available immediately when uploading products
           </p>
         </div>
         <button
           onClick={handleOpenCreate}
-          className="inline-flex items-center gap-2 bg-[#111111] hover:bg-black text-white text-xs font-semibold px-4 py-2 rounded transition-all shadow-2xs cursor-pointer"
+          className="inline-flex items-center justify-center gap-1.5 h-9 px-3.5 rounded-md bg-zinc-950 hover:bg-zinc-800 dark:bg-zinc-100 dark:hover:bg-white text-white dark:text-zinc-950 text-xs font-medium transition-colors cursor-pointer whitespace-nowrap shrink-0"
         >
           <Plus className="w-4 h-4" />
-          <span>New Collection</span>
+          <span>New Category</span>
         </button>
       </div>
 
       {/* Filter / Search Bar */}
-      <div className="relative">
-        <Search className="w-4 h-4 absolute left-3.5 top-3.5 text-[#737373]" />
-        <input
-          type="text"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          placeholder="Search collections by title, route, or description..."
-          className="w-full bg-white border border-[#EAEAEA] rounded pl-10 pr-4 py-2.5 text-xs text-[#111111] placeholder-[#737373] focus:outline-none focus:border-[#111111]"
-        />
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div className="relative flex-1 max-w-md">
+          <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400 pointer-events-none" />
+          <input
+            type="text"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search categories by name or slug..."
+            className="w-full h-9 rounded-md bg-white dark:bg-[#111113] border border-zinc-200/80 dark:border-zinc-800 pl-9 pr-4 text-xs text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 focus:outline-none focus:border-zinc-900 dark:focus:border-zinc-400 transition-colors"
+          />
+        </div>
+        <span className="text-xs text-zinc-500 dark:text-zinc-400 font-mono tabular-nums">
+          {filteredCollections.length} {filteredCollections.length === 1 ? 'category' : 'categories'}
+        </span>
       </div>
 
-      {/* Collection Table */}
-      <div className="bg-white border border-[#EAEAEA] rounded overflow-hidden shadow-2xs">
-        <table className="w-full text-left text-xs text-[#111111]">
-          <thead className="bg-[#F8F8F8] text-[#737373] uppercase tracking-wider text-[10px] font-semibold border-b border-[#EAEAEA]">
-            <tr>
-              <th className="py-3 px-4">Collection Title</th>
-              <th className="py-3 px-4">URL Route</th>
-              <th className="py-3 px-4">Rule Assignment</th>
-              <th className="py-3 px-4">Order</th>
-              <th className="py-3 px-4">Status</th>
-              <th className="py-3 px-4 text-right">Actions</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-[#EAEAEA]">
-            {loading ? (
+      {/* Category Table */}
+      <div className="bg-white dark:bg-[#111113] border border-zinc-200/80 dark:border-zinc-800/80 rounded-lg overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full text-left text-xs text-zinc-900 dark:text-zinc-100">
+            <thead className="bg-zinc-50/80 dark:bg-zinc-900/60 text-zinc-500 dark:text-zinc-400 uppercase tracking-wider text-[11px] font-medium border-b border-zinc-200/80 dark:border-zinc-800/80">
               <tr>
-                <td colSpan={6} className="py-8 text-center text-[#737373]">
-                  Loading collection records...
-                </td>
+                <th className="py-3 px-4 font-medium">Category Name</th>
+                <th className="py-3 px-4 font-medium">Slug / URL</th>
+                <th className="py-3 px-4 font-medium">Order</th>
+                <th className="py-3 px-4 font-medium">Status</th>
+                <th className="py-3 px-4 font-medium text-right">Actions</th>
               </tr>
-            ) : filteredCollections.length === 0 ? (
-              <tr>
-                <td colSpan={6} className="py-8 text-center text-[#737373]">
-                  No collections matched search query.
-                </td>
-              </tr>
-            ) : (
-              filteredCollections.map((col) => (
-                <tr key={col.id} className="hover:bg-[#F8F8F8] transition-colors">
-                  <td className="py-3 px-4 flex items-center gap-3">
-                    {col.image && (
-                      <div className="w-9 h-9 bg-[#F4F4F4] border border-[#EAEAEA] rounded overflow-hidden shrink-0 flex items-center justify-center">
-                        <img src={col.image} alt={col.title} className="w-full h-full object-cover" />
-                      </div>
-                    )}
-                    <div>
-                      <p className="font-semibold text-[#111111]">{col.title}</p>
-                      <p className="text-[10px] text-[#737373] font-mono">{col.id}</p>
-                    </div>
-                  </td>
-                  <td className="py-3 px-4 font-mono text-xs text-[#111111]">/collections/{col.slug}</td>
-                  <td className="py-3 px-4 font-mono text-[11px] text-[#737373] uppercase">
-                    {col.rule_type}: <span className="text-[#111111] font-semibold">{col.rule_value || 'all'}</span>
-                  </td>
-                  <td className="py-3 px-4 font-mono text-[#737373]">{col.display_order}</td>
-                  <td className="py-3 px-4">
-                    <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-semibold uppercase tracking-wider ${
-                      col.is_enabled
-                        ? 'bg-emerald-50 text-emerald-800 border border-emerald-200'
-                        : 'bg-[#F4F4F4] text-[#737373] border border-[#EAEAEA]'
-                    }`}>
-                      {col.is_enabled ? <Eye className="w-3 h-3 text-emerald-600" /> : <EyeOff className="w-3 h-3 text-[#737373]" />}
-                      {col.is_enabled ? 'Active' : 'Hidden'}
-                    </span>
-                  </td>
-                  <td className="py-3 px-4 text-right space-x-1">
-                    <button
-                      onClick={() => handleOpenEdit(col)}
-                      className="p-1.5 text-[#737373] hover:text-[#111111] hover:bg-[#F4F4F4] rounded transition-colors"
-                      title="Edit Collection"
-                    >
-                      <Edit2 className="w-3.5 h-3.5" />
-                    </button>
-                    <button
-                      onClick={() => handleDelete(col.id)}
-                      className="p-1.5 text-[#737373] hover:text-red-600 hover:bg-red-50 rounded transition-colors"
-                      title="Delete Collection"
-                    >
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </button>
+            </thead>
+            <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800/80">
+              {loading ? (
+                [...Array(4)].map((_, i) => (
+                  <tr key={i} className="animate-pulse">
+                    <td colSpan={5} className="py-4 px-4">
+                      <div className="h-4 bg-zinc-100 dark:bg-zinc-800 rounded w-full" />
+                    </td>
+                  </tr>
+                ))
+              ) : paginatedCollections.length === 0 ? (
+                <tr>
+                  <td colSpan={5} className="py-12 text-center">
+                    <p className="text-xs font-medium text-zinc-700 dark:text-zinc-300">
+                      No categories found
+                    </p>
+                    <p className="text-[11px] text-zinc-400 dark:text-zinc-500 mt-1">
+                      Click &quot;New Category&quot; to create one.
+                    </p>
                   </td>
                 </tr>
-              ))
-            )}
-          </tbody>
-        </table>
+              ) : (
+                paginatedCollections.map((col) => (
+                  <tr
+                    key={col.id}
+                    className="hover:bg-zinc-50/70 dark:hover:bg-zinc-900/50 transition-colors"
+                  >
+                    <td className="py-3 px-4">
+                      <div className="flex items-center gap-3 min-w-0">
+                        {col.image && (
+                          <div className="w-9 h-9 bg-zinc-50 dark:bg-zinc-900 border border-zinc-200/80 dark:border-zinc-800 rounded-md overflow-hidden shrink-0 flex items-center justify-center">
+                            <img
+                              src={col.image}
+                              alt={col.title}
+                              className="w-full h-full object-cover"
+                            />
+                          </div>
+                        )}
+                        <div className="min-w-0">
+                          <p className="font-medium text-zinc-950 dark:text-zinc-100 truncate">
+                            {col.title}
+                          </p>
+                          {col.description && (
+                            <p className="text-[11px] text-zinc-500 dark:text-zinc-400 line-clamp-1">
+                              {col.description}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    </td>
+                    <td className="py-3 px-4 font-mono text-xs text-zinc-600 dark:text-zinc-300 whitespace-nowrap">
+                      /collections/{col.slug}
+                    </td>
+                    <td className="py-3 px-4 font-mono text-zinc-500 dark:text-zinc-400 tabular-nums">
+                      {col.display_order}
+                    </td>
+                    <td className="py-3 px-4 whitespace-nowrap">
+                      <span
+                        className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[11px] font-medium border ${
+                          col.is_enabled
+                            ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 border-emerald-200 dark:border-emerald-900/60'
+                            : 'bg-zinc-100 dark:bg-zinc-900 text-zinc-600 dark:text-zinc-400 border-zinc-200 dark:border-zinc-800'
+                        }`}
+                      >
+                        {col.is_enabled ? (
+                          <Eye className="w-3 h-3" />
+                        ) : (
+                          <EyeOff className="w-3 h-3" />
+                        )}
+                        {col.is_enabled ? 'Active' : 'Hidden'}
+                      </span>
+                    </td>
+                    <td className="py-3 px-4 text-right whitespace-nowrap">
+                      <div className="inline-flex items-center gap-1">
+                        <button
+                          onClick={() => handleOpenEdit(col)}
+                          className="p-1.5 text-zinc-500 hover:text-zinc-950 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:text-white dark:hover:bg-zinc-800 rounded-md transition-colors cursor-pointer"
+                          title="Edit Category"
+                        >
+                          <Edit2 className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          onClick={() => handleDelete(col.id)}
+                          className="p-1.5 text-zinc-500 hover:text-rose-600 hover:bg-rose-50 dark:text-zinc-400 dark:hover:text-rose-400 dark:hover:bg-rose-950/40 rounded-md transition-colors cursor-pointer"
+                          title="Delete Category"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Pagination Bar */}
+        {filteredCollections.length > PAGE_SIZE && (
+          <div className="px-4 py-3 border-t border-zinc-200/80 dark:border-zinc-800/80 flex items-center justify-between text-xs text-zinc-500 dark:text-zinc-400">
+            <span className="tabular-nums">
+              Showing {(currentPage - 1) * PAGE_SIZE + 1}–
+              {Math.min(currentPage * PAGE_SIZE, filteredCollections.length)} of{' '}
+              {filteredCollections.length}
+            </span>
+            <div className="flex items-center gap-1.5">
+              <button
+                type="button"
+                disabled={currentPage <= 1}
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                className="h-7 px-2.5 rounded-md border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 hover:bg-zinc-50 dark:hover:bg-zinc-800 disabled:opacity-40 inline-flex items-center gap-1 cursor-pointer"
+              >
+                <ChevronLeft className="w-3.5 h-3.5" />
+                <span>Prev</span>
+              </button>
+              <span className="px-2 font-mono tabular-nums text-zinc-700 dark:text-zinc-300">
+                {currentPage} / {totalPages}
+              </span>
+              <button
+                type="button"
+                disabled={currentPage >= totalPages}
+                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                className="h-7 px-2.5 rounded-md border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 hover:bg-zinc-50 dark:hover:bg-zinc-800 disabled:opacity-40 inline-flex items-center gap-1 cursor-pointer"
+              >
+                <span>Next</span>
+                <ChevronRight className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
-      {/* Edit / Create Collection Modal */}
+      {/* Edit / Create Category Modal */}
       {isModalOpen && editingCol && (
-        <div className="fixed inset-0 z-50 overflow-y-auto bg-black/40 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="relative w-full max-w-xl bg-white border border-[#EAEAEA] shadow-xl rounded-lg flex flex-col text-[#111111] my-auto">
+        <div className="fixed inset-0 z-50 overflow-y-auto bg-zinc-950/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="relative w-full max-w-lg bg-white dark:bg-[#111113] border border-zinc-200 dark:border-zinc-800 shadow-2xl rounded-xl flex flex-col text-zinc-900 dark:text-zinc-100 my-auto overflow-hidden">
             {/* Modal Header */}
-            <div className="flex items-center justify-between border-b border-[#EAEAEA] px-6 py-4">
-              <h3 className="font-bold text-sm uppercase tracking-wider text-[#111111]">
-                {collections.some((c) => c.id === editingCol.id) ? 'Edit Collection' : 'Create Collection'}
+            <div className="flex items-center justify-between border-b border-zinc-200/80 dark:border-zinc-800 px-6 py-4">
+              <h3 className="text-sm font-semibold text-zinc-950 dark:text-zinc-100">
+                {collections.some((c) => c.id === editingCol.id)
+                  ? 'Edit Category'
+                  : 'Create Category'}
               </h3>
               <button
                 type="button"
                 onClick={() => setIsModalOpen(false)}
-                className="p-1 text-[#737373] hover:text-[#111111] rounded"
+                className="p-1.5 text-zinc-400 hover:text-zinc-950 hover:bg-zinc-100 dark:hover:text-white dark:hover:bg-zinc-800 rounded-md cursor-pointer transition-colors"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -258,115 +380,183 @@ export const CollectionManager: React.FC<CollectionManagerProps> = ({ csrfToken 
             {/* Modal Form */}
             <form onSubmit={handleSave} className="p-6 space-y-4 text-xs">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-[10px] uppercase tracking-wider font-semibold text-[#737373] mb-1">Collection Title *</label>
+                <div className="space-y-1.5">
+                  <label className="block text-xs font-medium text-zinc-700 dark:text-zinc-300">
+                    Category Name *
+                  </label>
                   <input
                     type="text"
                     value={editingCol.title || ''}
-                    onChange={(e) => setEditingCol({ ...editingCol, title: e.target.value })}
+                    onChange={(e) => {
+                      const nextTitle = e.target.value;
+                      setEditingCol((prev) => {
+                        if (!prev) return prev;
+                        const nextSlug = slugManuallyEdited ? prev.slug : toSlug(nextTitle);
+                        const nextRuleVal =
+                          (prev.rule_type || 'category') === 'category'
+                            ? nextTitle
+                            : prev.rule_value;
+                        return {
+                          ...prev,
+                          title: nextTitle,
+                          slug: nextSlug,
+                          rule_value: nextRuleVal
+                        };
+                      });
+                    }}
                     required
-                    className="w-full bg-white border border-[#EAEAEA] rounded px-3 py-2 text-xs text-[#111111] focus:border-[#111111] focus:outline-none"
-                    placeholder="e.g. Woody & Oud"
+                    className={inputCls}
+                    placeholder="e.g. 1:18 Pro Diecast"
                   />
                 </div>
 
-                <div>
-                  <label className="block text-[10px] uppercase tracking-wider font-semibold text-[#737373] mb-1">URL Slug</label>
+                <div className="space-y-1.5">
+                  <label className="block text-xs font-medium text-zinc-700 dark:text-zinc-300">
+                    Slug *
+                  </label>
                   <input
                     type="text"
                     value={editingCol.slug || ''}
-                    onChange={(e) => setEditingCol({ ...editingCol, slug: e.target.value })}
-                    className="w-full bg-white border border-[#EAEAEA] rounded px-3 py-2 text-xs text-[#111111] font-mono focus:border-[#111111] focus:outline-none"
-                    placeholder="e.g. woody"
+                    onChange={(e) => {
+                      setSlugManuallyEdited(true);
+                      setEditingCol({ ...editingCol, slug: toSlug(e.target.value) });
+                    }}
+                    className={`${inputCls} font-mono`}
+                    placeholder="e.g. 1-18-pro-diecast"
                   />
+                  <p className="text-[11px] text-zinc-400 dark:text-zinc-500 font-mono">
+                    /collections/{editingCol.slug || 'slug'}
+                  </p>
                 </div>
               </div>
 
-              <div>
-                <label className="block text-[10px] uppercase tracking-wider font-semibold text-[#737373] mb-1">Description / Subtitle</label>
+              <div className="space-y-1.5">
+                <label className="block text-xs font-medium text-zinc-700 dark:text-zinc-300">
+                  Description (Optional)
+                </label>
                 <textarea
                   value={editingCol.description || ''}
-                  onChange={(e) => setEditingCol({ ...editingCol, description: e.target.value })}
+                  onChange={(e) =>
+                    setEditingCol({ ...editingCol, description: e.target.value })
+                  }
                   rows={2}
-                  className="w-full bg-white border border-[#EAEAEA] rounded px-3 py-2 text-xs text-[#111111] focus:border-[#111111] focus:outline-none"
-                  placeholder="Short description displayed at the top of the collection page..."
+                  className="w-full rounded-md bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 px-3 py-2 text-xs text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 focus:outline-none focus:border-zinc-900 dark:focus:border-zinc-400"
+                  placeholder="Short description shown on the category page..."
                 />
               </div>
 
               <ImageUploader
-                label="Collection Banner / Header Image"
+                label="Category Banner Image (Optional)"
                 value={editingCol.image || ''}
                 onChange={(url) => setEditingCol({ ...editingCol, image: url })}
                 csrfToken={csrfToken}
               />
 
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2 border-t border-[#EAEAEA]">
-                <div>
-                  <label className="block text-[10px] uppercase tracking-wider font-semibold text-[#737373] mb-1">Rule Assignment</label>
-                  <select
-                    value={editingCol.rule_type || 'category'}
-                    onChange={(e) => setEditingCol({ ...editingCol, rule_type: e.target.value as any })}
-                    className="w-full bg-white border border-[#EAEAEA] rounded px-2.5 py-2 text-xs text-[#111111] focus:border-[#111111] focus:outline-none"
-                  >
-                    <option value="all">All Products</option>
-                    <option value="gender">Gender (Him/Her/Unisex)</option>
-                    <option value="category">Category / Family</option>
-                    <option value="featured">Best Sellers</option>
-                    <option value="new_arrival">New Arrivals</option>
-                    <option value="manual">Manual Mapping</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-[10px] uppercase tracking-wider font-semibold text-[#737373] mb-1">Matching Value</label>
-                  <input
-                    type="text"
-                    value={editingCol.rule_value || ''}
-                    onChange={(e) => setEditingCol({ ...editingCol, rule_value: e.target.value })}
-                    className="w-full bg-white border border-[#EAEAEA] rounded px-3 py-2 text-xs text-[#111111] focus:border-[#111111] focus:outline-none"
-                    placeholder="e.g. Him, Woody, Gourmand"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-[10px] uppercase tracking-wider font-semibold text-[#737373] mb-1">Display Order</label>
-                  <input
-                    type="number"
-                    value={editingCol.display_order || 0}
-                    onChange={(e) => setEditingCol({ ...editingCol, display_order: Number(e.target.value) })}
-                    className="w-full bg-white border border-[#EAEAEA] rounded px-3 py-2 text-xs text-[#111111] font-mono focus:border-[#111111] focus:outline-none"
-                  />
-                </div>
-              </div>
-
-              {/* Status Toggle */}
-              <div className="flex items-center gap-2 pt-2">
-                <label className="inline-flex items-center gap-2 text-xs text-[#111111] cursor-pointer">
+              {/* Visibility & Order */}
+              <div className="flex items-center justify-between gap-4 pt-1">
+                <label className="inline-flex items-center gap-2 text-xs text-zinc-700 dark:text-zinc-300 cursor-pointer">
                   <input
                     type="checkbox"
                     checked={editingCol.is_enabled ?? true}
-                    onChange={(e) => setEditingCol({ ...editingCol, is_enabled: e.target.checked })}
-                    className="rounded border-[#EAEAEA] text-[#111111] focus:ring-0"
+                    onChange={(e) =>
+                      setEditingCol({ ...editingCol, is_enabled: e.target.checked })
+                    }
+                    className="w-4 h-4 rounded accent-zinc-900 dark:accent-zinc-100"
                   />
-                  <span>Collection visible on storefront navigation</span>
+                  <span>Active on storefront</span>
                 </label>
+
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-medium text-zinc-500 dark:text-zinc-400">
+                    Order
+                  </span>
+                  <input
+                    type="number"
+                    value={editingCol.display_order || 0}
+                    onChange={(e) =>
+                      setEditingCol({
+                        ...editingCol,
+                        display_order: Number(e.target.value)
+                      })
+                    }
+                    className="w-16 h-8 bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-md px-2 text-xs text-zinc-900 dark:text-zinc-100 font-mono tabular-nums focus:border-zinc-900 focus:outline-none"
+                  />
+                </div>
+              </div>
+
+              {/* Optional Advanced Filter Rule */}
+              <div className="pt-3 border-t border-zinc-200/80 dark:border-zinc-800">
+                <button
+                  type="button"
+                  onClick={() => setShowAdvanced((v) => !v)}
+                  className="inline-flex items-center gap-1.5 text-xs font-medium text-zinc-500 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white cursor-pointer"
+                >
+                  {showAdvanced ? (
+                    <ChevronUp className="w-3.5 h-3.5" />
+                  ) : (
+                    <ChevronDown className="w-3.5 h-3.5" />
+                  )}
+                  <span>Advanced Collection Matching (Optional)</span>
+                </button>
+
+                {showAdvanced && (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-3 bg-zinc-50 dark:bg-zinc-900/50 p-3.5 border border-zinc-200/80 dark:border-zinc-800 rounded-lg">
+                    <div className="space-y-1.5">
+                      <label className="block text-xs font-medium text-zinc-700 dark:text-zinc-300">
+                        Rule Type
+                      </label>
+                      <select
+                        value={editingCol.rule_type || 'category'}
+                        onChange={(e) =>
+                          setEditingCol({
+                            ...editingCol,
+                            rule_type: e.target.value as any
+                          })
+                        }
+                        className={inputCls}
+                      >
+                        <option value="category">Match Product Category</option>
+                        <option value="all">All Products</option>
+                        <option value="featured">Featured Products</option>
+                        <option value="new_arrival">New Arrivals</option>
+                        <option value="brand">Match Brand</option>
+                        <option value="gender">Match Division</option>
+                      </select>
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <label className="block text-xs font-medium text-zinc-700 dark:text-zinc-300">
+                        Matching Value
+                      </label>
+                      <input
+                        type="text"
+                        value={editingCol.rule_value || ''}
+                        onChange={(e) =>
+                          setEditingCol({ ...editingCol, rule_value: e.target.value })
+                        }
+                        className={inputCls}
+                        placeholder="Leave as Category Name"
+                      />
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Modal Footer */}
-              <div className="pt-4 flex items-center justify-end gap-3 border-t border-[#EAEAEA]">
+              <div className="pt-4 flex items-center justify-end gap-2.5 border-t border-zinc-200/80 dark:border-zinc-800">
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
-                  className="px-4 py-2 border border-[#EAEAEA] text-[#111111] rounded text-xs hover:bg-[#F4F4F4]"
+                  className="h-9 px-4 border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-zinc-700 dark:text-zinc-200 rounded-md text-xs font-medium hover:bg-zinc-50 dark:hover:bg-zinc-800 cursor-pointer transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={saving}
-                  className="px-5 py-2 bg-[#111111] hover:bg-black text-white rounded text-xs font-semibold shadow-2xs"
+                  className="h-9 px-5 bg-zinc-950 hover:bg-zinc-800 dark:bg-zinc-100 dark:hover:bg-white text-white dark:text-zinc-950 rounded-md text-xs font-medium cursor-pointer transition-colors disabled:opacity-50"
                 >
-                  {saving ? 'Saving...' : 'Save Collection'}
+                  {saving ? 'Saving...' : 'Save Category'}
                 </button>
               </div>
             </form>

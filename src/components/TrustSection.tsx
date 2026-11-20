@@ -1,13 +1,6 @@
 import React from 'react';
-import { ShieldCheck, ArrowRight } from 'lucide-react';
+import { ShieldCheck } from 'lucide-react';
 import { FragranceProduct } from '../types';
-
-interface BrandItem {
-  name: string;
-  slug: string;
-  image?: string;
-  count?: number;
-}
 
 interface TrustSectionProps {
   storeSettings?: any;
@@ -15,96 +8,10 @@ interface TrustSectionProps {
   onNavigateToCollection?: (slug: string) => void;
 }
 
-const BRAND_FALLBACK_IMAGES: Record<string, string> = {
-  bburago: '/src/assets/images/campaign_f1_pro_118_1794664772367.jpg',
-  minichamps: '/src/assets/images/series_f1_classic_red_1794664772823.jpg',
-  'spark-model': '/src/assets/images/series_f1_carbon_stealth_1794664773109.jpg',
-  'maisto-tech': '/src/assets/images/series_f1_night_aero_1794664771085.jpg',
-  'rastar-rc': '/src/assets/images/series_f1_rc_sprint_1794664772832.jpg',
-  solido: '/src/assets/images/campaign_f1_display_143_1794664770809.jpg',
-};
-
-const slugify = (text: string) =>
-  text
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/(^-|-$)+/g, '');
-
-export const TrustSection: React.FC<TrustSectionProps> = ({
-  storeSettings,
-  products = [],
-  onNavigateToCollection,
-}) => {
+export const TrustSection: React.FC<TrustSectionProps> = ({ storeSettings }) => {
   const feeDhaka = storeSettings?.shipping_fee_dhaka || '70';
   const feeOutside = storeSettings?.shipping_fee_outside_dhaka || '130';
   const freeThreshold = storeSettings?.free_shipping_threshold || '3000';
-
-  const brandsList: BrandItem[] = React.useMemo(() => {
-    const brandMap = new Map<string, { count: number; image: string; name: string }>();
-
-    products.forEach((p) => {
-      if (!p.brand) return;
-      const bName = p.brand.trim();
-      const existing = brandMap.get(bName);
-      if (existing) {
-        existing.count += 1;
-        if (!existing.image && p.image) existing.image = p.image;
-      } else {
-        brandMap.set(bName, {
-          name: bName,
-          count: 1,
-          image: p.image || '',
-        });
-      }
-    });
-
-    const defaults = [
-      { name: 'BBURAGO', image: '/src/assets/images/campaign_f1_pro_118_1794664772367.jpg', count: 16 },
-      { name: 'MINICHAMPS', image: '/src/assets/images/series_f1_classic_red_1794664772823.jpg', count: 11 },
-      { name: 'SPARK MODEL', image: '/src/assets/images/series_f1_carbon_stealth_1794664773109.jpg', count: 9 },
-      { name: 'MAISTO TECH', image: '/src/assets/images/series_f1_night_aero_1794664771085.jpg', count: 8 },
-      { name: 'RASTAR RC', image: '/src/assets/images/series_f1_rc_sprint_1794664772832.jpg', count: 14 },
-      { name: 'SOLIDO', image: '/src/assets/images/campaign_f1_display_143_1794664770809.jpg', count: 10 },
-    ];
-
-    if (brandMap.size === 0) {
-      return defaults.map((d) => ({
-        name: d.name,
-        slug: slugify(d.name),
-        image: d.image,
-        count: d.count,
-      }));
-    }
-
-    const result: BrandItem[] = [];
-    brandMap.forEach((val, key) => {
-      const slug = slugify(key);
-      const img =
-        val.image ||
-        BRAND_FALLBACK_IMAGES[slug] ||
-        '/src/assets/images/campaign_f1_pro_118_1794664772367.jpg';
-      result.push({ name: key, slug, image: img, count: val.count });
-    });
-
-    if (result.length < 6) {
-      defaults.forEach((d) => {
-        const slug = slugify(d.name);
-        if (!result.some((r) => r.slug === slug)) {
-          result.push({ name: d.name, slug, image: d.image, count: d.count });
-        }
-      });
-    }
-
-    return result.slice(0, 12);
-  }, [products]);
-
-  const handleBrandClick = (slug: string) => {
-    if (onNavigateToCollection) {
-      onNavigateToCollection(slug);
-    } else {
-      window.location.href = `/collections/${slug}`;
-    }
-  };
 
   const telemetrySpecs = [
     {
@@ -184,53 +91,6 @@ export const TrustSection: React.FC<TrustSectionProps> = ({
                   {spec.value}
                 </p>
                 <p className="text-xs text-[#C4C9D4]">{spec.sub}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Shop By Makers Directory */}
-        <div id="shop-by-brands">
-          <div className="flex flex-col sm:flex-row sm:items-end justify-between border-b border-white/15 pb-4 mb-8 gap-3">
-            <div>
-              <span className="font-mono text-[11px] tracking-[0.22em] text-[#E10600] uppercase font-semibold block">
-                Scale Constructors
-              </span>
-              <h3 className="font-display font-black text-3xl sm:text-4xl uppercase tracking-tight text-white leading-none mt-1">
-                Shop By Makers
-              </h3>
-            </div>
-            <p className="text-xs sm:text-sm text-[#9CA3AF] max-w-md">
-              Select a diecast or RC manufacturer to inspect officially licensed Formula 1 toy cars.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
-            {brandsList.map((brand) => (
-              <div
-                key={brand.slug}
-                onClick={() => handleBrandClick(brand.slug)}
-                className="group cursor-pointer bg-[#111317] border border-white/10 hover:border-[#E10600] p-3.5 flex flex-col justify-between transition-colors duration-200"
-              >
-                <div className="relative w-full aspect-square bg-[#08090B] overflow-hidden flex items-center justify-center mb-3 border border-white/10">
-                  <img
-                    src={brand.image}
-                    alt={brand.name}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                    loading="lazy"
-                    referrerPolicy="no-referrer"
-                  />
-                  <span className="absolute top-2 right-2 bg-[#08090B]/90 text-white text-[9px] font-mono font-semibold px-1.5 py-0.5 tabular-nums border border-white/15">
-                    {brand.count} {brand.count === 1 ? 'CAR' : 'CARS'}
-                  </span>
-                </div>
-
-                <div className="pt-1 flex items-center justify-between gap-2">
-                  <h4 className="font-display font-bold text-sm sm:text-base text-white uppercase tracking-wide truncate group-hover:text-[#E10600] transition-colors">
-                    {brand.name}
-                  </h4>
-                  <ArrowRight className="w-3.5 h-3.5 text-[#9CA3AF] group-hover:text-[#E10600] group-hover:translate-x-0.5 transition-all shrink-0" />
-                </div>
               </div>
             ))}
           </div>

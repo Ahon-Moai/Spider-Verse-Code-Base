@@ -41,27 +41,42 @@ const defaultSeriesCards: SeasonCardData[] = [
   },
 ];
 
+const isLegacySeasonImage = (url?: string) =>
+  !url || /season_(dune_red_sun|monochrome_street|sculptural_roses|dark_forest)/i.test(url);
+
+const isLegacySeasonTitle = (title?: string) =>
+  !title || /^(Autumn Bloom|Architectural Winter|Midnight Rose|Crimson Shadows)$/i.test(title.trim());
+
 export const SeasonsGallery: React.FC<SeasonsGalleryProps> = ({
   seasonsData,
   onExploreClick,
   onNavigateToCollection,
   hideHeader = false,
 }) => {
-  const hasCustomF1Cards =
-    seasonsData?.cards &&
-    seasonsData.cards.length > 0 &&
-    !seasonsData.cards.some((c) => c.id.startsWith('season-'));
-
   const sectionTitle =
-    seasonsData?.section_title && !/seasons/i.test(seasonsData.section_title)
+    seasonsData?.section_title && !/^seasons$/i.test(seasonsData.section_title.trim())
       ? seasonsData.section_title
       : 'RACING SERIES';
   const sectionSubtitle =
-    seasonsData?.section_subtitle && !/climate/i.test(seasonsData.section_subtitle)
+    seasonsData?.section_subtitle && !/^(choose yours|climate)/i.test(seasonsData.section_subtitle.trim())
       ? seasonsData.section_subtitle
       : 'CHOOSE YOUR GRID';
 
-  const seriesCards = hasCustomF1Cards ? seasonsData!.cards! : defaultSeriesCards;
+  const seriesCards: SeasonCardData[] =
+    seasonsData?.cards && seasonsData.cards.length > 0
+      ? seasonsData.cards.map((card, index) => {
+          const fallback = defaultSeriesCards[index % defaultSeriesCards.length];
+          const hasLegacyImg = isLegacySeasonImage(card.image);
+          const useFallbackCopy = hasLegacyImg && isLegacySeasonTitle(card.name);
+          return {
+            ...card,
+            image: hasLegacyImg ? fallback.image : card.image,
+            name: useFallbackCopy ? fallback.name : card.name || fallback.name,
+            description: useFallbackCopy ? fallback.description : card.description || fallback.description,
+            alt: card.alt || card.name || fallback.alt,
+          };
+        })
+      : defaultSeriesCards;
 
   const cardsContent = (
     <div className="flex sm:grid sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 overflow-x-auto no-scrollbar pb-2 sm:pb-0 -mx-4 px-4 sm:mx-0 sm:px-0">

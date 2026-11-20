@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Upload, Film, Loader2, Video } from 'lucide-react';
+import { Film, Loader2, Video } from 'lucide-react';
 import { getErrorMessage } from '../services/api';
 
 interface VideoUploaderProps {
@@ -64,16 +64,16 @@ export const VideoUploader: React.FC<VideoUploaderProps> = ({
   };
 
   return (
-    <div className={`space-y-2 ${className}`}>
+    <div className={`space-y-1.5 ${className}`}>
       {label && (
-        <label className="block text-[10px] tracking-widest text-[#737373] uppercase">
+        <label className="block text-xs font-medium text-zinc-700 dark:text-zinc-300">
           {label}
         </label>
       )}
 
-      <div className="flex flex-col sm:flex-row items-stretch gap-3">
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-start gap-3">
         {/* Preview Box */}
-        <div className="w-20 h-20 shrink-0 bg-[#F8F8F8] border border-[#EAEAEA] p-1 flex items-center justify-center relative overflow-hidden">
+        <div className="w-16 h-12 shrink-0 rounded-md bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 flex items-center justify-center relative overflow-hidden">
           {value ? (
             <video
               src={value}
@@ -82,26 +82,26 @@ export const VideoUploader: React.FC<VideoUploaderProps> = ({
               className="w-full h-full object-cover"
             />
           ) : (
-            <Film className="w-6 h-6 text-zinc-600" />
+            <Film className="w-4 h-4 text-zinc-400 dark:text-zinc-500" />
           )}
         </div>
 
         {/* Input and Upload Action */}
-        <div className="flex-1 space-y-2">
-          <div className="flex items-center gap-2">
+        <div className="flex-1 min-w-0 space-y-1.5">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
             <input
               type="text"
               value={value}
               onChange={(e) => onChange(e.target.value)}
               placeholder={placeholder}
-              className="flex-1 bg-[#F8F8F8] border border-[#EAEAEA] px-3 py-2 text-xs text-[#111111] focus:border-[#111111] font-mono"
+              className="flex-1 min-w-0 h-9 rounded-md bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 px-3 text-xs text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 focus:outline-none focus:border-zinc-900 dark:focus:border-zinc-400 font-mono truncate transition-colors"
             />
 
-            <label className="inline-flex items-center gap-1.5 bg-[#111111] text-white hover:bg-amber-300 hover:text-[#111111] text-xs font-semibold uppercase tracking-wider px-3.5 py-2 cursor-pointer shrink-0 transition-colors">
+            <label className="inline-flex items-center justify-center gap-1.5 h-9 rounded-md bg-zinc-900 hover:bg-zinc-800 dark:bg-zinc-100 dark:hover:bg-white text-white dark:text-zinc-900 text-xs font-medium px-3.5 cursor-pointer shrink-0 transition-colors whitespace-nowrap">
               {uploading ? (
                 <>
                   <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                  <span>Uploading Video...</span>
+                  <span>Uploading...</span>
                 </>
               ) : (
                 <>
@@ -120,7 +120,7 @@ export const VideoUploader: React.FC<VideoUploaderProps> = ({
           </div>
 
           {error && (
-            <p className="text-[11px] text-red-400 font-sans">{error}</p>
+            <p className="text-[11px] text-rose-600 dark:text-rose-400 font-sans">{error}</p>
           )}
         </div>
       </div>

@@ -98,16 +98,18 @@ export const MediaManager: React.FC<MediaManagerProps> = ({ csrfToken }) => {
 
   return (
     <div className="space-y-6 font-sans">
-      <div className="bg-white border border-[#EAEAEA] p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="pb-5 border-b border-zinc-200/80 dark:border-zinc-800/80 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 className="font-serif text-xl text-[#111111] font-normal">Media & Asset Library</h2>
-          <p className="text-xs text-[#737373] mt-0.5">
+          <h1 className="text-lg font-semibold text-zinc-950 dark:text-zinc-100 tracking-tight">
+            Media &amp; Asset Library
+          </h1>
+          <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">
             Persistent local filesystem uploads for products, campaign banners, and journal articles
           </p>
         </div>
 
-        <label className="inline-flex items-center gap-2 bg-[#111111] text-white hover:bg-amber-300 hover:text-[#111111] text-xs font-semibold uppercase tracking-wider px-5 py-2.5 transition-colors cursor-pointer">
-          <Upload className="w-4 h-4" />
+        <label className="inline-flex items-center justify-center gap-2 h-9 px-4 rounded-md bg-zinc-950 hover:bg-zinc-800 dark:bg-zinc-100 dark:hover:bg-white text-white dark:text-zinc-950 text-xs font-medium transition-colors cursor-pointer whitespace-nowrap shrink-0 self-start sm:self-auto">
+          <Upload className="w-3.5 h-3.5" />
           <span>{uploading ? 'Uploading...' : 'Upload Image'}</span>
           <input
             type="file"
@@ -119,36 +121,67 @@ export const MediaManager: React.FC<MediaManagerProps> = ({ csrfToken }) => {
         </label>
       </div>
 
-      <div className="bg-white border border-[#EAEAEA] p-6">
+      <div className="bg-white dark:bg-[#111113] border border-zinc-200/80 dark:border-zinc-800/80 rounded-lg p-5 sm:p-6">
         {loading ? (
-          <p className="text-xs text-[#737373] py-8 text-center">Loading media library...</p>
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 animate-pulse">
+            {[...Array(5)].map((_, i) => (
+              <div
+                key={i}
+                className="aspect-square rounded-lg bg-zinc-100 dark:bg-zinc-800"
+              />
+            ))}
+          </div>
         ) : mediaList.length === 0 ? (
-          <div className="text-center py-12 space-y-3">
-            <ImageIcon className="w-8 h-8 text-zinc-600 mx-auto" />
-            <p className="text-xs text-[#737373]">No media files uploaded yet.</p>
+          <div className="text-center py-14 space-y-2.5">
+            <ImageIcon className="w-8 h-8 text-zinc-400 mx-auto" />
+            <p className="text-xs font-medium text-zinc-700 dark:text-zinc-300">
+              No media files uploaded yet
+            </p>
+            <p className="text-[11px] text-zinc-400 dark:text-zinc-500">
+              Upload an image above to copy its path into products or banners.
+            </p>
           </div>
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
             {mediaList.map((m) => (
-              <div key={m.id} className="bg-[#F8F8F8] border border-[#EAEAEA] p-2 space-y-2 group relative">
-                <div className="aspect-square bg-white overflow-hidden flex items-center justify-center p-2">
-                  <img src={m.file_path} alt={m.original_name} className="max-h-full max-w-full object-contain" />
+              <div
+                key={m.id}
+                className="bg-zinc-50/70 dark:bg-zinc-900/50 border border-zinc-200/80 dark:border-zinc-800 rounded-lg p-2.5 space-y-2.5 group"
+              >
+                <div className="aspect-square bg-white dark:bg-zinc-950 border border-zinc-200/60 dark:border-zinc-800 rounded-md overflow-hidden flex items-center justify-center p-2">
+                  <img
+                    src={m.file_path}
+                    alt={m.original_name}
+                    className="max-h-full max-w-full object-contain"
+                  />
                 </div>
-                <div className="text-[10px]">
-                  <p className="font-medium text-[#111111] truncate" title={m.original_name}>{m.original_name}</p>
-                  <p className="text-[#737373] font-mono">{(m.file_size / 1024).toFixed(1)} KB</p>
+                <div className="text-[11px] px-0.5">
+                  <p
+                    className="font-medium text-zinc-900 dark:text-zinc-100 truncate"
+                    title={m.original_name}
+                  >
+                    {m.original_name}
+                  </p>
+                  <p className="text-zinc-400 dark:text-zinc-500 font-mono tabular-nums mt-0.5">
+                    {(m.file_size / 1024).toFixed(1)} KB
+                  </p>
                 </div>
-                <div className="flex items-center justify-between pt-1 border-t border-[#EAEAEA]/80 text-[10px]">
+                <div className="flex items-center justify-between pt-2 border-t border-zinc-200/70 dark:border-zinc-800 text-[11px]">
                   <button
                     onClick={() => copyToClipboard(m.file_path, m.id)}
-                    className="inline-flex items-center gap-1 text-[#111111] hover:text-amber-200"
+                    className="inline-flex items-center gap-1 text-zinc-600 dark:text-zinc-300 hover:text-zinc-950 dark:hover:text-white font-medium cursor-pointer transition-colors"
                   >
-                    {copiedId === m.id ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
-                    <span>{copiedId === m.id ? 'Copied!' : 'Copy URL'}</span>
+                    {copiedId === m.id ? (
+                      <Check className="w-3 h-3 text-emerald-600 dark:text-emerald-400" />
+                    ) : (
+                      <Copy className="w-3 h-3" />
+                    )}
+                    <span>{copiedId === m.id ? 'Copied' : 'Copy URL'}</span>
                   </button>
                   <button
                     onClick={() => handleDelete(m.id)}
-                    className="text-[#737373] hover:text-red-400"
+                    className="p-1 rounded text-zinc-400 hover:text-rose-600 dark:hover:text-rose-400 cursor-pointer transition-colors"
+                    title="Delete file"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
                   </button>

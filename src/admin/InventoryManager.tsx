@@ -9,15 +9,11 @@ import {
   AlertTriangle,
   CheckCircle2,
   XCircle,
-  TrendingDown,
   RefreshCw,
-  SlidersHorizontal,
-  ArrowUpRight,
-  ArrowDownRight,
   X,
   Package,
-  Layers,
-  Sparkles
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react';
 import { getErrorMessage } from '../services/api';
 
@@ -53,7 +49,13 @@ interface InventoryTransaction {
   inventory_id: string;
   order_id?: number;
   order_number?: string;
-  transaction_type: 'initial_stock' | 'sale_deduction' | 'manual_adjustment' | 'restock' | 'order_cancellation' | 'order_refund';
+  transaction_type:
+    | 'initial_stock'
+    | 'sale_deduction'
+    | 'manual_adjustment'
+    | 'restock'
+    | 'order_cancellation'
+    | 'order_refund';
   change_ml: number;
   previous_ml: number;
   new_ml: number;
@@ -74,6 +76,8 @@ interface InventoryManagerProps {
   csrfToken: string;
 }
 
+const PAGE_SIZE = 12;
+
 export const InventoryManager: React.FC<InventoryManagerProps> = ({ csrfToken }) => {
   const [items, setItems] = useState<InventoryItem[]>([]);
   const [stats, setStats] = useState<InventoryStats>({
@@ -89,6 +93,7 @@ export const InventoryManager: React.FC<InventoryManagerProps> = ({ csrfToken })
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [page, setPage] = useState(1);
 
   // Modals
   const [isAddEditOpen, setIsAddEditOpen] = useState(false);
@@ -134,11 +139,13 @@ export const InventoryManager: React.FC<InventoryManagerProps> = ({ csrfToken })
       const res = await fetch('/api/admin/products.php');
       const data = await res.json();
       if (data.success && Array.isArray(data.data)) {
-        setCatalogOptions(data.data.map((p: any) => ({
-          id: p.id,
-          brand: p.brand,
-          name: p.name
-        })));
+        setCatalogOptions(
+          data.data.map((p: any) => ({
+            id: p.id,
+            brand: p.brand,
+            name: p.name
+          }))
+        );
       }
     } catch (e) {
       console.error('Failed to load catalog products', e);
@@ -146,13 +153,15 @@ export const InventoryManager: React.FC<InventoryManagerProps> = ({ csrfToken })
   };
 
   useEffect(() => {
+    setPage(1);
     fetchInventory();
     fetchCatalogOptions();
   }, [statusFilter]);
 
-  // Handle Search on Submit/Keyup
+  // Handle Search on Submit
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    setPage(1);
     fetchInventory();
   };
 
@@ -180,13 +189,15 @@ export const InventoryManager: React.FC<InventoryManagerProps> = ({ csrfToken })
   const handleSaveInventory = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingItem || !editingItem.name || !editingItem.brand) {
-      alert('Perfume name and brand are required');
+      alert('Item name and brand are required');
       return;
     }
 
     setSubmitting(true);
     const isNew = !editingItem.id;
-    const url = isNew ? '/api/admin/inventory.php' : `/api/admin/inventory.php?id=${editingItem.id}`;
+    const url = isNew
+      ? '/api/admin/inventory.php'
+      : `/api/admin/inventory.php?id=${editingItem.id}`;
     const method = isNew ? 'POST' : 'PUT';
 
     try {
@@ -208,7 +219,7 @@ export const InventoryManager: React.FC<InventoryManagerProps> = ({ csrfToken })
         setEditingItem(null);
         fetchInventory();
       } else {
-        alert(getErrorMessage(data?.error || data, 'Failed to save perfume inventory'));
+        alert(getErrorMessage(data?.error || data, 'Failed to save inventory'));
       }
     } catch (err) {
       alert('Network error saving inventory item');
@@ -223,7 +234,9 @@ export const InventoryManager: React.FC<InventoryManagerProps> = ({ csrfToken })
     setAdjustMode(mode);
     setAdjustChangeMl(mode === 'restock' ? '50' : '');
     setAdjustTargetMl(item.remaining_ml.toString());
-    setAdjustReason(mode === 'restock' ? 'New batch / bottle refill' : 'Physical count reconciliation');
+    setAdjustReason(
+      mode === 'restock' ? 'New batch / stock refill' : 'Physical count reconciliation'
+    );
     setIsAdjustOpen(true);
   };
 
@@ -243,7 +256,7 @@ export const InventoryManager: React.FC<InventoryManagerProps> = ({ csrfToken })
       if (adjustMode === 'restock') {
         const val = parseFloat(adjustChangeMl);
         if (isNaN(val) || val <= 0) {
-          alert('Please enter a positive ML value to restock');
+          alert('Please enter a positive value to restock');
           setSubmitting(false);
           return;
         }
@@ -252,7 +265,7 @@ export const InventoryManager: React.FC<InventoryManagerProps> = ({ csrfToken })
         if (adjustTargetMl !== '') {
           const val = parseFloat(adjustTargetMl);
           if (isNaN(val) || val < 0) {
-            alert('Remaining ML must be 0 or greater');
+            alert('Remaining quantity must be 0 or greater');
             setSubmitting(false);
             return;
           }
@@ -260,13 +273,13 @@ export const InventoryManager: React.FC<InventoryManagerProps> = ({ csrfToken })
         } else if (adjustChangeMl !== '') {
           const delta = parseFloat(adjustChangeMl);
           if (isNaN(delta) || delta === 0) {
-            alert('Please specify a valid ML adjustment change');
+            alert('Please specify a valid adjustment change');
             setSubmitting(false);
             return;
           }
           payload.change_ml = delta;
         } else {
-          alert('Please specify either new remaining ML or change in ML');
+          alert('Please specify either new remaining quantity or change');
           setSubmitting(false);
           return;
         }
@@ -316,7 +329,11 @@ export const InventoryManager: React.FC<InventoryManagerProps> = ({ csrfToken })
 
   // Delete Inventory Item
   const handleDeleteItem = async (item: InventoryItem) => {
-    if (!confirm(`Are you sure you want to remove ${item.brand} - ${item.name} from inventory tracking? All transaction history for this item will be cleared.`)) {
+    if (
+      !confirm(
+        `Are you sure you want to remove ${item.brand} - ${item.name} from inventory tracking? All transaction history for this item will be cleared.`
+      )
+    ) {
       return;
     }
 
@@ -341,22 +358,22 @@ export const InventoryManager: React.FC<InventoryManagerProps> = ({ csrfToken })
     switch (status) {
       case 'in_stock':
         return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 text-[10px] font-mono uppercase font-semibold text-emerald-800 bg-emerald-50 border border-emerald-200 rounded">
-            <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+          <span className="inline-flex items-center gap-1.5 px-2 py-0.5 text-[11px] font-medium text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-900/60 rounded-md">
+            <CheckCircle2 className="w-3 h-3 shrink-0" />
             <span>In Stock</span>
           </span>
         );
       case 'low_stock':
         return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 text-[10px] font-mono uppercase font-bold text-amber-900 bg-amber-50 border border-amber-300 rounded animate-pulse">
-            <AlertTriangle className="w-3 h-3 text-amber-600" />
+          <span className="inline-flex items-center gap-1.5 px-2 py-0.5 text-[11px] font-medium text-amber-800 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900/60 rounded-md">
+            <AlertTriangle className="w-3 h-3 shrink-0" />
             <span>Low Stock</span>
           </span>
         );
       case 'out_of_stock':
         return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 text-[10px] font-mono uppercase font-bold text-red-800 bg-red-50 border border-red-300 rounded">
-            <XCircle className="w-3 h-3 text-red-600" />
+          <span className="inline-flex items-center gap-1.5 px-2 py-0.5 text-[11px] font-medium text-rose-700 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/60 rounded-md">
+            <XCircle className="w-3 h-3 shrink-0" />
             <span>Out of Stock</span>
           </span>
         );
@@ -367,133 +384,190 @@ export const InventoryManager: React.FC<InventoryManagerProps> = ({ csrfToken })
   const formatTxType = (type: string) => {
     switch (type) {
       case 'initial_stock':
-        return { label: 'Initial Stock', color: 'text-zinc-700 bg-zinc-100' };
+        return {
+          label: 'Initial Stock',
+          color:
+            'text-zinc-700 dark:text-zinc-300 bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700'
+        };
       case 'sale_deduction':
-        return { label: 'Sale Deduction', color: 'text-rose-700 bg-rose-50 border border-rose-200' };
+        return {
+          label: 'Sale Deduction',
+          color:
+            'text-rose-700 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/60'
+        };
       case 'manual_adjustment':
-        return { label: 'Manual Adjustment', color: 'text-amber-800 bg-amber-50 border border-amber-200' };
+        return {
+          label: 'Manual Adjustment',
+          color:
+            'text-amber-800 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900/60'
+        };
       case 'restock':
-        return { label: 'Restock / Refill', color: 'text-emerald-800 bg-emerald-50 border border-emerald-200' };
+        return {
+          label: 'Restock / Refill',
+          color:
+            'text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-900/60'
+        };
       case 'order_cancellation':
-        return { label: 'Order Cancelled (Restored)', color: 'text-blue-800 bg-blue-50 border border-blue-200' };
+        return {
+          label: 'Order Cancelled',
+          color:
+            'text-sky-700 dark:text-sky-400 bg-sky-50 dark:bg-sky-950/40 border border-sky-200 dark:border-sky-900/60'
+        };
       case 'order_refund':
-        return { label: 'Order Refunded (Restored)', color: 'text-purple-800 bg-purple-50 border border-purple-200' };
+        return {
+          label: 'Order Refunded',
+          color:
+            'text-indigo-700 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-900/60'
+        };
       default:
-        return { label: type, color: 'text-zinc-700 bg-zinc-100' };
+        return {
+          label: type,
+          color:
+            'text-zinc-700 dark:text-zinc-300 bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700'
+        };
     }
   };
+
+  const totalPages = Math.max(1, Math.ceil(items.length / PAGE_SIZE));
+  const currentPage = Math.min(page, totalPages);
+  const paginatedItems = items.slice(
+    (currentPage - 1) * PAGE_SIZE,
+    currentPage * PAGE_SIZE
+  );
+
+  const inputCls =
+    'w-full h-9 rounded-md bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 px-3 text-xs text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 focus:outline-none focus:border-zinc-900 dark:focus:border-zinc-400 transition-colors';
 
   return (
     <div className="space-y-6">
       {/* Header Bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white border border-[#EAEAEA] p-6 shadow-2xs">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b border-zinc-200/80 dark:border-zinc-800/80">
         <div>
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded bg-[#111111] text-white flex items-center justify-center">
-              <FlaskConical className="w-4 h-4 text-amber-400" />
-            </div>
-            <div>
-              <h2 className="font-serif text-xl text-[#111111] font-normal tracking-tight">
-                ML-Based Perfume Stock Management
-              </h2>
-              <p className="text-xs text-[#737373] font-sans">
-                Track master bottle volumes, automate decant deductions, configure low-stock alerts & ledger history
-              </p>
-            </div>
-          </div>
+          <h1 className="text-lg font-semibold text-zinc-950 dark:text-zinc-100 tracking-tight">
+            Stock &amp; Inventory Management
+          </h1>
+          <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">
+            Track stock quantities, automate deductions, configure low-stock thresholds, and audit ledger history
+          </p>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 shrink-0">
           <button
             onClick={() => fetchInventory()}
-            className="p-2 border border-[#EAEAEA] hover:bg-[#F8F8F8] text-[#737373] hover:text-[#111111] transition-colors cursor-pointer"
+            className="h-9 w-9 inline-flex items-center justify-center rounded-md border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 hover:bg-zinc-50 dark:hover:bg-zinc-800 text-zinc-500 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white transition-colors cursor-pointer"
             title="Refresh Inventory"
           >
-            <RefreshCw className="w-4 h-4" />
+            <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
           </button>
           <button
             onClick={handleOpenCreate}
-            className="inline-flex items-center gap-2 bg-[#111111] text-white hover:bg-amber-400 hover:text-black text-xs font-semibold uppercase tracking-wider px-5 py-2.5 transition-colors cursor-pointer"
+            className="inline-flex items-center justify-center gap-1.5 h-9 px-3.5 rounded-md bg-zinc-950 hover:bg-zinc-800 dark:bg-zinc-100 dark:hover:bg-white text-white dark:text-zinc-950 text-xs font-medium transition-colors cursor-pointer whitespace-nowrap"
           >
             <Plus className="w-4 h-4" />
-            <span>Add Perfume to Inventory</span>
+            <span>Add Inventory Item</span>
           </button>
         </div>
       </div>
 
       {/* KPI Overview Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        {/* Total Perfumes */}
-        <div className="bg-white border border-[#EAEAEA] p-5 shadow-2xs">
-          <div className="flex items-center justify-between text-[#737373]">
-            <span className="text-[10px] font-mono uppercase tracking-wider font-semibold">Total Perfumes</span>
-            <Package className="w-4 h-4 opacity-70" />
+        <div className="bg-white dark:bg-[#111113] border border-zinc-200/80 dark:border-zinc-800/80 rounded-lg p-4 space-y-2">
+          <div className="flex items-center justify-between text-zinc-500 dark:text-zinc-400">
+            <span className="text-xs font-medium">Tracked Items</span>
+            <Package className="w-3.5 h-3.5 text-zinc-400" />
           </div>
-          <p className="text-2xl font-serif font-bold text-[#111111] mt-2">{stats.total_perfumes}</p>
-          <div className="text-[11px] text-[#737373] mt-1 flex items-center gap-1">
-            <span className="text-emerald-600 font-semibold">{stats.in_stock_count} In Stock</span>
-            <span>·</span>
-            <span className="text-zinc-500">Tracked in Atelier</span>
-          </div>
-        </div>
-
-        {/* Total Remaining ML */}
-        <div className="bg-white border border-[#EAEAEA] p-5 shadow-2xs">
-          <div className="flex items-center justify-between text-[#737373]">
-            <span className="text-[10px] font-mono uppercase tracking-wider font-semibold">Total Remaining ML</span>
-            <FlaskConical className="w-4 h-4 text-amber-500" />
-          </div>
-          <p className="text-2xl font-serif font-bold text-[#111111] mt-2">
-            {stats.total_remaining_ml.toLocaleString()} <span className="text-sm font-sans font-normal text-[#737373]">ML</span>
+          <p className="text-xl font-semibold font-mono text-zinc-950 dark:text-zinc-100 tabular-nums">
+            {stats.total_perfumes}
           </p>
-          <div className="text-[11px] text-[#737373] mt-1">
-            Total capacity: {stats.total_capacity_ml.toLocaleString()} ML (
-            {stats.total_capacity_ml > 0 ? Math.round((stats.total_remaining_ml / stats.total_capacity_ml) * 100) : 0}% aggregate)
+          <div className="text-[11px] text-zinc-500 dark:text-zinc-400 flex items-center gap-1.5">
+            <span className="text-emerald-700 dark:text-emerald-400 font-medium tabular-nums">
+              {stats.in_stock_count} in stock
+            </span>
+            <span aria-hidden="true">·</span>
+            <span>Active ledger</span>
           </div>
         </div>
 
-        {/* Low Stock Alerts */}
-        <div className="bg-white border border-[#EAEAEA] p-5 shadow-2xs">
-          <div className="flex items-center justify-between text-[#737373]">
-            <span className="text-[10px] font-mono uppercase tracking-wider font-semibold">Low Stock Warnings</span>
-            <AlertTriangle className={`w-4 h-4 ${stats.low_stock_count > 0 ? 'text-amber-500' : 'text-zinc-400'}`} />
+        <div className="bg-white dark:bg-[#111113] border border-zinc-200/80 dark:border-zinc-800/80 rounded-lg p-4 space-y-2">
+          <div className="flex items-center justify-between text-zinc-500 dark:text-zinc-400">
+            <span className="text-xs font-medium">Remaining Volume</span>
+            <FlaskConical className="w-3.5 h-3.5 text-zinc-400" />
           </div>
-          <p className={`text-2xl font-serif font-bold mt-2 ${stats.low_stock_count > 0 ? 'text-amber-600' : 'text-[#111111]'}`}>
+          <p className="text-xl font-semibold font-mono text-zinc-950 dark:text-zinc-100 tabular-nums">
+            {stats.total_remaining_ml.toLocaleString()}{' '}
+            <span className="text-xs font-normal text-zinc-400">units</span>
+          </p>
+          <div className="text-[11px] text-zinc-500 dark:text-zinc-400 tabular-nums">
+            Capacity: {stats.total_capacity_ml.toLocaleString()} (
+            {stats.total_capacity_ml > 0
+              ? Math.round((stats.total_remaining_ml / stats.total_capacity_ml) * 100)
+              : 0}
+            %)
+          </div>
+        </div>
+
+        <div className="bg-white dark:bg-[#111113] border border-zinc-200/80 dark:border-zinc-800/80 rounded-lg p-4 space-y-2">
+          <div className="flex items-center justify-between text-zinc-500 dark:text-zinc-400">
+            <span className="text-xs font-medium">Low Stock Warnings</span>
+            <AlertTriangle
+              className={`w-3.5 h-3.5 ${
+                stats.low_stock_count > 0 ? 'text-amber-500' : 'text-zinc-400'
+              }`}
+            />
+          </div>
+          <p
+            className={`text-xl font-semibold font-mono tabular-nums ${
+              stats.low_stock_count > 0
+                ? 'text-amber-600 dark:text-amber-400'
+                : 'text-zinc-950 dark:text-zinc-100'
+            }`}
+          >
             {stats.low_stock_count}
           </p>
-          <div className="text-[11px] text-[#737373] mt-1">
-            {stats.low_stock_count > 0 ? 'Requires attention / refill soon' : 'All bottles above threshold'}
+          <div className="text-[11px] text-zinc-500 dark:text-zinc-400">
+            {stats.low_stock_count > 0 ? 'Requires refill soon' : 'All above threshold'}
           </div>
         </div>
 
-        {/* Out of Stock */}
-        <div className="bg-white border border-[#EAEAEA] p-5 shadow-2xs">
-          <div className="flex items-center justify-between text-[#737373]">
-            <span className="text-[10px] font-mono uppercase tracking-wider font-semibold">Depleted (0 ML)</span>
-            <XCircle className={`w-4 h-4 ${stats.out_of_stock_count > 0 ? 'text-rose-500' : 'text-zinc-400'}`} />
+        <div className="bg-white dark:bg-[#111113] border border-zinc-200/80 dark:border-zinc-800/80 rounded-lg p-4 space-y-2">
+          <div className="flex items-center justify-between text-zinc-500 dark:text-zinc-400">
+            <span className="text-xs font-medium">Depleted (0)</span>
+            <XCircle
+              className={`w-3.5 h-3.5 ${
+                stats.out_of_stock_count > 0 ? 'text-rose-500' : 'text-zinc-400'
+              }`}
+            />
           </div>
-          <p className={`text-2xl font-serif font-bold mt-2 ${stats.out_of_stock_count > 0 ? 'text-rose-600' : 'text-[#111111]'}`}>
+          <p
+            className={`text-xl font-semibold font-mono tabular-nums ${
+              stats.out_of_stock_count > 0
+                ? 'text-rose-600 dark:text-rose-400'
+                : 'text-zinc-950 dark:text-zinc-100'
+            }`}
+          >
             {stats.out_of_stock_count}
           </p>
-          <div className="text-[11px] text-[#737373] mt-1">
-            {stats.out_of_stock_count > 0 ? 'Decants temporarily unavailable' : 'No bottles depleted'}
+          <div className="text-[11px] text-zinc-500 dark:text-zinc-400">
+            {stats.out_of_stock_count > 0 ? 'Temporarily unavailable' : 'No items depleted'}
           </div>
         </div>
       </div>
 
       {/* Low-stock Warning Banner if any */}
       {stats.low_stock_count > 0 && (
-        <div className="bg-amber-50 border border-amber-300 p-4 flex items-start gap-3 text-amber-900 text-xs">
-          <AlertTriangle className="w-4 h-4 shrink-0 text-amber-600 mt-0.5" />
-          <div className="flex-1">
-            <span className="font-bold uppercase tracking-wider text-[11px] block">Low ML Stock Alert</span>
-            <p className="mt-0.5">
-              {stats.low_stock_count} master perfume bottle(s) have reached or fallen below their configured low-stock threshold. Restock or adjust remaining volume to prevent order rejection.
-            </p>
+        <div className="bg-amber-50/70 dark:bg-amber-950/25 border border-amber-200 dark:border-amber-900/50 rounded-lg p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-amber-900 dark:text-amber-200 text-xs">
+          <div className="flex items-start gap-3">
+            <AlertTriangle className="w-4 h-4 shrink-0 text-amber-600 dark:text-amber-400 mt-0.5" />
+            <div>
+              <span className="font-semibold block">Low Stock Alert</span>
+              <p className="text-amber-800/90 dark:text-amber-300/90 mt-0.5">
+                {stats.low_stock_count} tracked item(s) have reached or fallen below their configured low-stock threshold.
+              </p>
+            </div>
           </div>
           <button
             onClick={() => setStatusFilter('low_stock')}
-            className="px-3 py-1 bg-amber-600 text-white font-semibold uppercase text-[10px] hover:bg-amber-700 transition-colors shrink-0 cursor-pointer"
+            className="h-8 px-3 rounded-md bg-amber-600 hover:bg-amber-700 text-white font-medium text-xs transition-colors shrink-0 cursor-pointer self-start sm:self-auto"
           >
             View Low Stock
           </button>
@@ -501,23 +575,21 @@ export const InventoryManager: React.FC<InventoryManagerProps> = ({ csrfToken })
       )}
 
       {/* Search & Filter Toolbar */}
-      <div className="bg-white border border-[#EAEAEA] p-4 flex flex-col md:flex-row items-center justify-between gap-4">
-        {/* Search */}
+      <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
         <form onSubmit={handleSearchSubmit} className="relative w-full md:max-w-md">
-          <Search className="w-4 h-4 absolute left-3.5 top-3 text-[#737373]" />
+          <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400 pointer-events-none" />
           <input
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search by perfume name, brand or notes..."
-            className="w-full bg-[#F8F8F8] border border-[#EAEAEA] pl-10 pr-4 py-2 text-xs text-[#111111] placeholder-zinc-500 focus:outline-none focus:border-[#111111]"
+            placeholder="Search by item name, brand or notes..."
+            className="w-full h-9 rounded-md bg-white dark:bg-[#111113] border border-zinc-200/80 dark:border-zinc-800 pl-9 pr-4 text-xs text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 focus:outline-none focus:border-zinc-900 dark:focus:border-zinc-400 transition-colors"
           />
         </form>
 
-        {/* Status Filters */}
-        <div className="flex flex-wrap items-center gap-1.5 w-full md:w-auto">
+        <div className="inline-flex flex-wrap items-center gap-1 bg-zinc-100 dark:bg-zinc-900 p-1 rounded-lg border border-zinc-200/80 dark:border-zinc-800 self-start">
           {[
-            { id: 'all', label: 'All Perfumes' },
+            { id: 'all', label: 'All Items' },
             { id: 'in_stock', label: 'In Stock' },
             { id: 'low_stock', label: 'Low Stock' },
             { id: 'out_of_stock', label: 'Out of Stock' }
@@ -525,10 +597,10 @@ export const InventoryManager: React.FC<InventoryManagerProps> = ({ csrfToken })
             <button
               key={flt.id}
               onClick={() => setStatusFilter(flt.id)}
-              className={`px-3 py-1.5 text-[10px] uppercase font-sans tracking-wider border transition-colors cursor-pointer ${
+              className={`px-2.5 py-1 text-xs rounded-md transition-colors cursor-pointer whitespace-nowrap ${
                 statusFilter === flt.id
-                  ? 'bg-[#111111] text-white border-[#111111] font-semibold'
-                  : 'bg-[#F8F8F8] text-[#737373] border-[#EAEAEA] hover:text-[#111111]'
+                  ? 'bg-white dark:bg-zinc-800 text-zinc-950 dark:text-white font-semibold shadow-2xs'
+                  : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 font-medium'
               }`}
             >
               {flt.label}
@@ -538,215 +610,277 @@ export const InventoryManager: React.FC<InventoryManagerProps> = ({ csrfToken })
       </div>
 
       {/* Main Inventory Table */}
-      <div className="bg-white border border-[#EAEAEA] overflow-x-auto shadow-2xs">
-        <table className="w-full text-left text-xs text-[#111111]">
-          <thead className="bg-[#F8F8F8] text-[#737373] uppercase tracking-wider text-[10px] border-b border-[#EAEAEA]">
-            <tr>
-              <th className="py-3.5 px-4 font-semibold">Perfume & Brand</th>
-              <th className="py-3.5 px-4 font-semibold">Original Bottle</th>
-              <th className="py-3.5 px-4 font-semibold">Remaining ML</th>
-              <th className="py-3.5 px-4 font-semibold w-52">Fill Level (%)</th>
-              <th className="py-3.5 px-4 font-semibold">Stock Status</th>
-              <th className="py-3.5 px-4 font-semibold">Low Threshold</th>
-              <th className="py-3.5 px-4 font-semibold text-right">Actions</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-[#EAEAEA] font-sans">
-            {loading ? (
+      <div className="bg-white dark:bg-[#111113] border border-zinc-200/80 dark:border-zinc-800/80 rounded-lg overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full text-left text-xs text-zinc-900 dark:text-zinc-100">
+            <thead className="bg-zinc-50/80 dark:bg-zinc-900/60 text-zinc-500 dark:text-zinc-400 uppercase tracking-wider text-[11px] font-medium border-b border-zinc-200/80 dark:border-zinc-800/80">
               <tr>
-                <td colSpan={7} className="py-12 text-center text-[#737373]">
-                  <div className="flex flex-col items-center justify-center gap-2">
-                    <RefreshCw className="w-5 h-5 animate-spin text-[#111111]" />
-                    <span>Loading perfume inventory...</span>
-                  </div>
-                </td>
+                <th className="py-3 px-4 font-medium">Item &amp; Brand</th>
+                <th className="py-3 px-4 font-medium">Base Capacity</th>
+                <th className="py-3 px-4 font-medium">Remaining</th>
+                <th className="py-3 px-4 font-medium w-48">Level (%)</th>
+                <th className="py-3 px-4 font-medium">Status</th>
+                <th className="py-3 px-4 font-medium">Threshold</th>
+                <th className="py-3 px-4 font-medium text-right">Actions</th>
               </tr>
-            ) : items.length === 0 ? (
-              <tr>
-                <td colSpan={7} className="py-12 text-center text-[#737373]">
-                  <p className="text-sm font-medium">No perfume bottles match your search/filter.</p>
-                  <p className="text-xs text-zinc-400 mt-1">Try clearing filters or add a new perfume to track.</p>
-                </td>
-              </tr>
-            ) : (
-              items.map((item) => {
-                const percentage = item.stock_percentage;
-                // Bar color logic
-                let barColor = 'bg-emerald-500';
-                if (item.stock_status === 'out_of_stock') barColor = 'bg-red-500';
-                else if (item.stock_status === 'low_stock') barColor = 'bg-amber-500';
-
-                return (
-                  <tr key={item.id} className="hover:bg-[#FBFBFB] transition-colors">
-                    {/* Perfume & Brand */}
-                    <td className="py-3.5 px-4">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-[#F8F8F8] border border-[#EAEAEA] p-1 shrink-0 flex items-center justify-center rounded">
-                          {item.image ? (
-                            <img src={item.image} alt={item.name} className="max-h-full max-w-full object-contain" />
-                          ) : (
-                            <FlaskConical className="w-5 h-5 text-zinc-400" />
-                          )}
-                        </div>
-                        <div>
-                          <p className="font-serif text-sm text-[#111111] font-semibold">{item.name}</p>
-                          <div className="flex items-center gap-2 text-[10px] text-[#737373]">
-                            <span className="uppercase tracking-wider font-semibold">{item.brand}</span>
-                            {item.product_id && (
-                              <>
-                                <span>·</span>
-                                <span className="font-mono text-zinc-400">Linked Catalog</span>
-                              </>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    </td>
-
-                    {/* Original Bottle Size */}
-                    <td className="py-3.5 px-4 font-mono font-medium text-[#111111]">
-                      {item.bottle_size_ml} <span className="text-[#737373] text-[10px]">ML</span>
-                    </td>
-
-                    {/* Remaining ML */}
-                    <td className="py-3.5 px-4">
-                      <span className="font-mono text-sm font-bold text-[#111111]">
-                        {item.remaining_ml} <span className="text-[10px] font-normal text-[#737373]">ML</span>
-                      </span>
-                    </td>
-
-                    {/* Progress Bar & Percentage */}
-                    <td className="py-3.5 px-4">
-                      <div className="space-y-1">
-                        <div className="flex justify-between items-center text-[10px] font-mono">
-                          <span className="font-bold text-[#111111]">{percentage}%</span>
-                          <span className="text-[#737373]">{item.remaining_ml}/{item.bottle_size_ml} ml</span>
-                        </div>
-                        <div className="w-full bg-[#EAEAEA] h-2 rounded-full overflow-hidden">
-                          <div
-                            className={`h-full transition-all duration-300 ${barColor}`}
-                            style={{ width: `${Math.min(100, Math.max(0, percentage))}%` }}
-                          />
-                        </div>
-                      </div>
-                    </td>
-
-                    {/* Stock Status */}
-                    <td className="py-3.5 px-4">
-                      {renderStatusBadge(item.stock_status)}
-                    </td>
-
-                    {/* Low Stock Threshold */}
-                    <td className="py-3.5 px-4 font-mono text-zinc-500 text-[11px]">
-                      &le; {item.low_stock_threshold_ml} ML
-                    </td>
-
-                    {/* Actions */}
-                    <td className="py-3.5 px-4 text-right">
-                      <div className="inline-flex items-center gap-1.5">
-                        <button
-                          onClick={() => handleOpenAdjust(item, 'adjust')}
-                          className="px-2 py-1 text-[10px] uppercase font-semibold bg-[#F4F4F4] hover:bg-[#111111] hover:text-white transition-colors cursor-pointer"
-                          title="Adjust ML manually"
-                        >
-                          Adjust
-                        </button>
-                        <button
-                          onClick={() => handleOpenAdjust(item, 'restock')}
-                          className="px-2 py-1 text-[10px] uppercase font-semibold bg-emerald-50 text-emerald-800 hover:bg-emerald-600 hover:text-white border border-emerald-200 transition-colors cursor-pointer"
-                          title="Restock bottle"
-                        >
-                          Restock
-                        </button>
-                        <button
-                          onClick={() => handleOpenHistory(item)}
-                          className="p-1.5 text-[#737373] hover:text-[#111111] bg-[#F4F4F4] hover:bg-[#EAEAEA] transition-colors cursor-pointer"
-                          title="View ML Stock History"
-                        >
-                          <History className="w-3.5 h-3.5" />
-                        </button>
-                        <button
-                          onClick={() => handleOpenEdit(item)}
-                          className="p-1.5 text-[#737373] hover:text-[#111111] bg-[#F4F4F4] hover:bg-[#EAEAEA] transition-colors cursor-pointer"
-                          title="Edit Information"
-                        >
-                          <Edit2 className="w-3.5 h-3.5" />
-                        </button>
-                        <button
-                          onClick={() => handleDeleteItem(item)}
-                          className="p-1.5 text-[#737373] hover:text-red-500 bg-[#F4F4F4] hover:bg-red-50 transition-colors cursor-pointer"
-                          title="Remove from inventory"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
+            </thead>
+            <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800/80">
+              {loading ? (
+                [...Array(5)].map((_, i) => (
+                  <tr key={i} className="animate-pulse">
+                    <td colSpan={7} className="py-4 px-4">
+                      <div className="h-4 bg-zinc-100 dark:bg-zinc-800 rounded w-full" />
                     </td>
                   </tr>
-                );
-              })
-            )}
-          </tbody>
-        </table>
+                ))
+              ) : paginatedItems.length === 0 ? (
+                <tr>
+                  <td colSpan={7} className="py-12 text-center">
+                    <p className="text-xs font-medium text-zinc-700 dark:text-zinc-300">
+                      No inventory records match your filter
+                    </p>
+                    <p className="text-[11px] text-zinc-400 dark:text-zinc-500 mt-1">
+                      Try clearing filters or add a new item to track.
+                    </p>
+                  </td>
+                </tr>
+              ) : (
+                paginatedItems.map((item) => {
+                  const percentage = item.stock_percentage;
+                  let barColor = 'bg-emerald-500';
+                  if (item.stock_status === 'out_of_stock') barColor = 'bg-rose-500';
+                  else if (item.stock_status === 'low_stock') barColor = 'bg-amber-500';
+
+                  return (
+                    <tr
+                      key={item.id}
+                      className="hover:bg-zinc-50/70 dark:hover:bg-zinc-900/50 transition-colors"
+                    >
+                      <td className="py-3 px-4">
+                        <div className="flex items-center gap-3 min-w-0">
+                          <div className="w-9 h-9 bg-zinc-50 dark:bg-zinc-900 border border-zinc-200/80 dark:border-zinc-800 p-1 shrink-0 flex items-center justify-center rounded-md overflow-hidden">
+                            {item.image ? (
+                              <img
+                                src={item.image}
+                                alt={item.name}
+                                className="max-h-full max-w-full object-contain"
+                              />
+                            ) : (
+                              <FlaskConical className="w-4 h-4 text-zinc-400" />
+                            )}
+                          </div>
+                          <div className="min-w-0">
+                            <p className="font-medium text-zinc-950 dark:text-zinc-100 truncate">
+                              {item.name}
+                            </p>
+                            <div className="flex items-center gap-1.5 text-[11px] text-zinc-500 dark:text-zinc-400">
+                              <span className="font-medium">{item.brand}</span>
+                              {item.product_id && (
+                                <>
+                                  <span aria-hidden="true">·</span>
+                                  <span className="font-mono text-zinc-400 dark:text-zinc-500">
+                                    Linked
+                                  </span>
+                                </>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      </td>
+
+                      <td className="py-3 px-4 font-mono text-zinc-700 dark:text-zinc-300 tabular-nums whitespace-nowrap">
+                        {item.bottle_size_ml}
+                      </td>
+
+                      <td className="py-3 px-4 whitespace-nowrap">
+                        <span className="font-mono font-semibold text-zinc-950 dark:text-zinc-100 tabular-nums">
+                          {item.remaining_ml}
+                        </span>
+                      </td>
+
+                      <td className="py-3 px-4">
+                        <div className="space-y-1.5">
+                          <div className="flex justify-between items-center text-[11px] font-mono tabular-nums">
+                            <span className="font-semibold text-zinc-900 dark:text-zinc-100">
+                              {percentage}%
+                            </span>
+                            <span className="text-zinc-400 dark:text-zinc-500">
+                              {item.remaining_ml}/{item.bottle_size_ml}
+                            </span>
+                          </div>
+                          <div className="w-full bg-zinc-100 dark:bg-zinc-800 h-1.5 rounded-full overflow-hidden">
+                            <div
+                              className={`h-full rounded-full transition-all duration-300 ${barColor}`}
+                              style={{ width: `${Math.min(100, Math.max(0, percentage))}%` }}
+                            />
+                          </div>
+                        </div>
+                      </td>
+
+                      <td className="py-3 px-4 whitespace-nowrap">
+                        {renderStatusBadge(item.stock_status)}
+                      </td>
+
+                      <td className="py-3 px-4 font-mono text-zinc-500 dark:text-zinc-400 text-[11px] tabular-nums whitespace-nowrap">
+                        &le; {item.low_stock_threshold_ml}
+                      </td>
+
+                      <td className="py-3 px-4 text-right whitespace-nowrap">
+                        <div className="inline-flex items-center gap-1">
+                          <button
+                            onClick={() => handleOpenAdjust(item, 'adjust')}
+                            className="h-7 px-2 rounded-md border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 hover:bg-zinc-50 dark:hover:bg-zinc-800 text-zinc-700 dark:text-zinc-200 text-[11px] font-medium transition-colors cursor-pointer"
+                            title="Adjust stock manually"
+                          >
+                            Adjust
+                          </button>
+                          <button
+                            onClick={() => handleOpenAdjust(item, 'restock')}
+                            className="h-7 px-2 rounded-md border border-emerald-200 dark:border-emerald-900/60 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-600 hover:text-white dark:hover:bg-emerald-600 dark:hover:text-white text-[11px] font-medium transition-colors cursor-pointer"
+                            title="Restock item"
+                          >
+                            Restock
+                          </button>
+                          <button
+                            onClick={() => handleOpenHistory(item)}
+                            className="p-1.5 rounded-md text-zinc-500 hover:text-zinc-950 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:text-white dark:hover:bg-zinc-800 transition-colors cursor-pointer"
+                            title="View Stock History"
+                          >
+                            <History className="w-3.5 h-3.5" />
+                          </button>
+                          <button
+                            onClick={() => handleOpenEdit(item)}
+                            className="p-1.5 rounded-md text-zinc-500 hover:text-zinc-950 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:text-white dark:hover:bg-zinc-800 transition-colors cursor-pointer"
+                            title="Edit Information"
+                          >
+                            <Edit2 className="w-3.5 h-3.5" />
+                          </button>
+                          <button
+                            onClick={() => handleDeleteItem(item)}
+                            className="p-1.5 rounded-md text-zinc-500 hover:text-rose-600 hover:bg-rose-50 dark:text-zinc-400 dark:hover:text-rose-400 dark:hover:bg-rose-950/40 transition-colors cursor-pointer"
+                            title="Remove from inventory"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })
+              )}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Pagination Bar */}
+        {items.length > PAGE_SIZE && (
+          <div className="px-4 py-3 border-t border-zinc-200/80 dark:border-zinc-800/80 flex items-center justify-between text-xs text-zinc-500 dark:text-zinc-400">
+            <span className="tabular-nums">
+              Showing {(currentPage - 1) * PAGE_SIZE + 1}–
+              {Math.min(currentPage * PAGE_SIZE, items.length)} of {items.length}
+            </span>
+            <div className="flex items-center gap-1.5">
+              <button
+                type="button"
+                disabled={currentPage <= 1}
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                className="h-7 px-2.5 rounded-md border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 hover:bg-zinc-50 dark:hover:bg-zinc-800 disabled:opacity-40 inline-flex items-center gap-1 cursor-pointer"
+              >
+                <ChevronLeft className="w-3.5 h-3.5" />
+                <span>Prev</span>
+              </button>
+              <span className="px-2 font-mono tabular-nums text-zinc-700 dark:text-zinc-300">
+                {currentPage} / {totalPages}
+              </span>
+              <button
+                type="button"
+                disabled={currentPage >= totalPages}
+                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                className="h-7 px-2.5 rounded-md border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 hover:bg-zinc-50 dark:hover:bg-zinc-800 disabled:opacity-40 inline-flex items-center gap-1 cursor-pointer"
+              >
+                <span>Next</span>
+                <ChevronRight className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Recent Ledger Activity */}
       {recentTransactions.length > 0 && (
-        <div className="bg-white border border-[#EAEAEA] p-6 shadow-2xs space-y-4">
-          <div className="flex items-center justify-between border-b border-[#EAEAEA] pb-3">
-            <div>
-              <h3 className="font-serif text-base text-[#111111] font-normal">Recent Inventory Transactions & Ledger</h3>
-              <p className="text-[11px] text-[#737373]">Live audit trail of automatic sales deductions, restocks & adjustments</p>
-            </div>
+        <div className="bg-white dark:bg-[#111113] border border-zinc-200/80 dark:border-zinc-800/80 rounded-lg overflow-hidden">
+          <div className="px-5 py-4 border-b border-zinc-200/80 dark:border-zinc-800/80">
+            <h3 className="text-sm font-semibold text-zinc-950 dark:text-zinc-100">
+              Recent Inventory Ledger
+            </h3>
+            <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">
+              Live audit trail of automatic sales deductions, restocks, and manual adjustments
+            </p>
           </div>
 
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs text-[#111111]">
-              <thead className="bg-[#F8F8F8] text-[#737373] uppercase tracking-wider text-[10px] border-b border-[#EAEAEA]">
+            <table className="w-full text-left text-xs text-zinc-900 dark:text-zinc-100">
+              <thead className="bg-zinc-50/80 dark:bg-zinc-900/60 text-zinc-500 dark:text-zinc-400 uppercase tracking-wider text-[11px] font-medium border-b border-zinc-200/80 dark:border-zinc-800/80">
                 <tr>
-                  <th className="py-2.5 px-3">Timestamp</th>
-                  <th className="py-2.5 px-3">Perfume</th>
-                  <th className="py-2.5 px-3">Type</th>
-                  <th className="py-2.5 px-3">Delta ML</th>
-                  <th className="py-2.5 px-3">Before &rarr; After</th>
-                  <th className="py-2.5 px-3">Order / Notes</th>
-                  <th className="py-2.5 px-3">User</th>
+                  <th className="py-2.5 px-4 font-medium">Timestamp</th>
+                  <th className="py-2.5 px-4 font-medium">Item</th>
+                  <th className="py-2.5 px-4 font-medium">Type</th>
+                  <th className="py-2.5 px-4 font-medium">Delta</th>
+                  <th className="py-2.5 px-4 font-medium">Before &rarr; After</th>
+                  <th className="py-2.5 px-4 font-medium">Order / Notes</th>
+                  <th className="py-2.5 px-4 font-medium">User</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[#EAEAEA] font-sans">
+              <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800/80">
                 {recentTransactions.map((tx) => {
                   const typeInfo = formatTxType(tx.transaction_type);
                   const isNegative = tx.change_ml < 0;
 
                   return (
-                    <tr key={tx.id} className="hover:bg-[#FBFBFB]">
-                      <td className="py-2.5 px-3 font-mono text-[10px] text-[#737373] whitespace-nowrap">
+                    <tr
+                      key={tx.id}
+                      className="hover:bg-zinc-50/70 dark:hover:bg-zinc-900/50 transition-colors"
+                    >
+                      <td className="py-2.5 px-4 font-mono text-[11px] text-zinc-400 dark:text-zinc-500 whitespace-nowrap tabular-nums">
                         {tx.created_at}
                       </td>
-                      <td className="py-2.5 px-3 font-medium text-[#111111]">
-                        {tx.perfume_brand} - {tx.perfume_name}
+                      <td className="py-2.5 px-4 font-medium text-zinc-900 dark:text-zinc-100 whitespace-nowrap">
+                        {tx.perfume_brand} — {tx.perfume_name}
                       </td>
-                      <td className="py-2.5 px-3">
-                        <span className={`px-2 py-0.5 text-[10px] font-mono rounded ${typeInfo.color}`}>
+                      <td className="py-2.5 px-4 whitespace-nowrap">
+                        <span
+                          className={`px-2 py-0.5 text-[11px] font-medium rounded-md ${typeInfo.color}`}
+                        >
                           {typeInfo.label}
                         </span>
                       </td>
-                      <td className="py-2.5 px-3 font-mono font-bold">
-                        <span className={isNegative ? 'text-rose-600' : 'text-emerald-600'}>
-                          {isNegative ? '' : '+'}{tx.change_ml} ML
+                      <td className="py-2.5 px-4 font-mono font-semibold tabular-nums whitespace-nowrap">
+                        <span
+                          className={
+                            isNegative
+                              ? 'text-rose-600 dark:text-rose-400'
+                              : 'text-emerald-600 dark:text-emerald-400'
+                          }
+                        >
+                          {isNegative ? '' : '+'}
+                          {tx.change_ml}
                         </span>
                       </td>
-                      <td className="py-2.5 px-3 font-mono text-[11px] text-[#737373]">
-                        {tx.previous_ml} ml &rarr; <span className="font-semibold text-[#111111]">{tx.new_ml} ml</span>
+                      <td className="py-2.5 px-4 font-mono text-[11px] text-zinc-500 dark:text-zinc-400 tabular-nums whitespace-nowrap">
+                        {tx.previous_ml} &rarr;{' '}
+                        <span className="font-semibold text-zinc-900 dark:text-zinc-100">
+                          {tx.new_ml}
+                        </span>
                       </td>
-                      <td className="py-2.5 px-3 text-[11px] text-[#737373] max-w-xs truncate">
+                      <td className="py-2.5 px-4 text-[11px] text-zinc-500 dark:text-zinc-400 max-w-xs truncate">
                         {tx.order_number ? (
-                          <span className="font-mono font-semibold text-[#111111] mr-1.5">
+                          <span className="font-mono font-semibold text-zinc-900 dark:text-zinc-100 mr-1.5">
                             #{tx.order_number}
                           </span>
                         ) : null}
                         {tx.notes || '—'}
                       </td>
-                      <td className="py-2.5 px-3 text-[10px] font-mono text-zinc-500">
+                      <td className="py-2.5 px-4 text-[11px] font-mono text-zinc-400 dark:text-zinc-500">
                         {tx.created_by}
                       </td>
                     </tr>
@@ -758,39 +892,38 @@ export const InventoryManager: React.FC<InventoryManagerProps> = ({ csrfToken })
         </div>
       )}
 
-      {/* Add / Edit Perfume Modal */}
+      {/* Add / Edit Modal */}
       {isAddEditOpen && editingItem && (
-        <div className="fixed inset-0 z-50 overflow-y-auto bg-black/80 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="relative w-full max-w-lg bg-white border border-[#EAEAEA] shadow-2xl p-6 sm:p-8 space-y-6 text-[#111111] my-8 animate-in fade-in duration-150">
-            <div className="flex items-center justify-between border-b border-[#EAEAEA] pb-4">
+        <div className="fixed inset-0 z-50 overflow-y-auto bg-zinc-950/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="relative w-full max-w-lg bg-white dark:bg-[#111113] border border-zinc-200 dark:border-zinc-800 rounded-xl shadow-2xl overflow-hidden text-zinc-900 dark:text-zinc-100 my-8">
+            <div className="flex items-center justify-between border-b border-zinc-200/80 dark:border-zinc-800 px-6 py-4">
               <div>
-                <span className="text-[10px] font-mono tracking-widest text-[#737373] uppercase">
-                  {editingItem.id ? 'Edit Inventory Record' : 'New Master Bottle'}
+                <span className="text-[11px] font-medium text-zinc-400 dark:text-zinc-500">
+                  {editingItem.id ? 'Edit Inventory Record' : 'New Inventory Record'}
                 </span>
-                <h3 className="font-serif text-xl font-normal text-[#111111]">
-                  {editingItem.id ? `Edit ${editingItem.name}` : 'Add Perfume to Inventory'}
+                <h3 className="text-sm font-semibold text-zinc-950 dark:text-zinc-100">
+                  {editingItem.id ? `Edit ${editingItem.name}` : 'Add Item to Inventory'}
                 </h3>
               </div>
               <button
                 type="button"
                 onClick={() => setIsAddEditOpen(false)}
-                className="p-1 text-[#737373] hover:text-[#111111] cursor-pointer"
+                className="p-1.5 rounded-md text-zinc-400 hover:text-zinc-950 hover:bg-zinc-100 dark:hover:text-white dark:hover:bg-zinc-800 transition-colors cursor-pointer"
               >
-                <X className="w-5 h-5" />
+                <X className="w-4 h-4" />
               </button>
             </div>
 
-            <form onSubmit={handleSaveInventory} className="space-y-4">
-              {/* Linked Product Selection */}
-              <div>
-                <label className="block text-[10px] tracking-widest text-[#737373] uppercase mb-1">
-                  Link with E-Commerce Product (Optional)
+            <form onSubmit={handleSaveInventory} className="p-6 space-y-4">
+              <div className="space-y-1.5">
+                <label className="block text-xs font-medium text-zinc-700 dark:text-zinc-300">
+                  Link with Catalog Product (Optional)
                 </label>
                 <select
                   value={editingItem.product_id || ''}
                   onChange={(e) => {
                     const selId = e.target.value;
-                    const found = catalogOptions.find(c => c.id === selId);
+                    const found = catalogOptions.find((c) => c.id === selId);
                     if (found) {
                       setEditingItem({
                         ...editingItem,
@@ -805,23 +938,23 @@ export const InventoryManager: React.FC<InventoryManagerProps> = ({ csrfToken })
                       });
                     }
                   }}
-                  className="w-full bg-[#F8F8F8] border border-[#EAEAEA] px-3 py-2 text-xs text-[#111111] focus:border-[#111111]"
+                  className={inputCls}
                 >
-                  <option value="">-- Standalone Perfume (Not Linked) --</option>
+                  <option value="">-- Standalone Item (Not Linked) --</option>
                   {catalogOptions.map((opt) => (
                     <option key={opt.id} value={opt.id}>
                       {opt.brand} - {opt.name} ({opt.id})
                     </option>
                   ))}
                 </select>
-                <p className="text-[10px] text-[#737373] mt-1">
-                  Linking automatically ties decant orders placed for this catalogue product directly to this inventory.
+                <p className="text-[11px] text-zinc-400 dark:text-zinc-500">
+                  Linking automatically connects orders placed for this catalog product to this inventory record.
                 </p>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-[10px] tracking-widest text-[#737373] uppercase mb-1">
+                <div className="space-y-1.5">
+                  <label className="block text-xs font-medium text-zinc-700 dark:text-zinc-300">
                     Brand Name *
                   </label>
                   <input
@@ -829,99 +962,122 @@ export const InventoryManager: React.FC<InventoryManagerProps> = ({ csrfToken })
                     value={editingItem.brand || ''}
                     onChange={(e) => setEditingItem({ ...editingItem, brand: e.target.value })}
                     required
-                    placeholder="e.g. Dior, ARRINA"
-                    className="w-full bg-[#F8F8F8] border border-[#EAEAEA] px-3 py-2 text-xs text-[#111111] focus:border-[#111111]"
+                    placeholder="e.g. Bburago, Minichamps"
+                    className={inputCls}
                   />
                 </div>
-                <div>
-                  <label className="block text-[10px] tracking-widest text-[#737373] uppercase mb-1">
-                    Perfume Name *
+                <div className="space-y-1.5">
+                  <label className="block text-xs font-medium text-zinc-700 dark:text-zinc-300">
+                    Item Name *
                   </label>
                   <input
                     type="text"
                     value={editingItem.name || ''}
                     onChange={(e) => setEditingItem({ ...editingItem, name: e.target.value })}
                     required
-                    placeholder="e.g. Sauvage, Pure Portions"
-                    className="w-full bg-[#F8F8F8] border border-[#EAEAEA] px-3 py-2 text-xs text-[#111111] focus:border-[#111111]"
+                    placeholder="e.g. Ferrari SF-24 1:18"
+                    className={inputCls}
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <div>
-                  <label className="block text-[10px] tracking-widest text-[#737373] uppercase mb-1">
-                    Original Bottle (ML) *
+                <div className="space-y-1.5">
+                  <label className="block text-xs font-medium text-zinc-700 dark:text-zinc-300">
+                    Capacity *
                   </label>
                   <input
                     type="number"
                     step="0.5"
                     min="1"
                     value={editingItem.bottle_size_ml || 100}
-                    onChange={(e) => setEditingItem({ ...editingItem, bottle_size_ml: parseFloat(e.target.value) || 0 })}
+                    onChange={(e) =>
+                      setEditingItem({
+                        ...editingItem,
+                        bottle_size_ml: parseFloat(e.target.value) || 0
+                      })
+                    }
                     required
-                    className="w-full bg-[#F8F8F8] border border-[#EAEAEA] px-3 py-2 text-xs font-mono text-[#111111] focus:border-[#111111]"
+                    className={`${inputCls} font-mono tabular-nums`}
                   />
                 </div>
 
-                <div>
-                  <label className="block text-[10px] tracking-widest text-[#737373] uppercase mb-1">
-                    Current Remaining (ML) *
+                <div className="space-y-1.5">
+                  <label className="block text-xs font-medium text-zinc-700 dark:text-zinc-300">
+                    Remaining *
                   </label>
                   <input
                     type="number"
                     step="0.5"
                     min="0"
-                    value={editingItem.remaining_ml === 0 || editingItem.remaining_ml ? editingItem.remaining_ml : ''}
-                    onChange={(e) => setEditingItem({ ...editingItem, remaining_ml: parseFloat(e.target.value) || 0 })}
+                    value={
+                      editingItem.remaining_ml === 0 || editingItem.remaining_ml
+                        ? editingItem.remaining_ml
+                        : ''
+                    }
+                    onChange={(e) =>
+                      setEditingItem({
+                        ...editingItem,
+                        remaining_ml: parseFloat(e.target.value) || 0
+                      })
+                    }
                     required
-                    className="w-full bg-[#F8F8F8] border border-[#EAEAEA] px-3 py-2 text-xs font-mono text-[#111111] focus:border-[#111111]"
+                    className={`${inputCls} font-mono tabular-nums`}
                   />
                 </div>
 
-                <div>
-                  <label className="block text-[10px] tracking-widest text-[#737373] uppercase mb-1">
-                    Low Stock Threshold (ML)
+                <div className="space-y-1.5">
+                  <label className="block text-xs font-medium text-zinc-700 dark:text-zinc-300">
+                    Low Threshold
                   </label>
                   <input
                     type="number"
                     step="0.5"
                     min="1"
                     value={editingItem.low_stock_threshold_ml || 15}
-                    onChange={(e) => setEditingItem({ ...editingItem, low_stock_threshold_ml: parseFloat(e.target.value) || 0 })}
+                    onChange={(e) =>
+                      setEditingItem({
+                        ...editingItem,
+                        low_stock_threshold_ml: parseFloat(e.target.value) || 0
+                      })
+                    }
                     required
-                    className="w-full bg-[#F8F8F8] border border-[#EAEAEA] px-3 py-2 text-xs font-mono text-[#111111] focus:border-[#111111]"
+                    className={`${inputCls} font-mono tabular-nums`}
                   />
                 </div>
               </div>
 
-              <div>
-                <label className="block text-[10px] tracking-widest text-[#737373] uppercase mb-1">
-                  Batch Notes & Location
+              <div className="space-y-1.5">
+                <label className="block text-xs font-medium text-zinc-700 dark:text-zinc-300">
+                  Batch Notes &amp; Location
                 </label>
                 <textarea
                   value={editingItem.notes || ''}
                   onChange={(e) => setEditingItem({ ...editingItem, notes: e.target.value })}
                   rows={2}
-                  placeholder="e.g. Master bottle Batch #2026A, Atelier Cabinet 2"
-                  className="w-full bg-[#F8F8F8] border border-[#EAEAEA] px-3 py-2 text-xs text-[#111111] focus:border-[#111111]"
+                  placeholder="e.g. Batch #2026A, Warehouse Shelf B2"
+                  className="w-full rounded-md bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 px-3 py-2 text-xs text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 focus:outline-none focus:border-zinc-900 dark:focus:border-zinc-400"
                 />
               </div>
 
-              <div className="flex items-center justify-end gap-3 pt-4 border-t border-[#EAEAEA]">
+              <div className="flex items-center justify-end gap-2.5 pt-4 border-t border-zinc-200/80 dark:border-zinc-800">
                 <button
                   type="button"
                   onClick={() => setIsAddEditOpen(false)}
-                  className="px-4 py-2 bg-[#F4F4F4] hover:bg-[#EAEAEA] text-xs font-medium text-[#111111] uppercase tracking-wider cursor-pointer"
+                  className="h-9 px-4 rounded-md border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 hover:bg-zinc-50 dark:hover:bg-zinc-800 text-xs font-medium text-zinc-700 dark:text-zinc-200 cursor-pointer transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="px-6 py-2 bg-[#111111] text-white hover:bg-amber-400 hover:text-black text-xs font-semibold uppercase tracking-wider cursor-pointer"
+                  className="h-9 px-5 rounded-md bg-zinc-950 hover:bg-zinc-800 dark:bg-zinc-100 dark:hover:bg-white text-white dark:text-zinc-950 text-xs font-medium cursor-pointer transition-colors disabled:opacity-50"
                 >
-                  {submitting ? 'Saving...' : editingItem.id ? 'Save Changes' : 'Create Inventory'}
+                  {submitting
+                    ? 'Saving...'
+                    : editingItem.id
+                    ? 'Save Changes'
+                    : 'Create Inventory'}
                 </button>
               </div>
             </form>
@@ -931,59 +1087,62 @@ export const InventoryManager: React.FC<InventoryManagerProps> = ({ csrfToken })
 
       {/* Adjust / Restock Modal */}
       {isAdjustOpen && adjustingItem && (
-        <div className="fixed inset-0 z-50 overflow-y-auto bg-black/80 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="relative w-full max-w-md bg-white border border-[#EAEAEA] shadow-2xl p-6 sm:p-8 space-y-6 text-[#111111] my-8 animate-in fade-in duration-150">
-            <div className="flex items-center justify-between border-b border-[#EAEAEA] pb-4">
+        <div className="fixed inset-0 z-50 overflow-y-auto bg-zinc-950/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="relative w-full max-w-md bg-white dark:bg-[#111113] border border-zinc-200 dark:border-zinc-800 rounded-xl shadow-2xl overflow-hidden text-zinc-900 dark:text-zinc-100 my-8">
+            <div className="flex items-center justify-between border-b border-zinc-200/80 dark:border-zinc-800 px-6 py-4">
               <div>
-                <span className="text-[10px] font-mono tracking-widest text-[#737373] uppercase">
-                  {adjustMode === 'restock' ? 'Restock Master Bottle' : 'Manual Stock Adjustment'}
+                <span className="text-[11px] font-medium text-zinc-400 dark:text-zinc-500">
+                  {adjustMode === 'restock' ? 'Restock Inventory' : 'Manual Stock Adjustment'}
                 </span>
-                <h3 className="font-serif text-xl font-normal text-[#111111]">
-                  {adjustingItem.brand} - {adjustingItem.name}
+                <h3 className="text-sm font-semibold text-zinc-950 dark:text-zinc-100">
+                  {adjustingItem.brand} — {adjustingItem.name}
                 </h3>
               </div>
               <button
                 type="button"
                 onClick={() => setIsAdjustOpen(false)}
-                className="p-1 text-[#737373] hover:text-[#111111] cursor-pointer"
+                className="p-1.5 rounded-md text-zinc-400 hover:text-zinc-950 hover:bg-zinc-100 dark:hover:text-white dark:hover:bg-zinc-800 transition-colors cursor-pointer"
               >
-                <X className="w-5 h-5" />
+                <X className="w-4 h-4" />
               </button>
             </div>
 
-            {/* Current Stock Banner */}
-            <div className="bg-[#F8F8F8] p-3 border border-[#EAEAEA] flex items-center justify-between">
-              <span className="text-xs text-[#737373]">Current Remaining Volume:</span>
-              <span className="font-mono text-sm font-bold text-[#111111]">
-                {adjustingItem.remaining_ml} / {adjustingItem.bottle_size_ml} ML ({adjustingItem.stock_percentage}%)
-              </span>
-            </div>
+            <div className="p-6 space-y-5">
+              {/* Current Stock Banner */}
+              <div className="bg-zinc-50 dark:bg-zinc-900/50 p-3.5 rounded-lg border border-zinc-200/80 dark:border-zinc-800 flex items-center justify-between">
+                <span className="text-xs text-zinc-500 dark:text-zinc-400">Current Remaining</span>
+                <span className="font-mono text-xs font-semibold text-zinc-950 dark:text-zinc-100 tabular-nums">
+                  {adjustingItem.remaining_ml} / {adjustingItem.bottle_size_ml} ({adjustingItem.stock_percentage}%)
+                </span>
+              </div>
 
-            <form onSubmit={handleSaveAdjust} className="space-y-4">
-              {adjustMode === 'restock' ? (
-                <div>
-                  <label className="block text-[10px] tracking-widest text-[#737373] uppercase mb-1">
-                    Add ML to Stock (+) *
-                  </label>
-                  <input
-                    type="number"
-                    step="0.5"
-                    min="0.5"
-                    value={adjustChangeMl}
-                    onChange={(e) => setAdjustChangeMl(e.target.value)}
-                    required
-                    placeholder="e.g. 100"
-                    className="w-full bg-[#F8F8F8] border border-[#EAEAEA] px-3 py-2 text-sm font-mono text-[#111111] focus:border-[#111111]"
-                  />
-                  <p className="text-[10px] text-[#737373] mt-1">
-                    New resulting volume will be: <strong className="text-[#111111]">{round(adjustingItem.remaining_ml + (parseFloat(adjustChangeMl) || 0))} ML</strong>
-                  </p>
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  <div>
-                    <label className="block text-[10px] tracking-widest text-[#737373] uppercase mb-1">
-                      Set New Remaining ML Target *
+              <form onSubmit={handleSaveAdjust} className="space-y-4">
+                {adjustMode === 'restock' ? (
+                  <div className="space-y-1.5">
+                    <label className="block text-xs font-medium text-zinc-700 dark:text-zinc-300">
+                      Add Quantity to Stock (+) *
+                    </label>
+                    <input
+                      type="number"
+                      step="0.5"
+                      min="0.5"
+                      value={adjustChangeMl}
+                      onChange={(e) => setAdjustChangeMl(e.target.value)}
+                      required
+                      placeholder="e.g. 100"
+                      className={`${inputCls} font-mono tabular-nums`}
+                    />
+                    <p className="text-[11px] text-zinc-500 dark:text-zinc-400">
+                      Resulting total:{' '}
+                      <strong className="font-mono text-zinc-950 dark:text-zinc-100 tabular-nums">
+                        {round(adjustingItem.remaining_ml + (parseFloat(adjustChangeMl) || 0))}
+                      </strong>
+                    </p>
+                  </div>
+                ) : (
+                  <div className="space-y-1.5">
+                    <label className="block text-xs font-medium text-zinc-700 dark:text-zinc-300">
+                      Set New Remaining Target *
                     </label>
                     <input
                       type="number"
@@ -994,131 +1153,157 @@ export const InventoryManager: React.FC<InventoryManagerProps> = ({ csrfToken })
                         setAdjustTargetMl(e.target.value);
                         setAdjustChangeMl('');
                       }}
-                      className="w-full bg-[#F8F8F8] border border-[#EAEAEA] px-3 py-2 text-sm font-mono text-[#111111] focus:border-[#111111]"
+                      className={`${inputCls} font-mono tabular-nums`}
                     />
-                    <p className="text-[10px] text-[#737373] mt-1">
+                    <p className="text-[11px] text-zinc-500 dark:text-zinc-400">
                       Net change:{' '}
-                      <strong className="text-[#111111]">
-                        {round((parseFloat(adjustTargetMl) || 0) - adjustingItem.remaining_ml) > 0 ? '+' : ''}
-                        {round((parseFloat(adjustTargetMl) || 0) - adjustingItem.remaining_ml)} ML
+                      <strong className="font-mono text-zinc-950 dark:text-zinc-100 tabular-nums">
+                        {round((parseFloat(adjustTargetMl) || 0) - adjustingItem.remaining_ml) > 0
+                          ? '+'
+                          : ''}
+                        {round((parseFloat(adjustTargetMl) || 0) - adjustingItem.remaining_ml)}
                       </strong>
                     </p>
                   </div>
+                )}
+
+                <div className="space-y-1.5">
+                  <label className="block text-xs font-medium text-zinc-700 dark:text-zinc-300">
+                    Reason / Audit Note *
+                  </label>
+                  <input
+                    type="text"
+                    value={adjustReason}
+                    onChange={(e) => setAdjustReason(e.target.value)}
+                    required
+                    placeholder="e.g. Physical inventory check, damaged unit, restock"
+                    className={inputCls}
+                  />
                 </div>
-              )}
 
-              <div>
-                <label className="block text-[10px] tracking-widest text-[#737373] uppercase mb-1">
-                  Reason for Adjustment / Audit Note *
-                </label>
-                <input
-                  type="text"
-                  value={adjustReason}
-                  onChange={(e) => setAdjustReason(e.target.value)}
-                  required
-                  placeholder="e.g. Physical inventory check, spillage, bottle replaced"
-                  className="w-full bg-[#F8F8F8] border border-[#EAEAEA] px-3 py-2 text-xs text-[#111111] focus:border-[#111111]"
-                />
-              </div>
-
-              <div className="flex items-center justify-end gap-3 pt-4 border-t border-[#EAEAEA]">
-                <button
-                  type="button"
-                  onClick={() => setIsAdjustOpen(false)}
-                  className="px-4 py-2 bg-[#F4F4F4] hover:bg-[#EAEAEA] text-xs font-medium text-[#111111] uppercase tracking-wider cursor-pointer"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={submitting}
-                  className="px-6 py-2 bg-[#111111] text-white hover:bg-amber-400 hover:text-black text-xs font-semibold uppercase tracking-wider cursor-pointer"
-                >
-                  {submitting ? 'Updating...' : adjustMode === 'restock' ? 'Confirm Restock' : 'Apply Adjustment'}
-                </button>
-              </div>
-            </form>
+                <div className="flex items-center justify-end gap-2.5 pt-4 border-t border-zinc-200/80 dark:border-zinc-800">
+                  <button
+                    type="button"
+                    onClick={() => setIsAdjustOpen(false)}
+                    className="h-9 px-4 rounded-md border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 hover:bg-zinc-50 dark:hover:bg-zinc-800 text-xs font-medium text-zinc-700 dark:text-zinc-200 cursor-pointer transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={submitting}
+                    className="h-9 px-5 rounded-md bg-zinc-950 hover:bg-zinc-800 dark:bg-zinc-100 dark:hover:bg-white text-white dark:text-zinc-950 text-xs font-medium cursor-pointer transition-colors disabled:opacity-50"
+                  >
+                    {submitting
+                      ? 'Updating...'
+                      : adjustMode === 'restock'
+                      ? 'Confirm Restock'
+                      : 'Apply Adjustment'}
+                  </button>
+                </div>
+              </form>
+            </div>
           </div>
         </div>
       )}
 
       {/* Stock History & Transactions Modal */}
       {isHistoryOpen && historyItem && (
-        <div className="fixed inset-0 z-50 overflow-y-auto bg-black/80 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="relative w-full max-w-3xl bg-white border border-[#EAEAEA] shadow-2xl p-6 sm:p-8 space-y-6 text-[#111111] my-8 animate-in fade-in duration-150">
-            <div className="flex items-center justify-between border-b border-[#EAEAEA] pb-4">
+        <div className="fixed inset-0 z-50 overflow-y-auto bg-zinc-950/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="relative w-full max-w-3xl bg-white dark:bg-[#111113] border border-zinc-200 dark:border-zinc-800 rounded-xl shadow-2xl overflow-hidden text-zinc-900 dark:text-zinc-100 my-8">
+            <div className="flex items-center justify-between border-b border-zinc-200/80 dark:border-zinc-800 px-6 py-4">
               <div>
-                <span className="text-[10px] font-mono tracking-widest text-[#737373] uppercase">
-                  Complete Stock History & Ledger
+                <span className="text-[11px] font-medium text-zinc-400 dark:text-zinc-500">
+                  Stock History &amp; Ledger
                 </span>
-                <h3 className="font-serif text-2xl font-normal text-[#111111]">
-                  {historyItem.brand} - {historyItem.name}
+                <h3 className="text-base font-semibold text-zinc-950 dark:text-zinc-100">
+                  {historyItem.brand} — {historyItem.name}
                 </h3>
-                <p className="text-xs text-[#737373] mt-0.5">
-                  Bottle Size: {historyItem.bottle_size_ml}ml · Current Remaining: <strong className="text-[#111111]">{historyItem.remaining_ml}ml ({historyItem.stock_percentage}%)</strong>
+                <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5 tabular-nums">
+                  Capacity: {historyItem.bottle_size_ml} · Remaining:{' '}
+                  <strong className="font-mono text-zinc-950 dark:text-zinc-100">
+                    {historyItem.remaining_ml} ({historyItem.stock_percentage}%)
+                  </strong>
                 </p>
               </div>
               <button
                 type="button"
                 onClick={() => setIsHistoryOpen(false)}
-                className="p-1 text-[#737373] hover:text-[#111111] cursor-pointer"
+                className="p-1.5 rounded-md text-zinc-400 hover:text-zinc-950 hover:bg-zinc-100 dark:hover:text-white dark:hover:bg-zinc-800 transition-colors cursor-pointer"
               >
-                <X className="w-5 h-5" />
+                <X className="w-4 h-4" />
               </button>
             </div>
 
             <div className="max-h-[60vh] overflow-y-auto">
               {loadingHistory ? (
-                <div className="py-12 text-center text-[#737373]">
-                  <RefreshCw className="w-5 h-5 animate-spin mx-auto text-[#111111] mb-2" />
+                <div className="py-12 text-center text-xs text-zinc-500 dark:text-zinc-400">
+                  <RefreshCw className="w-5 h-5 animate-spin mx-auto text-zinc-900 dark:text-zinc-100 mb-2" />
                   <span>Loading transaction ledger...</span>
                 </div>
               ) : historyTransactions.length === 0 ? (
-                <p className="py-8 text-center text-[#737373]">No transactions recorded for this perfume yet.</p>
+                <p className="py-10 text-center text-xs text-zinc-500 dark:text-zinc-400">
+                  No transactions recorded for this item yet.
+                </p>
               ) : (
-                <table className="w-full text-left text-xs text-[#111111]">
-                  <thead className="bg-[#F8F8F8] text-[#737373] uppercase tracking-wider text-[10px] border-b border-[#EAEAEA] sticky top-0">
+                <table className="w-full text-left text-xs text-zinc-900 dark:text-zinc-100">
+                  <thead className="bg-zinc-50/90 dark:bg-zinc-900/90 text-zinc-500 dark:text-zinc-400 uppercase tracking-wider text-[11px] font-medium border-b border-zinc-200/80 dark:border-zinc-800 sticky top-0">
                     <tr>
-                      <th className="py-2.5 px-3">Date</th>
-                      <th className="py-2.5 px-3">Type</th>
-                      <th className="py-2.5 px-3">Change ML</th>
-                      <th className="py-2.5 px-3">Prev &rarr; New</th>
-                      <th className="py-2.5 px-3">Associated Order / Details</th>
-                      <th className="py-2.5 px-3">Logged By</th>
+                      <th className="py-2.5 px-4 font-medium">Date</th>
+                      <th className="py-2.5 px-4 font-medium">Type</th>
+                      <th className="py-2.5 px-4 font-medium">Change</th>
+                      <th className="py-2.5 px-4 font-medium">Prev &rarr; New</th>
+                      <th className="py-2.5 px-4 font-medium">Order / Details</th>
+                      <th className="py-2.5 px-4 font-medium">Logged By</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-[#EAEAEA] font-sans">
+                  <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800/80">
                     {historyTransactions.map((tx) => {
                       const typeInfo = formatTxType(tx.transaction_type);
                       const isNegative = tx.change_ml < 0;
 
                       return (
-                        <tr key={tx.id} className="hover:bg-[#FBFBFB]">
-                          <td className="py-2.5 px-3 font-mono text-[10px] text-[#737373] whitespace-nowrap">
+                        <tr
+                          key={tx.id}
+                          className="hover:bg-zinc-50/70 dark:hover:bg-zinc-900/50 transition-colors"
+                        >
+                          <td className="py-2.5 px-4 font-mono text-[11px] text-zinc-400 dark:text-zinc-500 whitespace-nowrap tabular-nums">
                             {tx.created_at}
                           </td>
-                          <td className="py-2.5 px-3">
-                            <span className={`px-2 py-0.5 text-[10px] font-mono rounded ${typeInfo.color}`}>
+                          <td className="py-2.5 px-4 whitespace-nowrap">
+                            <span
+                              className={`px-2 py-0.5 text-[11px] font-medium rounded-md ${typeInfo.color}`}
+                            >
                               {typeInfo.label}
                             </span>
                           </td>
-                          <td className="py-2.5 px-3 font-mono font-bold">
-                            <span className={isNegative ? 'text-rose-600' : 'text-emerald-600'}>
-                              {isNegative ? '' : '+'}{tx.change_ml} ML
+                          <td className="py-2.5 px-4 font-mono font-semibold tabular-nums whitespace-nowrap">
+                            <span
+                              className={
+                                isNegative
+                                  ? 'text-rose-600 dark:text-rose-400'
+                                  : 'text-emerald-600 dark:text-emerald-400'
+                              }
+                            >
+                              {isNegative ? '' : '+'}
+                              {tx.change_ml}
                             </span>
                           </td>
-                          <td className="py-2.5 px-3 font-mono text-[11px] text-[#737373] whitespace-nowrap">
-                            {tx.previous_ml} ml &rarr; <strong className="text-[#111111]">{tx.new_ml} ml</strong>
+                          <td className="py-2.5 px-4 font-mono text-[11px] text-zinc-500 dark:text-zinc-400 whitespace-nowrap tabular-nums">
+                            {tx.previous_ml} &rarr;{' '}
+                            <strong className="text-zinc-900 dark:text-zinc-100">
+                              {tx.new_ml}
+                            </strong>
                           </td>
-                          <td className="py-2.5 px-3 text-[11px] text-[#737373]">
+                          <td className="py-2.5 px-4 text-[11px] text-zinc-500 dark:text-zinc-400">
                             {tx.order_number && (
-                              <span className="font-mono font-bold text-[#111111] mr-1.5 bg-zinc-100 px-1 py-0.5">
+                              <span className="font-mono font-semibold text-zinc-900 dark:text-zinc-100 mr-1.5 bg-zinc-100 dark:bg-zinc-800 px-1.5 py-0.5 rounded">
                                 #{tx.order_number}
                               </span>
                             )}
                             {tx.notes || '—'}
                           </td>
-                          <td className="py-2.5 px-3 text-[10px] font-mono text-zinc-500">
+                          <td className="py-2.5 px-4 text-[11px] font-mono text-zinc-400 dark:text-zinc-500">
                             {tx.created_by}
                           </td>
                         </tr>
@@ -1129,11 +1314,11 @@ export const InventoryManager: React.FC<InventoryManagerProps> = ({ csrfToken })
               )}
             </div>
 
-            <div className="flex items-center justify-end pt-4 border-t border-[#EAEAEA]">
+            <div className="flex items-center justify-end px-6 py-4 border-t border-zinc-200/80 dark:border-zinc-800 bg-zinc-50/60 dark:bg-zinc-900/40">
               <button
                 type="button"
                 onClick={() => setIsHistoryOpen(false)}
-                className="px-5 py-2 bg-[#111111] text-white hover:bg-zinc-800 text-xs font-semibold uppercase tracking-wider cursor-pointer"
+                className="h-9 px-4 rounded-md border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 hover:bg-zinc-50 dark:hover:bg-zinc-800 text-zinc-700 dark:text-zinc-200 text-xs font-medium cursor-pointer transition-colors"
               >
                 Close History
               </button>

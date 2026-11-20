@@ -138,11 +138,6 @@ export const Footer: React.FC<FooterProps> = ({ storeSettings }) => {
                     </a>
                   </li>
                   <li>
-                    <a href="#shop-by-brands" className="hover:text-white transition-colors">
-                      Scale Makers
-                    </a>
-                  </li>
-                  <li>
                     <a href="#seasons" className="hover:text-white transition-colors">
                       Racing Series
                     </a>

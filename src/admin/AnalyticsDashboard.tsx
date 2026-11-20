@@ -10,10 +10,7 @@ import {
   Calendar,
   RefreshCw,
   AlertTriangle,
-  Award,
-  Layers,
-  ChevronRight,
-  Filter
+  Award
 } from 'lucide-react';
 
 interface AnalyticsData {
@@ -118,34 +115,45 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ csrfToke
       style: 'currency',
       currency: 'BDT',
       maximumFractionDigits: 0
-    }).format(amount).replace('BDT', '৳');
+    })
+      .format(amount)
+      .replace('BDT', '৳');
   };
 
   if (loading && !data) {
     return (
       <div className="space-y-6 animate-pulse">
-        <div className="h-10 bg-[#EAEAEA] rounded w-1/3" />
-        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
+        <div className="flex items-center justify-between">
+          <div className="space-y-2">
+            <div className="h-6 bg-zinc-200 dark:bg-zinc-800 rounded w-56" />
+            <div className="h-3.5 bg-zinc-200/70 dark:bg-zinc-800/70 rounded w-72" />
+          </div>
+          <div className="h-9 bg-zinc-200 dark:bg-zinc-800 rounded-md w-80 hidden sm:block" />
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
           {[...Array(6)].map((_, i) => (
-            <div key={i} className="h-28 bg-white border border-[#EAEAEA] rounded p-4" />
+            <div
+              key={i}
+              className="h-28 bg-white dark:bg-[#111113] border border-zinc-200/80 dark:border-zinc-800/80 rounded-lg p-4"
+            />
           ))}
         </div>
-        <div className="h-72 bg-white border border-[#EAEAEA] rounded" />
+        <div className="h-72 bg-white dark:bg-[#111113] border border-zinc-200/80 dark:border-zinc-800/80 rounded-lg" />
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="p-6 bg-red-50 border border-red-200 rounded text-red-700 space-y-3">
+      <div className="p-6 bg-rose-50 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-900/60 rounded-lg text-rose-800 dark:text-rose-200 space-y-3">
         <div className="flex items-center gap-2 font-semibold text-sm">
-          <AlertTriangle className="w-5 h-5 text-red-600" />
+          <AlertTriangle className="w-4 h-4 text-rose-600 dark:text-rose-400" />
           <span>Analytics Load Error</span>
         </div>
-        <p className="text-xs">{error}</p>
+        <p className="text-xs text-rose-700 dark:text-rose-300">{error}</p>
         <button
           onClick={fetchAnalytics}
-          className="px-3 py-1.5 bg-red-600 text-white rounded text-xs font-medium hover:bg-red-700"
+          className="h-8 px-3.5 rounded-md bg-rose-600 hover:bg-rose-700 text-white text-xs font-medium transition-colors cursor-pointer"
         >
           Try Again
         </button>
@@ -157,9 +165,9 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ csrfToke
 
   // Compute SVG chart path
   const chartPoints = data.revenue_chart;
-  const maxRevenue = Math.max(...chartPoints.map(p => p.revenue), 100);
+  const maxRevenue = Math.max(...chartPoints.map((p) => p.revenue), 100);
   const svgWidth = 800;
-  const svgHeight = 200;
+  const svgHeight = 220;
   const padding = 20;
 
   const getX = (index: number) => {
@@ -175,37 +183,92 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ csrfToke
     .map((p, i) => `${getX(i)},${getY(p.revenue)}`)
     .join(' ');
 
-  const areaPoints = `${getX(0)},${svgHeight - padding} ${polylinePoints} ${getX(chartPoints.length - 1)},${svgHeight - padding}`;
+  const areaPoints =
+    chartPoints.length > 0
+      ? `${getX(0)},${svgHeight - padding} ${polylinePoints} ${getX(chartPoints.length - 1)},${svgHeight - padding}`
+      : '';
+
+  const hoveredIndex = hoveredPoint
+    ? chartPoints.findIndex((p) => p.date === hoveredPoint.date)
+    : -1;
+
+  const statusList = [
+    { key: 'pending', label: 'Pending', count: data.orders_by_status.pending, bar: 'bg-amber-500' },
+    { key: 'confirmed', label: 'Confirmed', count: data.orders_by_status.confirmed, bar: 'bg-sky-500' },
+    { key: 'processing', label: 'Processing', count: data.orders_by_status.processing, bar: 'bg-indigo-500' },
+    { key: 'shipped', label: 'Shipped', count: data.orders_by_status.shipped, bar: 'bg-violet-500' },
+    { key: 'delivered', label: 'Delivered', count: data.orders_by_status.delivered, bar: 'bg-emerald-500' },
+    { key: 'cancelled', label: 'Cancelled', count: data.orders_by_status.cancelled, bar: 'bg-zinc-400 dark:bg-zinc-600' }
+  ];
+  const totalStatusCount = Math.max(
+    statusList.reduce((sum, s) => sum + (s.count || 0), 0),
+    1
+  );
+
+  const kpiCards = [
+    {
+      label: 'Total Revenue',
+      value: formatCurrency(data.summary.revenue.value),
+      changePct: data.summary.revenue.change_pct,
+      icon: DollarSign
+    },
+    {
+      label: 'Total Orders',
+      value: data.summary.orders.value.toLocaleString(),
+      changePct: data.summary.orders.change_pct,
+      icon: ShoppingBag
+    },
+    {
+      label: 'Units Sold',
+      value: data.summary.units_sold.value.toLocaleString(),
+      changePct: data.summary.units_sold.change_pct,
+      icon: PackageCheck
+    },
+    {
+      label: 'Avg Order Value',
+      value: formatCurrency(data.summary.aov.value),
+      changePct: data.summary.aov.change_pct,
+      icon: Award
+    },
+    {
+      label: 'Active Customers',
+      value: data.summary.customers.value.toLocaleString(),
+      changePct: data.summary.customers.change_pct,
+      icon: Users
+    }
+  ];
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       {/* Page Header & Date Range Toolbar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-[#EAEAEA]">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b border-zinc-200/80 dark:border-zinc-800/80">
         <div>
-          <h1 className="text-xl font-bold text-[#111111] tracking-tight">Analytics & Business Insights</h1>
-          <p className="text-xs text-[#737373] mt-0.5">
+          <h1 className="text-lg font-semibold text-zinc-950 dark:text-zinc-100 tracking-tight">
+            Analytics &amp; Business Insights
+          </h1>
+          <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">
             Real-time performance tracking based on verified store transactions
           </p>
         </div>
 
         {/* Date Filter Selector */}
         <div className="flex items-center gap-2 flex-wrap">
-          <div className="inline-flex bg-[#F4F4F4] p-1 rounded border border-[#EAEAEA] text-xs font-medium">
+          <div className="inline-flex bg-zinc-100 dark:bg-zinc-900 p-1 rounded-lg border border-zinc-200/80 dark:border-zinc-800 text-xs font-medium">
             {[
               { id: 'today', label: 'Today' },
-              { id: '7d', label: '7 Days' },
-              { id: '30d', label: '30 Days' },
-              { id: '90d', label: '90 Days' },
+              { id: '7d', label: '7D' },
+              { id: '30d', label: '30D' },
+              { id: '90d', label: '90D' },
               { id: 'all', label: 'All Time' },
               { id: 'custom', label: 'Custom' }
             ].map((p) => (
               <button
                 key={p.id}
                 onClick={() => setPeriod(p.id)}
-                className={`px-3 py-1 rounded transition-colors ${
+                className={`px-2.5 py-1 rounded-md transition-colors cursor-pointer whitespace-nowrap ${
                   period === p.id
-                    ? 'bg-[#111111] text-white shadow-2xs font-semibold'
-                    : 'text-[#737373] hover:text-[#111111]'
+                    ? 'bg-white dark:bg-zinc-800 text-zinc-950 dark:text-white shadow-2xs font-semibold'
+                    : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100'
                 }`}
               >
                 {p.label}
@@ -215,34 +278,34 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ csrfToke
 
           <button
             onClick={fetchAnalytics}
-            className="p-1.5 bg-white border border-[#EAEAEA] text-[#737373] hover:text-[#111111] hover:bg-[#F4F4F4] rounded transition-colors"
+            className="h-8 w-8 inline-flex items-center justify-center bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-zinc-500 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white hover:bg-zinc-50 dark:hover:bg-zinc-800 rounded-md transition-colors cursor-pointer"
             title="Refresh analytics"
           >
-            <RefreshCw className="w-4 h-4" />
+            <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
           </button>
         </div>
       </div>
 
       {/* Custom Date Selector Input Group */}
       {period === 'custom' && (
-        <div className="flex items-center gap-3 p-4 bg-white border border-[#EAEAEA] rounded">
-          <Calendar className="w-4 h-4 text-[#737373]" />
+        <div className="flex flex-wrap items-center gap-3 p-3.5 bg-white dark:bg-[#111113] border border-zinc-200/80 dark:border-zinc-800/80 rounded-lg">
+          <Calendar className="w-4 h-4 text-zinc-400 shrink-0" />
           <div className="flex items-center gap-2 text-xs">
-            <span className="text-[#737373]">From:</span>
+            <span className="text-zinc-500 dark:text-zinc-400 font-medium">From</span>
             <input
               type="date"
               value={startDate}
               onChange={(e) => setStartDate(e.target.value)}
-              className="px-2.5 py-1 border border-[#EAEAEA] rounded text-[#111111] bg-white"
+              className="h-8 px-2.5 border border-zinc-200 dark:border-zinc-800 rounded-md text-zinc-900 dark:text-zinc-100 bg-white dark:bg-zinc-950 font-mono text-xs focus:outline-none focus:border-zinc-900 dark:focus:border-zinc-400"
             />
           </div>
           <div className="flex items-center gap-2 text-xs">
-            <span className="text-[#737373]">To:</span>
+            <span className="text-zinc-500 dark:text-zinc-400 font-medium">To</span>
             <input
               type="date"
               value={endDate}
               onChange={(e) => setEndDate(e.target.value)}
-              className="px-2.5 py-1 border border-[#EAEAEA] rounded text-[#111111] bg-white"
+              className="h-8 px-2.5 border border-zinc-200 dark:border-zinc-800 rounded-md text-zinc-900 dark:text-zinc-100 bg-white dark:bg-zinc-950 font-mono text-xs focus:outline-none focus:border-zinc-900 dark:focus:border-zinc-400"
             />
           </div>
         </div>
@@ -250,219 +313,161 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ csrfToke
 
       {/* KPI Cards Grid (6 Metric Cards) */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
-        {/* Total Revenue */}
-        <div className="bg-white p-4 border border-[#EAEAEA] rounded space-y-2">
-          <div className="flex items-center justify-between text-[#737373]">
-            <span className="text-xs font-medium uppercase tracking-wider">Total Revenue</span>
-            <DollarSign className="w-4 h-4 text-[#111111]" />
-          </div>
-          <div className="text-lg font-bold text-[#111111] tracking-tight">
-            {formatCurrency(data.summary.revenue.value)}
-          </div>
-          <div className="flex items-center gap-1.5 text-[11px]">
-            {data.summary.revenue.change_pct !== null ? (
-              <>
-                {data.summary.revenue.change_pct >= 0 ? (
-                  <span className="text-emerald-700 font-medium flex items-center gap-0.5">
-                    <TrendingUp className="w-3 h-3" />+{data.summary.revenue.change_pct}%
-                  </span>
+        {kpiCards.map((card) => {
+          const Icon = card.icon;
+          return (
+            <div
+              key={card.label}
+              className="bg-white dark:bg-[#111113] p-4 border border-zinc-200/80 dark:border-zinc-800/80 rounded-lg flex flex-col justify-between space-y-3"
+            >
+              <div className="flex items-center justify-between text-zinc-500 dark:text-zinc-400">
+                <span className="text-xs font-medium">{card.label}</span>
+                <Icon className="w-3.5 h-3.5 text-zinc-400 dark:text-zinc-500" />
+              </div>
+              <div className="text-xl font-semibold text-zinc-950 dark:text-zinc-100 tracking-tight font-mono tabular-nums">
+                {card.value}
+              </div>
+              <div className="flex items-center gap-1.5 text-[11px]">
+                {card.changePct !== null ? (
+                  <>
+                    {card.changePct >= 0 ? (
+                      <span className="text-emerald-700 dark:text-emerald-400 font-medium inline-flex items-center gap-0.5 tabular-nums">
+                        <TrendingUp className="w-3 h-3" />+{card.changePct}%
+                      </span>
+                    ) : (
+                      <span className="text-rose-600 dark:text-rose-400 font-medium inline-flex items-center gap-0.5 tabular-nums">
+                        <TrendingDown className="w-3 h-3" />
+                        {card.changePct}%
+                      </span>
+                    )}
+                    <span className="text-zinc-400 dark:text-zinc-500">vs prev.</span>
+                  </>
                 ) : (
-                  <span className="text-red-600 font-medium flex items-center gap-0.5">
-                    <TrendingDown className="w-3 h-3" />{data.summary.revenue.change_pct}%
-                  </span>
+                  <span className="text-zinc-400 dark:text-zinc-500">No prev. baseline</span>
                 )}
-                <span className="text-[#737373]">vs prev. period</span>
-              </>
-            ) : (
-              <span className="text-[#737373]">No previous baseline</span>
-            )}
-          </div>
-        </div>
-
-        {/* Total Orders */}
-        <div className="bg-white p-4 border border-[#EAEAEA] rounded space-y-2">
-          <div className="flex items-center justify-between text-[#737373]">
-            <span className="text-xs font-medium uppercase tracking-wider">Total Orders</span>
-            <ShoppingBag className="w-4 h-4 text-[#111111]" />
-          </div>
-          <div className="text-lg font-bold text-[#111111] tracking-tight">
-            {data.summary.orders.value}
-          </div>
-          <div className="flex items-center gap-1.5 text-[11px]">
-            {data.summary.orders.change_pct !== null ? (
-              <>
-                {data.summary.orders.change_pct >= 0 ? (
-                  <span className="text-emerald-700 font-medium flex items-center gap-0.5">
-                    <TrendingUp className="w-3 h-3" />+{data.summary.orders.change_pct}%
-                  </span>
-                ) : (
-                  <span className="text-red-600 font-medium flex items-center gap-0.5">
-                    <TrendingDown className="w-3 h-3" />{data.summary.orders.change_pct}%
-                  </span>
-                )}
-                <span className="text-[#737373]">vs prev. period</span>
-              </>
-            ) : (
-              <span className="text-[#737373]">No previous baseline</span>
-            )}
-          </div>
-        </div>
-
-        {/* Units Sold */}
-        <div className="bg-white p-4 border border-[#EAEAEA] rounded space-y-2">
-          <div className="flex items-center justify-between text-[#737373]">
-            <span className="text-xs font-medium uppercase tracking-wider">Units Sold</span>
-            <PackageCheck className="w-4 h-4 text-[#111111]" />
-          </div>
-          <div className="text-lg font-bold text-[#111111] tracking-tight">
-            {data.summary.units_sold.value}
-          </div>
-          <div className="flex items-center gap-1.5 text-[11px]">
-            {data.summary.units_sold.change_pct !== null ? (
-              <>
-                {data.summary.units_sold.change_pct >= 0 ? (
-                  <span className="text-emerald-700 font-medium flex items-center gap-0.5">
-                    <TrendingUp className="w-3 h-3" />+{data.summary.units_sold.change_pct}%
-                  </span>
-                ) : (
-                  <span className="text-red-600 font-medium flex items-center gap-0.5">
-                    <TrendingDown className="w-3 h-3" />{data.summary.units_sold.change_pct}%
-                  </span>
-                )}
-                <span className="text-[#737373]">vs prev. period</span>
-              </>
-            ) : (
-              <span className="text-[#737373]">No previous baseline</span>
-            )}
-          </div>
-        </div>
-
-        {/* Average Order Value */}
-        <div className="bg-white p-4 border border-[#EAEAEA] rounded space-y-2">
-          <div className="flex items-center justify-between text-[#737373]">
-            <span className="text-xs font-medium uppercase tracking-wider">Avg Order Value</span>
-            <Award className="w-4 h-4 text-[#111111]" />
-          </div>
-          <div className="text-lg font-bold text-[#111111] tracking-tight">
-            {formatCurrency(data.summary.aov.value)}
-          </div>
-          <div className="flex items-center gap-1.5 text-[11px]">
-            {data.summary.aov.change_pct !== null ? (
-              <>
-                {data.summary.aov.change_pct >= 0 ? (
-                  <span className="text-emerald-700 font-medium flex items-center gap-0.5">
-                    <TrendingUp className="w-3 h-3" />+{data.summary.aov.change_pct}%
-                  </span>
-                ) : (
-                  <span className="text-red-600 font-medium flex items-center gap-0.5">
-                    <TrendingDown className="w-3 h-3" />{data.summary.aov.change_pct}%
-                  </span>
-                )}
-                <span className="text-[#737373]">vs prev. period</span>
-              </>
-            ) : (
-              <span className="text-[#737373]">No previous baseline</span>
-            )}
-          </div>
-        </div>
-
-        {/* Unique Customers */}
-        <div className="bg-white p-4 border border-[#EAEAEA] rounded space-y-2">
-          <div className="flex items-center justify-between text-[#737373]">
-            <span className="text-xs font-medium uppercase tracking-wider">Active Customers</span>
-            <Users className="w-4 h-4 text-[#111111]" />
-          </div>
-          <div className="text-lg font-bold text-[#111111] tracking-tight">
-            {data.summary.customers.value}
-          </div>
-          <div className="flex items-center gap-1.5 text-[11px]">
-            {data.summary.customers.change_pct !== null ? (
-              <>
-                {data.summary.customers.change_pct >= 0 ? (
-                  <span className="text-emerald-700 font-medium flex items-center gap-0.5">
-                    <TrendingUp className="w-3 h-3" />+{data.summary.customers.change_pct}%
-                  </span>
-                ) : (
-                  <span className="text-red-600 font-medium flex items-center gap-0.5">
-                    <TrendingDown className="w-3 h-3" />{data.summary.customers.change_pct}%
-                  </span>
-                )}
-                <span className="text-[#737373]">vs prev. period</span>
-              </>
-            ) : (
-              <span className="text-[#737373]">No previous baseline</span>
-            )}
-          </div>
-        </div>
+              </div>
+            </div>
+          );
+        })}
 
         {/* Pending Orders */}
-        <div className="bg-white p-4 border border-[#EAEAEA] rounded space-y-2">
-          <div className="flex items-center justify-between text-[#737373]">
-            <span className="text-xs font-medium uppercase tracking-wider">Pending Orders</span>
-            <Clock className="w-4 h-4 text-[#111111]" />
+        <div className="bg-white dark:bg-[#111113] p-4 border border-zinc-200/80 dark:border-zinc-800/80 rounded-lg flex flex-col justify-between space-y-3">
+          <div className="flex items-center justify-between text-zinc-500 dark:text-zinc-400">
+            <span className="text-xs font-medium">Pending Orders</span>
+            <Clock className="w-3.5 h-3.5 text-zinc-400 dark:text-zinc-500" />
           </div>
-          <div className="text-lg font-bold text-[#111111] tracking-tight">
+          <div className="text-xl font-semibold text-zinc-950 dark:text-zinc-100 tracking-tight font-mono tabular-nums">
             {data.summary.pending_orders.value}
           </div>
-          <div className="flex items-center gap-1 text-[11px] text-[#737373]">
-            <span>Requires fulfillment</span>
+          <div className="text-[11px] text-zinc-400 dark:text-zinc-500">
+            Requires fulfillment
           </div>
         </div>
       </div>
 
       {/* Interactive Revenue Chart */}
-      <div className="bg-white p-6 border border-[#EAEAEA] rounded space-y-4">
-        <div className="flex items-center justify-between">
+      <div className="bg-white dark:bg-[#111113] p-5 sm:p-6 border border-zinc-200/80 dark:border-zinc-800/80 rounded-lg space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
-            <h2 className="text-sm font-bold text-[#111111] uppercase tracking-wider">Revenue Trend</h2>
-            <p className="text-xs text-[#737373]">Daily revenue trajectory over selected timeframe</p>
+            <h2 className="text-sm font-semibold text-zinc-950 dark:text-zinc-100">
+              Revenue Trend
+            </h2>
+            <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">
+              Daily revenue trajectory over selected timeframe
+            </p>
           </div>
-          {hoveredPoint && (
-            <div className="bg-[#111111] text-white text-xs px-3 py-1.5 rounded flex items-center gap-3">
-              <span>{hoveredPoint.date}</span>
-              <span className="font-bold">{formatCurrency(hoveredPoint.revenue)}</span>
-              <span className="text-[#A3A3A3]">({hoveredPoint.orders} orders)</span>
+          {hoveredPoint ? (
+            <div className="bg-zinc-950 dark:bg-zinc-100 text-white dark:text-zinc-950 text-xs px-3 py-1.5 rounded-md inline-flex items-center gap-3 self-start sm:self-auto font-mono tabular-nums">
+              <span className="text-zinc-300 dark:text-zinc-600">{hoveredPoint.date}</span>
+              <span className="font-semibold">{formatCurrency(hoveredPoint.revenue)}</span>
+              <span className="text-zinc-400 dark:text-zinc-500">
+                {hoveredPoint.orders} orders
+              </span>
+            </div>
+          ) : (
+            <div className="text-[11px] text-zinc-400 dark:text-zinc-500 font-mono">
+              Hover nodes for daily breakdown
             </div>
           )}
         </div>
 
-        <div className="relative w-full overflow-hidden pt-2">
+        <div className="relative w-full overflow-hidden pt-2 text-zinc-950 dark:text-zinc-100">
           <svg
             viewBox={`0 0 ${svgWidth} ${svgHeight}`}
             className="w-full h-56 overflow-visible"
           >
+            <defs>
+              <linearGradient id="revenueAreaGradient" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="currentColor" stopOpacity="0.14" />
+                <stop offset="100%" stopColor="currentColor" stopOpacity="0.0" />
+              </linearGradient>
+            </defs>
+
             {/* Horizontal Grid lines */}
-            <line x1={padding} y1={padding} x2={svgWidth - padding} y2={padding} stroke="#EAEAEA" strokeDasharray="3 3" />
-            <line x1={padding} y1={svgHeight / 2} x2={svgWidth - padding} y2={svgHeight / 2} stroke="#EAEAEA" strokeDasharray="3 3" />
-            <line x1={padding} y1={svgHeight - padding} x2={svgWidth - padding} y2={svgHeight - padding} stroke="#EAEAEA" />
+            <line
+              x1={padding}
+              y1={padding}
+              x2={svgWidth - padding}
+              y2={padding}
+              className="stroke-zinc-200 dark:stroke-zinc-800"
+              strokeDasharray="3 3"
+            />
+            <line
+              x1={padding}
+              y1={svgHeight / 2}
+              x2={svgWidth - padding}
+              y2={svgHeight / 2}
+              className="stroke-zinc-200 dark:stroke-zinc-800"
+              strokeDasharray="3 3"
+            />
+            <line
+              x1={padding}
+              y1={svgHeight - padding}
+              x2={svgWidth - padding}
+              y2={svgHeight - padding}
+              className="stroke-zinc-200 dark:stroke-zinc-800"
+            />
+
+            {/* Vertical Hover Crosshair */}
+            {hoveredIndex >= 0 && (
+              <line
+                x1={getX(hoveredIndex)}
+                y1={padding}
+                x2={getX(hoveredIndex)}
+                y2={svgHeight - padding}
+                className="stroke-zinc-300 dark:stroke-zinc-700"
+                strokeDasharray="2 2"
+              />
+            )}
 
             {/* Area Fill */}
-            <polygon points={areaPoints} fill="#111111" fillOpacity="0.05" />
+            {areaPoints && <polygon points={areaPoints} fill="url(#revenueAreaGradient)" />}
 
             {/* Trend Polyline */}
-            <polyline
-              fill="none"
-              stroke="#111111"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              points={polylinePoints}
-            />
+            {polylinePoints && (
+              <polyline
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                points={polylinePoints}
+              />
+            )}
 
             {/* Interactive Data Nodes */}
             {chartPoints.map((point, i) => {
               const cx = getX(i);
               const cy = getY(point.revenue);
+              const isHovered = hoveredIndex === i;
               return (
                 <g key={i} className="cursor-pointer">
                   <circle
                     cx={cx}
                     cy={cy}
-                    r="4"
-                    fill="#FFFFFF"
-                    stroke="#111111"
+                    r={isHovered ? 5 : 3.5}
+                    className="fill-white dark:fill-zinc-950 stroke-zinc-950 dark:stroke-zinc-100 transition-all"
                     strokeWidth="2"
-                    className="transition-transform hover:scale-150"
                     onMouseEnter={() => setHoveredPoint(point)}
                     onMouseLeave={() => setHoveredPoint(null)}
                   />
@@ -472,7 +477,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ csrfToke
           </svg>
 
           {/* X Axis Labels */}
-          <div className="flex justify-between text-[10px] text-[#737373] mt-2 px-2 font-mono">
+          <div className="flex justify-between text-[11px] text-zinc-400 dark:text-zinc-500 mt-2 px-2 font-mono tabular-nums">
             <span>{chartPoints[0]?.date}</span>
             <span>{chartPoints[Math.floor(chartPoints.length / 2)]?.date}</span>
             <span>{chartPoints[chartPoints.length - 1]?.date}</span>
@@ -481,59 +486,81 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ csrfToke
       </div>
 
       {/* Analytics Main Dashboard Grid: Best Sellers & Insights */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left Column: Best-Selling Products (2 cols) */}
-        <div className="lg:col-span-2 bg-white p-6 border border-[#EAEAEA] rounded space-y-4">
-          <div className="flex items-center justify-between pb-3 border-b border-[#EAEAEA]">
+        <div className="lg:col-span-2 bg-white dark:bg-[#111113] p-5 sm:p-6 border border-zinc-200/80 dark:border-zinc-800/80 rounded-lg space-y-4">
+          <div className="flex items-center justify-between pb-3 border-b border-zinc-100 dark:border-zinc-800/80">
             <div>
-              <h2 className="text-sm font-bold text-[#111111] uppercase tracking-wider">Best-Selling Decants</h2>
-              <p className="text-xs text-[#737373]">Top products ranked by actual completed sales volume</p>
+              <h2 className="text-sm font-semibold text-zinc-950 dark:text-zinc-100">
+                Best-Selling Products
+              </h2>
+              <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">
+                Top products ranked by actual completed sales volume
+              </p>
             </div>
-            <span className="text-xs font-mono text-[#737373]">{data.best_sellers.length} Products</span>
+            <span className="text-xs font-mono text-zinc-400 dark:text-zinc-500 tabular-nums">
+              {data.best_sellers.length} items
+            </span>
           </div>
 
           {data.best_sellers.length === 0 ? (
-            <div className="py-12 text-center text-xs text-[#737373]">
+            <div className="py-12 text-center text-xs text-zinc-500 dark:text-zinc-400">
               No sales data recorded in this date range.
             </div>
           ) : (
-            <div className="divide-y divide-[#EAEAEA]">
+            <div className="divide-y divide-zinc-100 dark:divide-zinc-800/80">
               {data.best_sellers.map((item, idx) => (
-                <div key={item.product_id} className="py-3 flex items-center justify-between gap-4 text-xs">
+                <div
+                  key={item.product_id}
+                  className="py-3 flex items-center justify-between gap-4 text-xs"
+                >
                   <div className="flex items-center gap-3 min-w-0">
-                    <span className="w-5 font-mono font-bold text-[#737373] shrink-0 text-center">
-                      #{idx + 1}
+                    <span className="w-5 font-mono text-[11px] font-medium text-zinc-400 dark:text-zinc-500 shrink-0 text-center tabular-nums">
+                      {String(idx + 1).padStart(2, '0')}
                     </span>
-                    <div className="w-10 h-10 bg-[#F4F4F4] rounded border border-[#EAEAEA] overflow-hidden shrink-0 flex items-center justify-center">
+                    <div className="w-9 h-9 bg-zinc-50 dark:bg-zinc-900 rounded-md border border-zinc-200/80 dark:border-zinc-800 overflow-hidden shrink-0 flex items-center justify-center">
                       {item.image ? (
-                        <img src={item.image} alt={item.product_name} className="w-full h-full object-cover" />
+                        <img
+                          src={item.image}
+                          alt={item.product_name}
+                          className="w-full h-full object-cover"
+                        />
                       ) : (
-                        <PackageCheck className="w-5 h-5 text-[#A3A3A3]" />
+                        <PackageCheck className="w-4 h-4 text-zinc-400" />
                       )}
                     </div>
                     <div className="min-w-0">
-                      <p className="font-semibold text-[#111111] truncate">{item.product_name}</p>
-                      <p className="text-[10px] text-[#737373] uppercase tracking-wider">{item.brand_name}</p>
+                      <p className="font-medium text-zinc-950 dark:text-zinc-100 truncate">
+                        {item.product_name}
+                      </p>
+                      <p className="text-[11px] text-zinc-500 dark:text-zinc-400 truncate">
+                        {item.brand_name}
+                      </p>
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-6 shrink-0 text-right">
+                  <div className="flex items-center gap-5 shrink-0 text-right tabular-nums">
                     <div>
-                      <span className="block font-semibold text-[#111111]">{item.units_sold} units</span>
-                      <span className="text-[10px] text-[#737373]">Volume</span>
+                      <span className="block font-mono font-medium text-zinc-950 dark:text-zinc-100">
+                        {item.units_sold}
+                      </span>
+                      <span className="text-[10px] text-zinc-400 dark:text-zinc-500">Units</span>
                     </div>
                     <div>
-                      <span className="block font-semibold text-[#111111]">{formatCurrency(item.total_sales)}</span>
-                      <span className="text-[10px] text-[#737373]">Revenue</span>
+                      <span className="block font-mono font-semibold text-zinc-950 dark:text-zinc-100">
+                        {formatCurrency(item.total_sales)}
+                      </span>
+                      <span className="text-[10px] text-zinc-400 dark:text-zinc-500">Revenue</span>
                     </div>
                     <div className="hidden sm:block">
-                      <span className={`inline-block px-2 py-0.5 rounded text-[10px] font-mono ${
-                        item.current_stock <= 5
-                          ? 'bg-amber-100 text-amber-800'
-                          : 'bg-[#F4F4F4] text-[#111111]'
-                      }`}>
-                        Stock: {item.current_stock}
+                      <span
+                        className={`inline-block px-2 py-0.5 rounded-md text-[11px] font-mono border ${
+                          item.current_stock <= 5
+                            ? 'bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-900/60'
+                            : 'bg-zinc-50 dark:bg-zinc-900 text-zinc-600 dark:text-zinc-300 border-zinc-200 dark:border-zinc-800'
+                        }`}
+                      >
+                        {item.current_stock} left
                       </span>
                     </div>
                   </div>
@@ -545,76 +572,96 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ csrfToke
 
         {/* Right Column: Order Status Breakdown & Inventory Alerts */}
         <div className="space-y-6">
-
           {/* Order Status Distribution */}
-          <div className="bg-white p-6 border border-[#EAEAEA] rounded space-y-4">
-            <div className="pb-3 border-b border-[#EAEAEA]">
-              <h2 className="text-sm font-bold text-[#111111] uppercase tracking-wider">Order Status Overview</h2>
-              <p className="text-xs text-[#737373]">Fulfillment status distribution</p>
+          <div className="bg-white dark:bg-[#111113] p-5 sm:p-6 border border-zinc-200/80 dark:border-zinc-800/80 rounded-lg space-y-4">
+            <div className="pb-3 border-b border-zinc-100 dark:border-zinc-800/80">
+              <h2 className="text-sm font-semibold text-zinc-950 dark:text-zinc-100">
+                Order Status Overview
+              </h2>
+              <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">
+                Fulfillment status distribution
+              </p>
             </div>
 
-            <div className="space-y-2.5 text-xs">
-              {[
-                { key: 'pending', label: 'Pending', count: data.orders_by_status.pending, color: 'bg-amber-500' },
-                { key: 'confirmed', label: 'Confirmed', count: data.orders_by_status.confirmed, color: 'bg-blue-500' },
-                { key: 'processing', label: 'Processing', count: data.orders_by_status.processing, color: 'bg-indigo-500' },
-                { key: 'shipped', label: 'Shipped', count: data.orders_by_status.shipped, color: 'bg-purple-500' },
-                { key: 'delivered', label: 'Delivered', count: data.orders_by_status.delivered, color: 'bg-emerald-500' },
-                { key: 'cancelled', label: 'Cancelled', count: data.orders_by_status.cancelled, color: 'bg-gray-400' }
-              ].map((s) => (
-                <div key={s.key} className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <span className={`w-2 h-2 rounded-full ${s.color}`} />
-                    <span className="text-[#111111]">{s.label}</span>
+            <div className="space-y-3 text-xs">
+              {statusList.map((s) => {
+                const pct = Math.round(((s.count || 0) / totalStatusCount) * 100);
+                return (
+                  <div key={s.key} className="space-y-1">
+                    <div className="flex items-center justify-between">
+                      <span className="text-zinc-700 dark:text-zinc-300 font-medium">{s.label}</span>
+                      <span className="font-mono font-semibold text-zinc-950 dark:text-zinc-100 tabular-nums">
+                        {s.count}
+                      </span>
+                    </div>
+                    <div className="w-full h-1.5 bg-zinc-100 dark:bg-zinc-800 rounded-full overflow-hidden">
+                      <div
+                        className={`h-full rounded-full ${s.bar} transition-all duration-300`}
+                        style={{ width: `${pct}%` }}
+                      />
+                    </div>
                   </div>
-                  <span className="font-mono font-semibold text-[#111111]">{s.count}</span>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
 
           {/* Category Performance */}
-          <div className="bg-white p-6 border border-[#EAEAEA] rounded space-y-4">
-            <div className="pb-3 border-b border-[#EAEAEA]">
-              <h2 className="text-sm font-bold text-[#111111] uppercase tracking-wider">Top Fragrance Families</h2>
-              <p className="text-xs text-[#737373]">Revenue generated by category</p>
+          <div className="bg-white dark:bg-[#111113] p-5 sm:p-6 border border-zinc-200/80 dark:border-zinc-800/80 rounded-lg space-y-4">
+            <div className="pb-3 border-b border-zinc-100 dark:border-zinc-800/80">
+              <h2 className="text-sm font-semibold text-zinc-950 dark:text-zinc-100">
+                Category Performance
+              </h2>
+              <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">
+                Revenue generated by category
+              </p>
             </div>
 
             <div className="space-y-3 text-xs">
-              {data.category_performance.map((cat, idx) => (
-                <div key={idx} className="flex items-center justify-between">
-                  <div>
-                    <p className="font-medium text-[#111111]">{cat.category_name}</p>
-                    <p className="text-[10px] text-[#737373]">{cat.total_units} units sold</p>
+              {data.category_performance.length === 0 ? (
+                <p className="text-zinc-400 dark:text-zinc-500 py-2">No category revenue yet.</p>
+              ) : (
+                data.category_performance.map((cat, idx) => (
+                  <div key={idx} className="flex items-center justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="font-medium text-zinc-900 dark:text-zinc-100 truncate">
+                        {cat.category_name}
+                      </p>
+                      <p className="text-[11px] text-zinc-400 dark:text-zinc-500 tabular-nums">
+                        {cat.total_units} units sold
+                      </p>
+                    </div>
+                    <span className="font-mono font-semibold text-zinc-950 dark:text-zinc-100 tabular-nums shrink-0">
+                      {formatCurrency(cat.total_revenue)}
+                    </span>
                   </div>
-                  <span className="font-semibold text-[#111111]">
-                    {formatCurrency(cat.total_revenue)}
-                  </span>
-                </div>
-              ))}
+                ))
+              )}
             </div>
           </div>
 
           {/* Low Stock Warning Box */}
           {data.low_stock.length > 0 && (
-            <div className="bg-amber-50/50 border border-amber-200 p-5 rounded space-y-3">
-              <div className="flex items-center gap-2 text-amber-900 font-semibold text-xs uppercase tracking-wider">
-                <AlertTriangle className="w-4 h-4 text-amber-600" />
+            <div className="bg-amber-50/60 dark:bg-amber-950/20 border border-amber-200/80 dark:border-amber-900/50 p-5 rounded-lg space-y-3">
+              <div className="flex items-center gap-2 text-amber-900 dark:text-amber-300 font-semibold text-xs">
+                <AlertTriangle className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0" />
                 <span>Low Inventory Alert ({data.low_stock.length})</span>
               </div>
-              <div className="divide-y divide-amber-200/60 text-xs">
+              <div className="divide-y divide-amber-200/60 dark:divide-amber-900/40 text-xs">
                 {data.low_stock.map((prod) => (
-                  <div key={prod.id} className="py-1.5 flex items-center justify-between">
-                    <span className="font-medium text-amber-950 truncate max-w-[180px]">{prod.name}</span>
-                    <span className="font-mono text-amber-800 font-bold">{prod.inventory_qty} left</span>
+                  <div key={prod.id} className="py-1.5 flex items-center justify-between gap-2">
+                    <span className="font-medium text-amber-950 dark:text-amber-200 truncate">
+                      {prod.name}
+                    </span>
+                    <span className="font-mono text-amber-800 dark:text-amber-300 font-semibold shrink-0 tabular-nums">
+                      {prod.inventory_qty} left
+                    </span>
                   </div>
                 ))}
               </div>
             </div>
           )}
-
         </div>
-
       </div>
     </div>
   );
