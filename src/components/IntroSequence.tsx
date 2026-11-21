@@ -73,7 +73,7 @@ export const IntroSequence: React.FC<IntroSequenceProps> = ({
           {/* Top Motorsport Telemetry Header */}
           <div className="w-full px-6 sm:px-10 pt-6 flex items-center justify-between border-b border-white/10 pb-4">
             <span className="font-logo marvel-logo-badge text-lg sm:text-xl uppercase">
-              APEX PADDOCK
+              SPIDER-VERSE
             </span>
             <span className="font-mono text-[11px] tracking-[0.24em] uppercase text-[#9CA3AF]">
               TAP TO ENTER
@@ -125,7 +125,7 @@ export const IntroSequence: React.FC<IntroSequenceProps> = ({
               >
                 <img
                   src={heroF1Img}
-                  alt="Apex Paddock 1:18 Signature Formula 1 Toy Car"
+                  alt="Spider-Verse 1:18 Signature Formula 1 Toy Car"
                   className="w-full h-full object-cover"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-transparent to-black/20" />
@@ -143,7 +143,7 @@ export const IntroSequence: React.FC<IntroSequenceProps> = ({
                   F1 DIECAST & RC
                 </span>
                 <h1 className="font-logo bg-[#EC1D24] text-white px-5 sm:px-8 py-2 sm:py-3 uppercase tracking-[-0.02em] text-5xl sm:text-7xl md:text-8xl leading-[0.86] drop-shadow-[0_10px_30px_rgba(0,0,0,0.9)]">
-                  APEX PADDOCK
+                  SPIDER-VERSE
                 </h1>
               </motion.div>
             </div>

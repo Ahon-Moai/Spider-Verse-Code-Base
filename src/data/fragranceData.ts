@@ -86,7 +86,7 @@ export const REVIEWS_LIST: ReviewItem[] = [
     id: 'rev-4',
     quote: 'Bulletproof packaging for delicate front wings.',
     content:
-      'Usually online toy sellers ship models loose, but Apex Paddock double-boxed my 1:18 car with corner guards. Straight onto my shelf in mint collector condition.',
+      'Usually online toy sellers ship models loose, but Spider Verse double-boxed my 1:18 car with corner guards. Straight onto my shelf in mint collector condition.',
     author: 'Samiul Masuk Dihan',
     rating: 5,
     verified: true,
@@ -96,7 +96,7 @@ export const REVIEWS_LIST: ReviewItem[] = [
 export const SOCIAL_CARDS: SocialCard[] = [
   {
     id: 'soc-1',
-    handle: '@apexpaddock',
+    handle: '@spiderverse',
     image: '/src/assets/images/series_f1_night_aero_1794664771085.jpg',
     likes: 418,
     comments: 19,
@@ -104,7 +104,7 @@ export const SOCIAL_CARDS: SocialCard[] = [
   },
   {
     id: 'soc-2',
-    handle: '@apexpaddock',
+    handle: '@spiderverse',
     image: '/src/assets/images/series_f1_classic_red_1794664772823.jpg',
     likes: 362,
     comments: 14,
@@ -112,7 +112,7 @@ export const SOCIAL_CARDS: SocialCard[] = [
   },
   {
     id: 'soc-3',
-    handle: '@apexpaddock',
+    handle: '@spiderverse',
     image: '/src/assets/images/series_f1_carbon_stealth_1794664773109.jpg',
     likes: 289,
     comments: 11,
@@ -120,7 +120,7 @@ export const SOCIAL_CARDS: SocialCard[] = [
   },
   {
     id: 'soc-4',
-    handle: '@apexpaddock',
+    handle: '@spiderverse',
     image: '/src/assets/images/series_f1_rc_sprint_1794664772832.jpg',
     likes: 312,
     comments: 23,
@@ -132,7 +132,7 @@ export const JOURNAL_ARTICLES: JournalArticle[] = [
   {
     id: 'art-1',
     date: 'FEB 01, 2026',
-    publisher: 'APEX PADDOCK',
+    publisher: 'SPIDER VERSE',
     title: '1:18 vs 1:43 Scale: Choosing Your First F1 Grid',
     description:
       'Read this before starting your diecast shelf. From 31cm centerpiece alloy builds with steerable wheels to compact acrylic-cased 1:43 grid lineups...',
@@ -141,7 +141,7 @@ export const JOURNAL_ARTICLES: JournalArticle[] = [
   {
     id: 'art-2',
     date: 'FEB 01, 2026',
-    publisher: 'APEX PADDOCK',
+    publisher: 'SPIDER VERSE',
     title: 'Diecast Alloy vs 2.4GHz RC: Display Or Track Speed?',
     description:
       'Static collector models prioritize microscopic aero winglets and tampo decals, while RC F1 toy cars feature impact-resilient polymers and proportional throttle.',
@@ -150,7 +150,7 @@ export const JOURNAL_ARTICLES: JournalArticle[] = [
   {
     id: 'art-3',
     date: 'FEB 01, 2026',
-    publisher: 'APEX PADDOCK',
+    publisher: 'SPIDER VERSE',
     title: 'Inside Every Box: Rubber Compounds, Wings & Tampos',
     description:
       'Why collector diecast pricing varies across tooling generations—comparing zinc alloy density, pad-printed liveries, and licensed Pirelli-style rubber compounds.',

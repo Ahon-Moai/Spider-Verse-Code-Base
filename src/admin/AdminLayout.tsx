@@ -132,11 +132,11 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
           {!isSidebarCollapsed ? (
             <div className="flex items-center gap-2.5 min-w-0">
               <div className="w-7 h-7 rounded-md bg-zinc-950 dark:bg-zinc-100 text-white dark:text-zinc-950 flex items-center justify-center text-[11px] font-bold tracking-tight shrink-0">
-                AP
+                SV
               </div>
               <div className="min-w-0">
                 <span className="block text-xs font-semibold tracking-tight text-zinc-950 dark:text-zinc-100 truncate">
-                  Apex Paddock
+                  Spider Verse
                 </span>
                 <span className="block text-[10px] text-zinc-500 dark:text-zinc-400 truncate">
                   Admin Console
@@ -145,7 +145,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
             </div>
           ) : (
             <div className="w-7 h-7 mx-auto rounded-md bg-zinc-950 dark:bg-zinc-100 text-white dark:text-zinc-950 flex items-center justify-center text-[11px] font-bold tracking-tight shrink-0">
-              AP
+              SV
             </div>
           )}
 
@@ -327,7 +327,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
                         {user?.username}
                       </p>
                       <p className="text-[11px] text-zinc-500 dark:text-zinc-400 truncate">
-                        {user?.email || 'admin@apexpaddock.com'}
+                        {user?.email || 'admin@spiderverse.bd'}
                       </p>
                       <p className="text-[10px] font-mono uppercase text-zinc-400 dark:text-zinc-500 mt-1">
                         {user?.role || 'Administrator'}
@@ -370,10 +370,10 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
               <div className="h-14 px-4 border-b border-zinc-200 dark:border-zinc-800 flex items-center justify-between shrink-0">
                 <div className="flex items-center gap-2.5">
                   <div className="w-7 h-7 rounded-md bg-zinc-950 dark:bg-zinc-100 text-white dark:text-zinc-950 flex items-center justify-center text-[11px] font-bold">
-                    AP
+                    SV
                   </div>
                   <span className="font-semibold text-xs text-zinc-950 dark:text-zinc-100">
-                    Apex Paddock
+                    Spider Verse
                   </span>
                 </div>
                 <button

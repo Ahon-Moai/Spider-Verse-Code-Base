@@ -197,17 +197,23 @@ export const CollectionPage: React.FC<CollectionPageProps> = ({
     fetchCollectionBySlug(collectionSlug).then((col) => {
       if (isMounted) {
         if (col) {
-          setCollection(col);
-          document.title = `${col.title} — APEX PADDOCK`;
+          const normalizedTitle =
+            /^all fragrances?$/i.test((col.title || '').trim()) ||
+            (collectionSlug === 'all' && /fragrance/i.test(col.title || ''))
+              ? 'All Products'
+              : col.title;
+          setCollection({ ...col, title: normalizedTitle });
+          document.title = `${normalizedTitle} — SPIDER VERSE`;
         } else {
-          const formattedTitle = ucwords(collectionSlug.replace(/-/g, ' '));
+          const formattedTitle =
+            collectionSlug === 'all' ? 'All Products' : ucwords(collectionSlug.replace(/-/g, ' '));
           setCollection({
             id: 'col-' + collectionSlug,
             title: formattedTitle,
             slug: collectionSlug,
             description: `Curated ${formattedTitle} Formula 1 toy cars and scale models.`,
           });
-          document.title = `${formattedTitle} — APEX PADDOCK`;
+          document.title = `${formattedTitle} — SPIDER VERSE`;
         }
       }
     });
@@ -629,10 +635,10 @@ export const CollectionPage: React.FC<CollectionPageProps> = ({
 
         <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-14 relative z-10 space-y-3">
           <span className="font-mono text-[10px] tracking-[0.22em] text-[#E10600] uppercase font-semibold block">
-            Apex Paddock Series Editions
+            Spider Verse Series Editions
           </span>
           <h1 className="font-display font-black text-4xl sm:text-5xl lg:text-6xl uppercase tracking-tight text-white leading-none">
-            {collection?.title || ucwords(collectionSlug.replace(/-/g, ' '))}
+            {collection?.title || (collectionSlug === 'all' ? 'All Products' : ucwords(collectionSlug.replace(/-/g, ' ')))}
           </h1>
           <p className="text-xs sm:text-sm text-[#C4C9D4] max-w-2xl leading-relaxed">
             {collection?.description && !/fragrance|decant|flacon/i.test(collection.description)

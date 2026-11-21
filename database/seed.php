@@ -694,7 +694,7 @@ try {
 }
 
 $collections = [
-  ['col-all', 'All Fragrances', 'all', 'Explore our complete catalogue of authentic luxury decants extracted directly from brand flacons.', '/src/assets/images/hero_pure_portions_arrina_1791911761493.jpg', 'all', '', 1],
+  ['col-all', 'All Products', 'all', 'Explore our complete catalogue of Formula 1 diecast toy cars and RC race models.', '/src/assets/images/hero_pure_portions_arrina_1791911761493.jpg', 'all', '', 1],
   ['col-forhim', 'For Him', 'forhim', 'Bold smoked woods, spicy saffron, regal oud, and dark masculine resins.', '/src/assets/images/campaign_for_him_1791908163466.jpg', 'gender', 'Him', 2],
   ['col-forher', 'For Her', 'forher', 'Luminous damask rose, velvet petals, white musk, and enchanting gourmand sillage.', '/src/assets/images/campaign_for_her_1791908163547.jpg', 'gender', 'Her', 3],
   ['col-unisex', 'Unisex Decants', 'unisex', 'Versatile solar amber, cured Madagascar vanilla, and balanced artisanal fragrances designed for everyone.', '/src/assets/images/element_pure_portions_bottle_1791911761812.jpg', 'gender', 'Unisex', 4],

@@ -2050,7 +2050,7 @@ export const HomepageCMS: React.FC<HomepageCMSProps> = ({ csrfToken }) => {
                   id: 'art-' + Date.now(),
                   title: 'New Article Headline',
                   date: 'FEB 20, 2026',
-                  publisher: 'APEX PADDOCK',
+                  publisher: 'SPIDER VERSE',
                   description:
                     'Short introduction or preview snippet of the editorial collector guide.',
                   image: '/src/assets/images/article_decant_buyers_guide_1791908274237.jpg'

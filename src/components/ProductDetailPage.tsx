@@ -45,7 +45,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
       <div className="min-h-[70vh] bg-[#F4F2EE] text-[#08090B] flex flex-col items-center justify-center px-4 py-20 text-center">
         <div className="max-w-md space-y-4">
           <span className="text-xs font-mono tracking-[0.22em] text-[#E10600] uppercase font-semibold">
-            Apex Paddock Garage
+            Spider Verse Garage
           </span>
           <h1 className="font-display font-black text-4xl sm:text-5xl uppercase text-[#08090B]">
             Model Not Found

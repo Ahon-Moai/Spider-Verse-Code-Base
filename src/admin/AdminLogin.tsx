@@ -46,7 +46,7 @@ export const AdminLogin: React.FC<AdminLoginProps> = ({ onLoginSuccess }) => {
         {/* Clean Brand Mark */}
         <div className="flex flex-col items-center text-center space-y-3">
           <div className="w-10 h-10 rounded-lg bg-zinc-950 text-white flex items-center justify-center text-xs font-semibold tracking-tight border border-zinc-800 shadow-xs">
-            AP
+            SV
           </div>
           <div className="space-y-1">
             <h1 className="text-xl font-semibold tracking-tight text-zinc-950">

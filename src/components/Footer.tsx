@@ -6,7 +6,7 @@ interface FooterProps {
 }
 
 const resolveStoreName = (raw?: string) => {
-  if (!raw || /aromatica/i.test(raw)) return 'APEX PADDOCK';
+  if (!raw || /aromatica/i.test(raw)) return 'SPIDER VERSE';
   return raw;
 };
 

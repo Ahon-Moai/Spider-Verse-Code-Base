@@ -12,12 +12,12 @@ interface HeaderProps {
 }
 
 const resolveBrandName = (rawName?: string) => {
-  if (!rawName || /aromatica/i.test(rawName)) return 'APEX PADDOCK';
+  if (!rawName || /aromatica/i.test(rawName)) return 'SPIDER VERSE';
   return rawName;
 };
 
 const resolveEmail = (rawEmail?: string) => {
-  if (!rawEmail || /aromatica/i.test(rawEmail)) return 'concierge@apexpaddock.com.bd';
+  if (!rawEmail || /aromatica/i.test(rawEmail)) return 'concierge@spiderverse.bd';
   return rawEmail;
 };
 

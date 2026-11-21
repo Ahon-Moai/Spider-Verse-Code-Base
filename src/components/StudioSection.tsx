@@ -37,7 +37,7 @@ export const StudioSection: React.FC<StudioSectionProps> = ({ socialCards }) => 
           <div className="lg:col-span-7 relative aspect-[16/10] lg:aspect-auto lg:min-h-[380px] bg-[#111317] border border-white/15 overflow-hidden">
             <img
               src={WORKSHOP_IMAGE}
-              alt="Apex Paddock Formula 1 diecast assembly and inspection workbench"
+              alt="Spider Verse Formula 1 diecast assembly and inspection workbench"
               className="w-full h-full object-cover object-center"
               loading="lazy"
               referrerPolicy="no-referrer"
@@ -70,7 +70,7 @@ export const StudioSection: React.FC<StudioSectionProps> = ({ socialCards }) => 
                 className="btn-f1 bg-[#E10600] hover:bg-[#ff1e18] text-white px-7 py-3 font-display text-base font-bold uppercase tracking-[0.08em] transition-colors"
               >
                 <span className="btn-f1-inner">
-                  <span>@apexpaddock</span>
+                  <span>@spiderverse</span>
                   <span>Follow Garage</span>
                   <ArrowUpRight className="w-4 h-4" />
                 </span>
@@ -116,7 +116,7 @@ export const StudioSection: React.FC<StudioSectionProps> = ({ socialCards }) => 
               <div className="relative aspect-square w-full bg-[#08090B] overflow-hidden">
                 <img
                   src={card.image}
-                  alt="Apex Paddock Formula 1 scale model showcase"
+                  alt="Spider Verse Formula 1 scale model showcase"
                   className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500"
                   referrerPolicy="no-referrer"
                   loading="lazy"

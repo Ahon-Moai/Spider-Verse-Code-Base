@@ -35,9 +35,9 @@ if ($slug || $id) {
         if ($cleanSlug === 'all') {
             $col = [
                 'id' => 'col-all',
-                'title' => 'All Fragrances',
+                'title' => 'All Products',
                 'slug' => 'all',
-                'description' => 'Explore our complete catalogue of authentic luxury decants extracted directly from brand flacons.',
+                'description' => 'Explore our complete catalogue of Formula 1 diecast toy cars and RC race models.',
                 'image' => '/src/assets/images/hero_pure_portions_arrina_1791911761493.jpg',
                 'rule_type' => 'all',
                 'rule_value' => ''

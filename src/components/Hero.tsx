@@ -23,7 +23,7 @@ const DEFAULT_HERO_SLIDES: HeroSlideConfig[] = [
     headline: 'COLLECTION IS LIVE',
     cta_text: 'Explore Model',
     product_id: '',
-    alt: 'Apex Paddock 1:18 Formula 1 diecast race car model in dark studio lighting',
+    alt: 'Spider Verse 1:18 Formula 1 diecast race car model in dark studio lighting',
   },
   {
     image: '/src/assets/images/campaign_f1_pro_118_1794664772367.jpg',

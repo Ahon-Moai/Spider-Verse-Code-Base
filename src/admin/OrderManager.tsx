@@ -454,7 +454,7 @@ export const OrderManager: React.FC<OrderManagerProps> = ({ csrfToken }) => {
           <div className="bg-white text-zinc-950 border border-zinc-200 rounded-xl p-8 max-w-xl w-full shadow-2xl font-sans space-y-6">
             <div className="flex items-start justify-between border-b pb-4 border-zinc-200">
               <div>
-                <h1 className="text-xl font-bold tracking-tight text-zinc-950">APEX PADDOCK</h1>
+                <h1 className="text-xl font-bold tracking-tight text-zinc-950">SPIDER VERSE</h1>
                 <p className="text-[11px] text-zinc-500 mt-0.5">Official Storefront Tax &amp; Dispatch Invoice</p>
                 <p className="text-[11px] text-zinc-500">Banani High Street, Block 11, Dhaka 1213, Bangladesh</p>
               </div>
