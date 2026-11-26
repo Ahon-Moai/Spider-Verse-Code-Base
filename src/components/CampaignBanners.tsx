@@ -49,7 +49,7 @@ export const CampaignBanners: React.FC<CampaignBannersProps> = ({
   return (
     <section
       id="for-him-her"
-      className="w-full bg-[#08090B] text-[#F4F2EE] py-14 sm:py-20 border-b border-white/10"
+      className="perf-section w-full bg-[#08090B] text-[#F4F2EE] py-14 sm:py-20 border-b border-white/10"
     >
       <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
         {/* Motorsport Division Header */}
@@ -82,6 +82,7 @@ export const CampaignBanners: React.FC<CampaignBannersProps> = ({
               <img
                 src={divisionOneImg}
                 alt="1:18 Pro Diecast Formula 1 alloy model car"
+                decoding="async"
                 className="w-full h-full object-cover object-center group-hover:scale-[1.03] transition-transform duration-700 ease-out"
                 referrerPolicy="no-referrer"
                 loading="lazy"
@@ -121,6 +122,7 @@ export const CampaignBanners: React.FC<CampaignBannersProps> = ({
               <img
                 src={divisionTwoImg}
                 alt="1:43 scale Formula 1 display cars in acrylic cases"
+                decoding="async"
                 className="w-full h-full object-cover object-center group-hover:scale-[1.03] transition-transform duration-700 ease-out"
                 referrerPolicy="no-referrer"
                 loading="lazy"

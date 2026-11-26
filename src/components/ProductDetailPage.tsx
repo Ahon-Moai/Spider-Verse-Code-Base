@@ -7,6 +7,7 @@ import {
   ArrowLeft,
 } from 'lucide-react';
 import { FragranceProduct, DecantSize } from '../types';
+import { getItemMaxStock } from '../utils/checkout';
 
 interface ProductDetailPageProps {
   product: FragranceProduct | null;
@@ -27,6 +28,36 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
   onBuyNow,
   showToast,
 }) => {
+  const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+  const [selectedSizeIndex, setSelectedSizeIndex] = useState(0);
+  const [quantity, setQuantity] = useState(1);
+  const [added, setAdded] = useState(false);
+  const [copiedLink, setCopiedLink] = useState(false);
+
+  const hasVariants = !!product && Array.isArray(product.sizes) && product.sizes.length > 0;
+  const currentSize: DecantSize = product
+    ? hasVariants
+      ? product.sizes[selectedSizeIndex] || product.sizes[0]
+      : { size: 'Standard', price: product.startingPrice }
+    : { size: 'Standard', price: 0 };
+  const maxStock = product ? getItemMaxStock(product, currentSize.size) : null;
+
+  useEffect(() => {
+    setSelectedImageIndex(0);
+    setSelectedSizeIndex(0);
+    setQuantity(1);
+    setAdded(false);
+    if (product?.id) {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }, [product?.id]);
+
+  useEffect(() => {
+    if (maxStock !== null && quantity > maxStock) {
+      setQuantity(Math.max(1, maxStock));
+    }
+  }, [maxStock, quantity]);
+
   if (!product) {
     return (
       <div className="min-h-[70vh] bg-[#F4F2EE] text-[#08090B] flex flex-col items-center justify-center px-4 py-20 text-center">
@@ -64,25 +95,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
     )
   );
 
-  const [selectedImageIndex, setSelectedImageIndex] = useState(0);
-  const [selectedSizeIndex, setSelectedSizeIndex] = useState(0);
-  const [quantity, setQuantity] = useState(1);
-  const [added, setAdded] = useState(false);
-  const [copiedLink, setCopiedLink] = useState(false);
-
-  useEffect(() => {
-    setSelectedImageIndex(0);
-    setSelectedSizeIndex(0);
-    setQuantity(1);
-    setAdded(false);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  }, [product.id]);
-
   const activeImage = galleryImages[selectedImageIndex] || product.image;
-  const hasVariants = Array.isArray(product.sizes) && product.sizes.length > 0;
-  const currentSize: DecantSize = hasVariants
-    ? product.sizes[selectedSizeIndex] || product.sizes[0]
-    : { size: 'Standard', price: product.startingPrice };
   const totalPrice = currentSize.price * quantity;
 
   const sp = product.scentProfile || product.scent_profile || {};
@@ -299,8 +312,11 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
                   </span>
                   <button
                     type="button"
-                    onClick={() => setQuantity(quantity + 1)}
-                    className="px-4 py-3 text-[#08090B] hover:bg-zinc-200 transition-colors font-mono cursor-pointer"
+                    onClick={() =>
+                      setQuantity((q) => (maxStock !== null ? Math.min(maxStock, q + 1) : q + 1))
+                    }
+                    disabled={maxStock !== null && quantity >= maxStock}
+                    className="px-4 py-3 text-[#08090B] hover:bg-zinc-200 transition-colors font-mono cursor-pointer disabled:opacity-35 disabled:cursor-not-allowed"
                     aria-label="Increase quantity"
                   >
                     +

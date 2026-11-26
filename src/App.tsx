@@ -3,14 +3,13 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Header } from './components/Header';
 import { Hero } from './components/Hero';
 import { CategoryMarquee } from './components/CategoryMarquee';
 import { NewArrivals } from './components/NewArrivals';
 import { CampaignBanners } from './components/CampaignBanners';
 import { CustomProductSections } from './components/CustomProductSections';
-import { TrustSection } from './components/TrustSection';
 import { FAQSection } from './components/FAQSection';
 import { ReviewsSection } from './components/ReviewsSection';
 import { StudioSection } from './components/StudioSection';
@@ -18,43 +17,87 @@ import { JournalSection } from './components/JournalSection';
 import { Footer } from './components/Footer';
 import { ProductDetailPage } from './components/ProductDetailPage';
 import { CollectionPage } from './components/CollectionPage';
-import { CartDrawer } from './components/CartDrawer';
+import { ShoppingBagPage } from './components/ShoppingBagPage';
+import { CheckoutPage } from './components/CheckoutPage';
+import { OrderConfirmationPage } from './components/OrderConfirmationPage';
 import { SearchModal } from './components/SearchModal';
 import { MobileBottomNav } from './components/MobileBottomNav';
 import { IntroSequence } from './components/IntroSequence';
 import { AdminLogin } from './admin/AdminLogin';
 import { AdminLayout } from './admin/AdminLayout';
-import { FragranceProduct, CartItem, JournalArticle } from './types';
+import {
+  FragranceProduct,
+  CartItem,
+  JournalArticle,
+  CompletedOrderData,
+} from './types';
 import {
   fetchPublicProducts,
   fetchHomepageData,
   fetchStoreSettings,
   getErrorMessage,
 } from './services/api';
+import { getItemMaxStock } from './utils/checkout';
 import { Shield } from 'lucide-react';
+
+const CART_STORAGE_KEY = 'spiderverse_cart_v1';
+const COUPON_STORAGE_KEY = 'spiderverse_coupon_v1';
+
+type AppRoute = {
+  path:
+    | 'home'
+    | 'product'
+    | 'collection'
+    | 'cart'
+    | 'checkout'
+    | 'order-confirmation'
+    | 'admin';
+  productSlugOrId?: string;
+  collectionSlug?: string;
+  orderNumber?: string;
+};
+
+function loadInitialCart(): CartItem[] {
+  try {
+    const raw = localStorage.getItem(CART_STORAGE_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return [];
+    return parsed.filter(
+      (item) =>
+        item &&
+        item.product &&
+        typeof item.product.id === 'string' &&
+        typeof item.selectedSize === 'string' &&
+        typeof item.price === 'number' &&
+        typeof item.quantity === 'number' &&
+        item.quantity > 0
+    );
+  } catch {
+    return [];
+  }
+}
+
+function loadInitialCoupon(): string {
+  try {
+    return localStorage.getItem(COUPON_STORAGE_KEY) || '';
+  } catch {
+    return '';
+  }
+}
 
 export default function App() {
   const [showIntro, setShowIntro] = useState<boolean>(true);
-  const [introKey, setIntroKey] = useState<number>(0);
-  const [isPageTransitionIntro, setIsPageTransitionIntro] = useState<boolean>(false);
 
   const [products, setProducts] = useState<FragranceProduct[]>([]);
-  const [cart, setCart] = useState<CartItem[]>([]);
-  const [isCartOpen, setIsCartOpen] = useState(false);
+  const [cart, setCart] = useState<CartItem[]>(loadInitialCart);
+  const [appliedCoupon, setAppliedCoupon] = useState<string>(loadInitialCoupon);
+  const [completedOrder, setCompletedOrder] = useState<CompletedOrderData | null>(null);
+
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
-  const [route, setRoute] = useState<{
-    path: 'home' | 'product' | 'collection' | 'admin';
-    productSlugOrId?: string;
-    collectionSlug?: string;
-  }>({ path: 'home' });
-
-  const triggerPageIntro = () => {
-    setIsPageTransitionIntro(true);
-    setIntroKey((prev) => prev + 1);
-    setShowIntro(true);
-  };
+  const [route, setRoute] = useState<AppRoute>({ path: 'home' });
 
   const [viewMode, setViewMode] = useState<'storefront' | 'admin'>('storefront');
   const [adminUser, setAdminUser] = useState<any | null>(null);
@@ -64,10 +107,33 @@ export default function App() {
   const [homepageData, setHomepageData] = useState<any>(null);
 
   const isInitialLoad = React.useRef(true);
+  const cartRef = React.useRef<CartItem[]>(cart);
+  cartRef.current = cart;
+
+  // Persist cart and applied coupon across refreshes (never persist delivery location)
+  useEffect(() => {
+    try {
+      localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cart));
+    } catch {
+      // ignore storage quota errors
+    }
+  }, [cart]);
+
+  useEffect(() => {
+    try {
+      if (appliedCoupon) {
+        localStorage.setItem(COUPON_STORAGE_KEY, appliedCoupon);
+      } else {
+        localStorage.removeItem(COUPON_STORAGE_KEY);
+      }
+    } catch {
+      // ignore
+    }
+  }, [appliedCoupon]);
 
   useEffect(() => {
     const syncRouteWithUrl = () => {
-      const pathname = window.location.pathname;
+      const pathname = window.location.pathname.replace(/\/+$/, '') || '/';
       const hash = window.location.hash;
       const searchParams = new URLSearchParams(window.location.search);
 
@@ -80,15 +146,26 @@ export default function App() {
         setViewMode('storefront');
       }
 
-      let nextRoute: {
-        path: 'home' | 'product' | 'collection';
-        productSlugOrId?: string;
-        collectionSlug?: string;
-      } = { path: 'home' };
+      let nextRoute: AppRoute = { path: 'home' };
 
       const queryProd = searchParams.get('product');
       if (queryProd) {
         nextRoute = { path: 'product', productSlugOrId: queryProd };
+      } else if (pathname === '/cart' || pathname === '/bag') {
+        nextRoute = { path: 'cart' };
+      } else if (pathname === '/checkout') {
+        if (cartRef.current.length === 0) {
+          window.history.replaceState({}, '', '/cart');
+          nextRoute = { path: 'cart' };
+        } else {
+          nextRoute = { path: 'checkout' };
+        }
+      } else if (pathname.startsWith('/order-confirmation')) {
+        const orderParam =
+          searchParams.get('order') ||
+          pathname.replace(/^\/order-confirmation\/?/, '').split('/')[0] ||
+          undefined;
+        nextRoute = { path: 'order-confirmation', orderNumber: orderParam };
       } else if (pathname.startsWith('/products/') || pathname.startsWith('/product/')) {
         const slugOrId = pathname.replace(/^\/(products|product)\//, '').split('/')[0];
         if (slugOrId) {
@@ -101,21 +178,8 @@ export default function App() {
         }
       }
 
-      if (!isInitialLoad.current) {
-        setRoute((prev) => {
-          const routeChanged =
-            prev.path !== nextRoute.path ||
-            prev.productSlugOrId !== nextRoute.productSlugOrId ||
-            prev.collectionSlug !== nextRoute.collectionSlug;
-          if (routeChanged) {
-            triggerPageIntro();
-          }
-          return nextRoute;
-        });
-      } else {
-        isInitialLoad.current = false;
-        setRoute(nextRoute);
-      }
+      isInitialLoad.current = false;
+      setRoute(nextRoute);
     };
 
     syncRouteWithUrl();
@@ -127,7 +191,15 @@ export default function App() {
     };
   }, []);
 
+  const prevViewModeRef = React.useRef<'storefront' | 'admin' | null>(null);
+
   useEffect(() => {
+    const prevMode = prevViewModeRef.current;
+    prevViewModeRef.current = viewMode;
+    // Fetch on initial mount or when returning from admin to storefront
+    if (prevMode === viewMode) return;
+    if (viewMode === 'admin' && prevMode === 'storefront') return;
+
     const loadApiData = async () => {
       const [liveProducts, settings, hpData] = await Promise.all([
         fetchPublicProducts(),
@@ -137,6 +209,28 @@ export default function App() {
 
       if (liveProducts && liveProducts.length > 0) {
         setProducts(liveProducts);
+        // Sync persisted cart items with fresh product metadata (prices & stock)
+        setCart((prevCart) =>
+          prevCart.map((cartItem) => {
+            const freshProduct = liveProducts.find((p) => p.id === cartItem.product.id);
+            if (!freshProduct) return cartItem;
+            const freshVariant = freshProduct.sizes?.find(
+              (s) => s.size === cartItem.selectedSize
+            );
+            const updatedPrice = freshVariant ? freshVariant.price : cartItem.price;
+            const maxStock = getItemMaxStock(freshProduct, cartItem.selectedSize);
+            const clampedQty =
+              maxStock !== null && cartItem.quantity > maxStock
+                ? maxStock
+                : cartItem.quantity;
+            return {
+              ...cartItem,
+              product: freshProduct,
+              price: updatedPrice,
+              quantity: Math.max(1, clampedQty),
+            };
+          })
+        );
       }
       if (settings) {
         setStoreSettings(settings);
@@ -164,47 +258,67 @@ export default function App() {
     checkSession();
   }, []);
 
-  const navigateToProduct = (productOrSlug: FragranceProduct | string) => {
+  const navigateToProduct = useCallback((productOrSlug: FragranceProduct | string) => {
     const slugOrId =
       typeof productOrSlug === 'string'
         ? productOrSlug
         : productOrSlug.slug || productOrSlug.id;
     const targetUrl = `/products/${slugOrId}`;
-    const isNewPage = route.path !== 'product' || route.productSlugOrId !== slugOrId;
     if (window.location.pathname !== targetUrl) {
       window.history.pushState({}, '', targetUrl);
     }
     setRoute({ path: 'product', productSlugOrId: slugOrId });
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-    if (isNewPage) {
-      triggerPageIntro();
-    }
-  };
+    window.scrollTo(0, 0);
+  }, []);
 
-  const navigateToCollection = (slug: string) => {
+  const navigateToCollection = useCallback((slug: string) => {
     const targetUrl = `/collections/${slug}`;
-    const isNewPage = route.path !== 'collection' || route.collectionSlug !== slug;
     if (window.location.pathname !== targetUrl) {
       window.history.pushState({}, '', targetUrl);
     }
     setRoute({ path: 'collection', collectionSlug: slug });
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-    if (isNewPage) {
-      triggerPageIntro();
-    }
-  };
+    window.scrollTo(0, 0);
+  }, []);
 
-  const navigateToHome = () => {
-    const isNewPage = route.path !== 'home';
+  const navigateToHome = useCallback(() => {
     if (window.location.pathname !== '/' && window.location.hash !== '#admin') {
       window.history.pushState({}, '', '/');
     }
     setRoute({ path: 'home' });
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-    if (isNewPage) {
-      triggerPageIntro();
+    window.scrollTo(0, 0);
+  }, []);
+
+  const navigateToCart = useCallback(() => {
+    if (window.location.pathname !== '/cart') {
+      window.history.pushState({}, '', '/cart');
     }
-  };
+    setRoute({ path: 'cart' });
+    window.scrollTo(0, 0);
+  }, []);
+
+  const navigateToCheckout = useCallback(() => {
+    if (cartRef.current.length === 0) {
+      if (window.location.pathname !== '/cart') {
+        window.history.replaceState({}, '', '/cart');
+      }
+      setRoute({ path: 'cart' });
+      window.scrollTo(0, 0);
+      return;
+    }
+    if (window.location.pathname !== '/checkout') {
+      window.history.pushState({}, '', '/checkout');
+    }
+    setRoute({ path: 'checkout' });
+    window.scrollTo(0, 0);
+  }, []);
+
+  const navigateToOrderConfirmation = useCallback((order: CompletedOrderData) => {
+    setCompletedOrder(order);
+    const targetUrl = `/order-confirmation?order=${encodeURIComponent(order.order_number)}`;
+    window.history.pushState({}, '', targetUrl);
+    setRoute({ path: 'order-confirmation', orderNumber: order.order_number });
+    window.scrollTo(0, 0);
+  }, []);
 
   const showToast = (msg: any) => {
     setToastMessage(typeof msg === 'string' ? msg : getErrorMessage(msg, 'Notification'));
@@ -219,18 +333,48 @@ export default function App() {
     price: number,
     qty = 1
   ) => {
+    const maxStock = getItemMaxStock(product, size);
+    let reachedCap = false;
+
     setCart((prev) => {
       const existingIdx = prev.findIndex(
         (item) => item.product.id === product.id && item.selectedSize === size
       );
       if (existingIdx > -1) {
         const next = [...prev];
-        next[existingIdx].quantity += qty;
+        const currentQty = next[existingIdx].quantity;
+        const desiredQty = currentQty + qty;
+        if (maxStock !== null && desiredQty > maxStock) {
+          reachedCap = true;
+          next[existingIdx] = {
+            ...next[existingIdx],
+            quantity: maxStock,
+          };
+        } else {
+          next[existingIdx] = {
+            ...next[existingIdx],
+            quantity: desiredQty,
+          };
+        }
         return next;
       }
-      return [...prev, { product, selectedSize: size, price, quantity: qty }];
+
+      const initialQty =
+        maxStock !== null && qty > maxStock
+          ? ((reachedCap = true), maxStock)
+          : qty;
+
+      return [
+        ...prev,
+        { product, selectedSize: size, price, quantity: Math.max(1, initialQty) },
+      ];
     });
-    showToast(`Added ${size} ${product.brand} — ${product.name} to bag`);
+
+    if (reachedCap && maxStock !== null) {
+      showToast(`Maximum available stock (${maxStock}) reached for ${product.name}`);
+    } else {
+      showToast(`Added ${size} ${product.brand} — ${product.name} to bag`);
+    }
   };
 
   const handleBuyNow = (
@@ -239,29 +383,68 @@ export default function App() {
     price: number,
     qty = 1
   ) => {
-    handleAddToCart(product, size, price, qty);
-    setIsCartOpen(true);
+    const maxStock = getItemMaxStock(product, size);
+    const nextQty = maxStock !== null ? Math.min(maxStock, qty) : qty;
+
+    const existingIdx = cartRef.current.findIndex(
+      (item) => item.product.id === product.id && item.selectedSize === size
+    );
+    let updatedCart: CartItem[];
+    if (existingIdx > -1) {
+      updatedCart = [...cartRef.current];
+      const desired = updatedCart[existingIdx].quantity + nextQty;
+      updatedCart[existingIdx] = {
+        ...updatedCart[existingIdx],
+        quantity: maxStock !== null ? Math.min(maxStock, desired) : desired,
+      };
+    } else {
+      updatedCart = [
+        ...cartRef.current,
+        { product, selectedSize: size, price, quantity: Math.max(1, nextQty) },
+      ];
+    }
+
+    cartRef.current = updatedCart;
+    setCart(updatedCart);
+    navigateToCheckout();
   };
 
   const handleUpdateQty = (productId: string, size: string, delta: number) => {
+    let hitCap: number | null = null;
     setCart((prev) =>
       prev
         .map((item) => {
           if (item.product.id === productId && item.selectedSize === size) {
-            const nextQty = item.quantity + delta;
+            const maxStock = getItemMaxStock(item.product, size);
+            let nextQty = item.quantity + delta;
+            if (delta > 0 && maxStock !== null && nextQty > maxStock) {
+              nextQty = maxStock;
+              hitCap = maxStock;
+            }
             return nextQty > 0 ? { ...item, quantity: nextQty } : null;
           }
           return item;
         })
         .filter(Boolean) as CartItem[]
     );
+    if (hitCap !== null) {
+      showToast(`Maximum available stock (${hitCap}) reached`);
+    }
   };
 
   const handleRemoveFromCart = (productId: string, size: string) => {
     setCart((prev) =>
       prev.filter((item) => !(item.product.id === productId && item.selectedSize === size))
     );
-    showToast('Model removed from bag');
+    showToast('Item removed from bag');
+  };
+
+  const handleOrderSuccess = (order: CompletedOrderData) => {
+    // Only clear cart & coupon AFTER backend confirms order creation
+    setCart([]);
+    cartRef.current = [];
+    setAppliedCoupon('');
+    navigateToOrderConfirmation(order);
   };
 
   const handleExploreClick = () => {
@@ -335,11 +518,7 @@ export default function App() {
   return (
     <div className="min-h-screen bg-[#08090B] text-[#F4F2EE] font-sans flex flex-col selection:bg-[#E10600] selection:text-white relative">
       {showIntro && (
-        <IntroSequence
-          key={`intro-${introKey}`}
-          isPageTransition={isPageTransitionIntro}
-          onComplete={() => setShowIntro(false)}
-        />
+        <IntroSequence onComplete={() => setShowIntro(false)} />
       )}
 
       {/* Admin CMS Switch Button (preserved) */}
@@ -366,7 +545,7 @@ export default function App() {
 
       <Header
         cartCount={totalCartCount}
-        onOpenCart={() => setIsCartOpen(true)}
+        onOpenCart={navigateToCart}
         onOpenSearch={() => setIsSearchOpen(true)}
         onOpenWishlist={() => showToast('Wishlist updated')}
         onNavigateHome={navigateToHome}
@@ -375,7 +554,38 @@ export default function App() {
       />
 
       <main className="flex-1">
-        {route.path === 'collection' && route.collectionSlug ? (
+        {route.path === 'cart' ? (
+          <ShoppingBagPage
+            items={cart}
+            appliedCoupon={appliedCoupon}
+            onChangeCoupon={setAppliedCoupon}
+            storeSettings={storeSettings}
+            onUpdateQty={handleUpdateQty}
+            onRemoveItem={handleRemoveFromCart}
+            onNavigateHome={navigateToHome}
+            onNavigateShop={() => navigateToCollection('all')}
+            onNavigateToProduct={navigateToProduct}
+            onProceedToCheckout={navigateToCheckout}
+          />
+        ) : route.path === 'checkout' ? (
+          <CheckoutPage
+            items={cart}
+            appliedCoupon={appliedCoupon}
+            onChangeCoupon={setAppliedCoupon}
+            storeSettings={storeSettings}
+            onNavigateHome={navigateToHome}
+            onNavigateToBag={navigateToCart}
+            onOrderSuccess={handleOrderSuccess}
+          />
+        ) : route.path === 'order-confirmation' ? (
+          <OrderConfirmationPage
+            orderNumber={route.orderNumber}
+            initialOrder={completedOrder}
+            storeSettings={storeSettings}
+            onNavigateHome={navigateToHome}
+            onNavigateShop={() => navigateToCollection('all')}
+          />
+        ) : route.path === 'collection' && route.collectionSlug ? (
           <CollectionPage
             collectionSlug={route.collectionSlug}
             allProducts={products}
@@ -436,12 +646,6 @@ export default function App() {
               onNavigateToCollection={navigateToCollection}
             />
 
-            <TrustSection
-              storeSettings={storeSettings}
-              products={products}
-              onNavigateToCollection={navigateToCollection}
-            />
-
             <FAQSection faqs={homepageData?.faqs} />
 
             <ReviewsSection reviews={homepageData?.reviews} />
@@ -462,7 +666,9 @@ export default function App() {
         activeTab={
           isSearchOpen
             ? 'search'
-            : isCartOpen
+            : route.path === 'cart' ||
+              route.path === 'checkout' ||
+              route.path === 'order-confirmation'
             ? 'bag'
             : route.path === 'collection'
             ? 'shop'
@@ -472,16 +678,7 @@ export default function App() {
         onNavigateHome={navigateToHome}
         onNavigateShop={() => navigateToCollection('all')}
         onOpenSearch={() => setIsSearchOpen(true)}
-        onOpenCart={() => setIsCartOpen(true)}
-      />
-
-      <CartDrawer
-        isOpen={isCartOpen}
-        onClose={() => setIsCartOpen(false)}
-        items={cart}
-        onUpdateQty={handleUpdateQty}
-        onRemoveItem={handleRemoveFromCart}
-        onClearCart={() => setCart([])}
+        onOpenCart={navigateToCart}
       />
 
       <SearchModal

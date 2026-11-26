@@ -1,5 +1,4 @@
-import React, { useRef, useState, useEffect } from 'react';
-import { motion, useScroll, useTransform } from 'motion/react';
+import React, { useState, useEffect } from 'react';
 import { FragranceProduct, SeasonsGalleryData } from '../types';
 import { SeasonsGallery } from './SeasonsGallery';
 
@@ -68,15 +67,8 @@ export const Hero: React.FC<HeroProps> = ({
   heroData,
   seasonsData,
 }) => {
-  const sectionRef = useRef<HTMLElement>(null);
   const [activeSlide, setActiveSlide] = useState(0);
-
-  const { scrollYProgress } = useScroll({
-    target: sectionRef,
-    offset: ['start start', 'end start'],
-  });
-
-  const bgScale = useTransform(scrollYProgress, [0, 1], [1.0, 1.05]);
+  const [loadedSlides, setLoadedSlides] = useState<Record<number, boolean>>({ 0: true });
 
   const cmsSlides: HeroSlideConfig[] | null =
     Array.isArray(heroData?.slides) && heroData.slides.length > 0 ? heroData.slides : null;
@@ -133,6 +125,10 @@ export const Hero: React.FC<HeroProps> = ({
   };
 
   useEffect(() => {
+    setLoadedSlides((prev) => (prev[activeSlide] ? prev : { ...prev, [activeSlide]: true }));
+  }, [activeSlide]);
+
+  useEffect(() => {
     const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     if (prefersReducedMotion) return;
 
@@ -145,21 +141,19 @@ export const Hero: React.FC<HeroProps> = ({
   const current = slides[activeSlide] || slides[0];
 
   return (
-    <section
-      ref={sectionRef}
-      className="relative w-full bg-[#08090B] text-[#F4F2EE] overflow-hidden border-b border-white/10"
-    >
+    <section className="relative w-full bg-[#08090B] text-[#F4F2EE] overflow-hidden border-b border-white/10">
       {/* Full-bleed Clean Cinematic Hero Stage (Locked 2px Red Divider at Bottom Edge) */}
       <div className="relative h-[76svh] sm:h-[80svh] lg:h-[84svh] min-h-[460px] max-h-[820px] flex flex-col justify-end overflow-hidden border-b-2 border-[#E10600]">
-        {/* Backdrop Media (Image or Video per Slide) */}
-        <motion.div
-          style={{ scale: bgScale }}
-          className="absolute inset-0 pointer-events-none will-change-transform"
-        >
+        {/* Backdrop Media (Image or Video per Slide — lazily mounted) */}
+        <div className="absolute inset-0 pointer-events-none">
           {slides.map((slide, idx) => {
+            if (!loadedSlides[idx] && idx !== activeSlide) return null;
+
             const showVideo =
               (slide.media_type === 'video' || (!slide.media_type && Boolean(slide.video_url))) &&
               Boolean(slide.video_url);
+
+            if (showVideo && idx !== activeSlide) return null;
 
             return showVideo ? (
               <video
@@ -170,34 +164,28 @@ export const Hero: React.FC<HeroProps> = ({
                 loop
                 muted
                 playsInline
-                className={`absolute inset-0 w-full h-full object-cover object-center transition-opacity duration-700 ${
-                  idx === activeSlide ? 'opacity-100' : 'opacity-0'
-                }`}
+                className="absolute inset-0 w-full h-full object-cover object-center"
               />
             ) : (
               <img
                 key={`slide-img-${idx}-${slide.image}`}
                 src={slide.image}
                 alt={slide.alt || slide.headline}
-                className={`absolute inset-0 w-full h-full object-cover object-center transition-opacity duration-700 ${
+                decoding="async"
+                fetchPriority={idx === 0 ? 'high' : 'low'}
+                className={`absolute inset-0 w-full h-full object-cover object-center transition-opacity duration-500 ${
                   idx === activeSlide ? 'opacity-100' : 'opacity-0'
                 }`}
                 referrerPolicy="no-referrer"
               />
             );
           })}
-        </motion.div>
+        </div>
 
         {/* Bottom-Left Editorial Copy + Slanted Racing Buttons + Bottom-Center Indicators */}
         <div className="relative z-10 max-w-[1440px] w-full mx-auto px-6 sm:px-10 lg:px-12 pb-10 sm:pb-14 pt-24">
           <div className="max-w-3xl space-y-4 sm:space-y-5">
-            <motion.div
-              key={activeSlide}
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
-              className="space-y-1.5"
-            >
+            <div key={activeSlide} className="space-y-1.5 animate-fade-in">
               <p className="font-sans text-xs sm:text-sm font-semibold tracking-[0.14em] uppercase text-[#F4F2EE] drop-shadow-[0_2px_8px_rgba(0,0,0,0.65)]">
                 {current.eyebrow}
               </p>
@@ -211,7 +199,7 @@ export const Hero: React.FC<HeroProps> = ({
               >
                 {current.headline}
               </h1>
-            </motion.div>
+            </div>
 
             {/* Slanted Motorsport CTAs: Per-Slide Product CTA + Shop All */}
             <div className="flex flex-wrap items-center gap-4 pt-1">
@@ -226,7 +214,7 @@ export const Hero: React.FC<HeroProps> = ({
               <button
                 type="button"
                 onClick={() => onNavigateToCollection?.('all')}
-                className="btn-f1 border border-white/70 bg-[#08090B]/60 hover:bg-white hover:text-[#08090B] text-white px-8 py-3 font-display text-base sm:text-lg font-bold tracking-[0.08em] uppercase transition-colors duration-200 cursor-pointer backdrop-blur-sm"
+                className="btn-f1 border border-white/70 bg-[#08090B]/80 hover:bg-white hover:text-[#08090B] text-white px-8 py-3 font-display text-base sm:text-lg font-bold tracking-[0.08em] uppercase transition-colors duration-200 cursor-pointer"
               >
                 <span className="btn-f1-inner">{shopAllText}</span>
               </button>

@@ -29,7 +29,7 @@ export const StudioSection: React.FC<StudioSectionProps> = ({ socialCards }) => 
   return (
     <section
       id="studio-section"
-      className="w-full bg-[#08090B] text-[#F4F2EE] py-16 sm:py-24 border-b border-white/10"
+      className="perf-section w-full bg-[#08090B] text-[#F4F2EE] py-16 sm:py-24 border-b border-white/10"
     >
       <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
         {/* Top Split: Precision Pit Garage Workshop Feature */}
@@ -38,6 +38,7 @@ export const StudioSection: React.FC<StudioSectionProps> = ({ socialCards }) => 
             <img
               src={WORKSHOP_IMAGE}
               alt="Spider Verse Formula 1 diecast assembly and inspection workbench"
+              decoding="async"
               className="w-full h-full object-cover object-center"
               loading="lazy"
               referrerPolicy="no-referrer"
@@ -117,6 +118,7 @@ export const StudioSection: React.FC<StudioSectionProps> = ({ socialCards }) => 
                 <img
                   src={card.image}
                   alt="Spider Verse Formula 1 scale model showcase"
+                  decoding="async"
                   className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500"
                   referrerPolicy="no-referrer"
                   loading="lazy"

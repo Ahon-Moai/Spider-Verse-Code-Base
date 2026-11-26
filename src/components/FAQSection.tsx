@@ -22,7 +22,7 @@ export const FAQSection: React.FC<FAQSectionProps> = ({ faqs }) => {
   return (
     <section
       id="faq"
-      className="w-full bg-[#F4F2EE] text-[#08090B] py-16 sm:py-24 border-b border-zinc-300/70 select-none"
+      className="perf-section w-full bg-[#F4F2EE] text-[#08090B] py-16 sm:py-24 border-b border-zinc-300/70 select-none"
     >
       <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}

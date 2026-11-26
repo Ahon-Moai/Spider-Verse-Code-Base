@@ -1,4 +1,4 @@
-import { FragranceProduct, ReviewItem, JournalArticle, SocialCard } from '../types';
+import { FragranceProduct, OrderQuoteResponse } from '../types';
 
 export const API_BASE_URL = '/api';
 
@@ -97,6 +97,46 @@ export async function fetchStoreSettings() {
     }
   } catch (err) {
     console.warn('API settings fetch failed', err);
+  }
+  return null;
+}
+
+export async function fetchOrderQuote(payload: {
+  city_zone: 'inside_dhaka' | 'outside_dhaka';
+  coupon_code?: string;
+  items: Array<{
+    product_id: string;
+    selected_size: string;
+    quantity: number;
+  }>;
+}): Promise<OrderQuoteResponse | null> {
+  try {
+    const res = await fetch(`${API_BASE_URL}/orders.php?action=quote`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(payload)
+    });
+    const data = await res.json();
+    if (data.success && data.data) {
+      return data.data as OrderQuoteResponse;
+    }
+  } catch (err) {
+    console.warn('Order quote check skipped', err);
+  }
+  return null;
+}
+
+export async function fetchOrderByNumber(orderNumber: string) {
+  try {
+    const res = await fetch(`${API_BASE_URL}/orders.php?order_number=${encodeURIComponent(orderNumber)}`);
+    const data = await res.json();
+    if (data.success && data.data) {
+      return data.data;
+    }
+  } catch (err) {
+    console.warn('Order lookup failed', err);
   }
   return null;
 }

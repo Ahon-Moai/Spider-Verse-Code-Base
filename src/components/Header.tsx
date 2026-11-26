@@ -58,7 +58,7 @@ export const Header: React.FC<HeaderProps> = ({
   };
 
   return (
-    <header className="sticky top-0 z-40 w-full bg-[#08090B]/95 backdrop-blur-md border-b border-white/10 transition-colors duration-200">
+    <header className="sticky top-0 z-40 w-full bg-[#08090B]/[0.97] border-b border-white/10 transition-colors duration-200">
       <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 h-11 md:h-12 flex items-center justify-between gap-4 md:gap-8">
         {/* Mobile Left: Clean Search Icon (no bg, no border) */}
         <div className="flex items-center justify-start w-10 md:hidden">
@@ -113,7 +113,7 @@ export const Header: React.FC<HeaderProps> = ({
           </button>
           <button
             type="button"
-            onClick={() => scrollToSection('trust-section')}
+            onClick={() => scrollToSection('studio-section')}
             className="relative py-1 hover:text-white transition-colors whitespace-nowrap shrink-0 cursor-pointer after:content-[''] after:absolute after:left-0 after:bottom-0 after:w-full after:h-[2px] after:bg-[#E10600] after:scale-x-0 hover:after:scale-x-100 after:origin-left after:transition-transform after:duration-200"
           >
             Garage
@@ -188,7 +188,7 @@ export const Header: React.FC<HeaderProps> = ({
                   { label: '1:18 Pro Diecast', action: () => handleCollectionClick('forhim') },
                   { label: '1:43 Acrylic Grid', action: () => handleCollectionClick('forher') },
                   { label: 'New Arrivals', action: () => scrollToSection('new-arrivals', 'new-arrivals') },
-                  { label: 'Garage & Standards', action: () => scrollToSection('trust-section') },
+                  { label: 'Pit Garage', action: () => scrollToSection('studio-section') },
                   { label: 'Collector Reviews & FAQ', action: () => scrollToSection('faq') },
                 ].map((item) => (
                   <button

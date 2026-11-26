@@ -95,6 +95,7 @@ export const SeasonsGallery: React.FC<SeasonsGalleryProps> = ({
             <img
               src={card.image}
               alt={card.alt || card.name}
+              decoding="async"
               className="w-full h-full object-cover object-center group-hover:scale-[1.04] transition-transform duration-700 ease-out"
               referrerPolicy="no-referrer"
               loading="lazy"

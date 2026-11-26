@@ -39,6 +39,7 @@ const CustomProductCard: React.FC<{
           <img
             src={product.image}
             alt={product.name}
+            decoding="async"
             className="max-h-full max-w-full object-contain group-hover:scale-105 transition-transform duration-500"
             loading="lazy"
             referrerPolicy="no-referrer"
@@ -176,7 +177,7 @@ export const CustomProductSections: React.FC<CustomProductSectionsProps> = ({
   };
 
   return (
-    <div className="w-full bg-[#F4F2EE] text-[#08090B] space-y-16 py-14 sm:py-20 border-b border-zinc-300/70">
+    <div className="perf-section w-full bg-[#F4F2EE] text-[#08090B] space-y-16 py-14 sm:py-20 border-b border-zinc-300/70">
       {activeSections.map((sec) => {
         if (!sec) return null;
 

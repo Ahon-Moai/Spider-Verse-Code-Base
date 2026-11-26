@@ -1,15 +1,12 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   ChevronRight,
-  X,
   ShoppingBag,
   ArrowLeft,
-  Filter,
-  RefreshCw,
   ChevronDown,
   Plus,
 } from 'lucide-react';
-import { FragranceProduct, Collection, FilterState, DecantSize } from '../types';
+import { FragranceProduct, Collection, DecantSize } from '../types';
 import { fetchCollectionBySlug, fetchPublicProducts } from '../services/api';
 
 const getScaleSpecLabel = (sizeStr: string): string => {
@@ -47,6 +44,7 @@ const CollectionProductCard: React.FC<{
           <img
             src={product.image}
             alt={product.name}
+            decoding="async"
             className="max-h-full max-w-full object-contain group-hover:scale-105 transition-transform duration-500"
             loading="lazy"
             referrerPolicy="no-referrer"
@@ -138,54 +136,18 @@ interface CollectionPageProps {
   showToast: (msg: string) => void;
 }
 
-const DEFAULT_FILTER_STATE: FilterState = {
-  gender: [],
-  family: [],
-  season: [],
-  occasion: [],
-  brand: [],
-  size: [],
-  concentration: [],
-  minPrice: '',
-  maxPrice: '',
-  featured: false,
-  newArrival: false,
-  sort: 'featured',
-  search: '',
-};
-
 export const CollectionPage: React.FC<CollectionPageProps> = ({
   collectionSlug,
-  allProducts,
   onNavigateHome,
   onNavigateToProduct,
   onAddToCart,
-  showToast,
 }) => {
   const [collection, setCollection] = useState<Collection | null>(null);
   const [filteredProducts, setFilteredProducts] = useState<FragranceProduct[]>([]);
   const [loadingProducts, setLoadingProducts] = useState(true);
-  const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
-
-  const [filters, setFilters] = useState<FilterState>(() => {
+  const [sortBy, setSortBy] = useState<string>(() => {
     const searchParams = new URLSearchParams(window.location.search);
-    return {
-      gender: searchParams.get('gender') ? searchParams.get('gender')!.split(',') : [],
-      family: searchParams.get('family') ? searchParams.get('family')!.split(',') : [],
-      season: searchParams.get('season') ? searchParams.get('season')!.split(',') : [],
-      occasion: searchParams.get('occasion') ? searchParams.get('occasion')!.split(',') : [],
-      brand: searchParams.get('brand') ? searchParams.get('brand')!.split(',') : [],
-      size: searchParams.get('size') ? searchParams.get('size')!.split(',') : [],
-      concentration: searchParams.get('concentration')
-        ? searchParams.get('concentration')!.split(',')
-        : [],
-      minPrice: searchParams.get('minPrice') || '',
-      maxPrice: searchParams.get('maxPrice') || '',
-      featured: searchParams.get('featured') === 'true',
-      newArrival: searchParams.get('newArrival') === 'true',
-      sort: searchParams.get('sort') || 'featured',
-      search: searchParams.get('search') || '',
-    };
+    return searchParams.get('sort') || 'featured';
   });
 
   function ucwords(str: string) {
@@ -211,7 +173,7 @@ export const CollectionPage: React.FC<CollectionPageProps> = ({
             id: 'col-' + collectionSlug,
             title: formattedTitle,
             slug: collectionSlug,
-            description: `Curated ${formattedTitle} Formula 1 toy cars and scale models.`,
+            description: `Curated ${formattedTitle} collection.`,
           });
           document.title = `${formattedTitle} — SPIDER VERSE`;
         }
@@ -224,48 +186,20 @@ export const CollectionPage: React.FC<CollectionPageProps> = ({
 
   useEffect(() => {
     const params = new URLSearchParams();
-    if (filters.gender.length) params.set('gender', filters.gender.join(','));
-    if (filters.family.length) params.set('family', filters.family.join(','));
-    if (filters.season.length) params.set('season', filters.season.join(','));
-    if (filters.occasion.length) params.set('occasion', filters.occasion.join(','));
-    if (filters.brand.length) params.set('brand', filters.brand.join(','));
-    if (filters.size.length) params.set('size', filters.size.join(','));
-    if (filters.concentration.length) params.set('concentration', filters.concentration.join(','));
-    if (filters.minPrice) params.set('minPrice', filters.minPrice);
-    if (filters.maxPrice) params.set('maxPrice', filters.maxPrice);
-    if (filters.featured) params.set('featured', 'true');
-    if (filters.newArrival) params.set('newArrival', 'true');
-    if (filters.sort && filters.sort !== 'featured') params.set('sort', filters.sort);
-    if (filters.search) params.set('search', filters.search);
-
+    if (sortBy && sortBy !== 'featured') params.set('sort', sortBy);
     const queryStr = params.toString();
     const newRelativePathQuery = window.location.pathname + (queryStr ? '?' + queryStr : '');
     window.history.replaceState(null, '', newRelativePathQuery);
-  }, [filters, collectionSlug]);
+  }, [sortBy, collectionSlug]);
 
   useEffect(() => {
     let isMounted = true;
     setLoadingProducts(true);
 
-    const queryParams: Record<string, string> = {
+    fetchPublicProducts({
       collection: collectionSlug,
-      sort: filters.sort,
-    };
-
-    if (filters.gender.length) queryParams.gender = filters.gender.join(',');
-    if (filters.family.length) queryParams.family = filters.family.join(',');
-    if (filters.season.length) queryParams.season = filters.season.join(',');
-    if (filters.occasion.length) queryParams.occasion = filters.occasion.join(',');
-    if (filters.brand.length) queryParams.brand = filters.brand.join(',');
-    if (filters.size.length) queryParams.size = filters.size.join(',');
-    if (filters.concentration.length) queryParams.concentration = filters.concentration.join(',');
-    if (filters.minPrice) queryParams.min_price = filters.minPrice;
-    if (filters.maxPrice) queryParams.max_price = filters.maxPrice;
-    if (filters.featured) queryParams.featured = '1';
-    if (filters.newArrival) queryParams.new_arrival = '1';
-    if (filters.search) queryParams.search = filters.search;
-
-    fetchPublicProducts(queryParams).then((prods) => {
+      sort: sortBy,
+    }).then((prods) => {
       if (isMounted) {
         setFilteredProducts(prods || []);
         setLoadingProducts(false);
@@ -275,322 +209,7 @@ export const CollectionPage: React.FC<CollectionPageProps> = ({
     return () => {
       isMounted = false;
     };
-  }, [collectionSlug, filters]);
-
-  const availableBrands = useMemo(() => {
-    const set = new Set<string>();
-    allProducts.forEach((p) => {
-      if (p.brand) set.add(p.brand);
-    });
-    return Array.from(set).sort();
-  }, [allProducts]);
-
-  const DIVISION_OPTIONS = [
-    { label: '1:18 Pro Diecast', value: 'Him' },
-    { label: '1:43 Acrylic Grid', value: 'Her' },
-    { label: 'RC & Track Play', value: 'Unisex' },
-  ];
-
-  const CLASS_OPTIONS = [
-    'Modern Ground Effect',
-    'Classic V10 / V8 Era',
-    'Street Circuit Livery',
-    'Carbon Test Spec',
-    '2.4GHz RC Sprint',
-    'Championship Edition',
-    'Pit-Stop Diorama',
-    'Team Twin Pack',
-  ];
-
-  const ERA_OPTIONS = ['2026 Grid', '2025 Season', '2024 Season', '2010s Hybrid', '1990s Legends'];
-  const USAGE_OPTIONS = [
-    'Desk & Shelf Display',
-    'Acrylic Showcase',
-    'RC Track Racing',
-    'Kids & Gift Sets',
-    'Diorama Building',
-  ];
-  const SCALE_OPTIONS = ['1:18', '1:24', '1:43', '1:64', 'RC Pro'];
-  const BUILD_OPTIONS = ['Diecast Alloy', 'Resin Collector', '2.4GHz RC', 'Pull-Back'];
-
-  const toggleArrayFilter = (group: keyof FilterState, val: string) => {
-    setFilters((prev) => {
-      const current = Array.isArray(prev[group]) ? (prev[group] as string[]) : [];
-      const exists = current.includes(val);
-      const updated = exists ? current.filter((item) => item !== val) : [...current, val];
-      return { ...prev, [group]: updated };
-    });
-  };
-
-  const handleClearAllFilters = () => {
-    setFilters({ ...DEFAULT_FILTER_STATE, sort: filters.sort });
-    showToast('Filters cleared');
-  };
-
-  const activeFilterCount =
-    filters.gender.length +
-    filters.family.length +
-    filters.season.length +
-    filters.occasion.length +
-    filters.brand.length +
-    filters.size.length +
-    filters.concentration.length +
-    (filters.minPrice ? 1 : 0) +
-    (filters.maxPrice ? 1 : 0) +
-    (filters.featured ? 1 : 0) +
-    (filters.newArrival ? 1 : 0) +
-    (filters.search ? 1 : 0);
-
-  const FilterContent = () => (
-    <div className="space-y-6 text-xs text-zinc-800">
-      <div className="space-y-1.5">
-        <label className="block font-mono text-[10px] tracking-widest text-zinc-500 uppercase font-semibold">
-          Search Grid
-        </label>
-        <input
-          type="text"
-          value={filters.search}
-          onChange={(e) => setFilters({ ...filters, search: e.target.value })}
-          placeholder="Team, driver, scale or car..."
-          className="w-full bg-[#F4F2EE] border border-zinc-300 px-3 py-2 text-xs text-[#08090B] focus:outline-none focus:border-[#08090B]"
-        />
-      </div>
-
-      <div className="space-y-2 pt-3 border-t border-zinc-200">
-        <span className="block font-mono text-[10px] tracking-widest text-zinc-500 uppercase font-bold">
-          Division
-        </span>
-        <div className="space-y-1.5">
-          {DIVISION_OPTIONS.map((g) => {
-            const isChecked = filters.gender.includes(g.value);
-            return (
-              <label key={g.value} className="flex items-center gap-2 cursor-pointer py-0.5">
-                <input
-                  type="checkbox"
-                  checked={isChecked}
-                  onChange={() => toggleArrayFilter('gender', g.value)}
-                  className="accent-[#E10600] cursor-pointer"
-                />
-                <span className={isChecked ? 'font-semibold text-[#08090B]' : 'text-zinc-700'}>
-                  {g.label}
-                </span>
-              </label>
-            );
-          })}
-        </div>
-      </div>
-
-      <div className="space-y-2 pt-3 border-t border-zinc-200">
-        <span className="block font-mono text-[10px] tracking-widest text-zinc-500 uppercase font-bold">
-          Racing Class
-        </span>
-        <div className="space-y-1.5 max-h-48 overflow-y-auto no-scrollbar pr-1">
-          {CLASS_OPTIONS.map((fam) => {
-            const isChecked = filters.family.includes(fam);
-            return (
-              <label key={fam} className="flex items-center gap-2 cursor-pointer py-0.5">
-                <input
-                  type="checkbox"
-                  checked={isChecked}
-                  onChange={() => toggleArrayFilter('family', fam)}
-                  className="accent-[#E10600] cursor-pointer"
-                />
-                <span className={isChecked ? 'font-semibold text-[#08090B]' : 'text-zinc-700'}>
-                  {fam}
-                </span>
-              </label>
-            );
-          })}
-        </div>
-      </div>
-
-      <div className="space-y-2 pt-3 border-t border-zinc-200">
-        <span className="block font-mono text-[10px] tracking-widest text-zinc-500 uppercase font-bold">
-          Season Era
-        </span>
-        <div className="space-y-1.5">
-          {ERA_OPTIONS.map((season) => {
-            const isChecked = filters.season.includes(season);
-            return (
-              <label key={season} className="flex items-center gap-2 cursor-pointer py-0.5">
-                <input
-                  type="checkbox"
-                  checked={isChecked}
-                  onChange={() => toggleArrayFilter('season', season)}
-                  className="accent-[#E10600] cursor-pointer"
-                />
-                <span className={isChecked ? 'font-semibold text-[#08090B]' : 'text-zinc-700'}>
-                  {season}
-                </span>
-              </label>
-            );
-          })}
-        </div>
-      </div>
-
-      {availableBrands.length > 0 && (
-        <div className="space-y-2 pt-3 border-t border-zinc-200">
-          <span className="block font-mono text-[10px] tracking-widest text-zinc-500 uppercase font-bold">
-            Maker / Constructor
-          </span>
-          <div className="space-y-1.5 max-h-44 overflow-y-auto no-scrollbar pr-1">
-            {availableBrands.map((b) => {
-              const isChecked = filters.brand.includes(b);
-              return (
-                <label key={b} className="flex items-center gap-2 cursor-pointer py-0.5">
-                  <input
-                    type="checkbox"
-                    checked={isChecked}
-                    onChange={() => toggleArrayFilter('brand', b)}
-                    className="accent-[#E10600] cursor-pointer"
-                  />
-                  <span className={isChecked ? 'font-semibold text-[#08090B]' : 'text-zinc-700'}>
-                    {b}
-                  </span>
-                </label>
-              );
-            })}
-          </div>
-        </div>
-      )}
-
-      <div className="space-y-2 pt-3 border-t border-zinc-200">
-        <span className="block font-mono text-[10px] tracking-widest text-zinc-500 uppercase font-bold">
-          Display & Play
-        </span>
-        <div className="space-y-1.5 max-h-40 overflow-y-auto no-scrollbar pr-1">
-          {USAGE_OPTIONS.map((occ) => {
-            const isChecked = filters.occasion.includes(occ);
-            return (
-              <label key={occ} className="flex items-center gap-2 cursor-pointer py-0.5">
-                <input
-                  type="checkbox"
-                  checked={isChecked}
-                  onChange={() => toggleArrayFilter('occasion', occ)}
-                  className="accent-[#E10600] cursor-pointer"
-                />
-                <span className={isChecked ? 'font-semibold text-[#08090B]' : 'text-zinc-700'}>
-                  {occ}
-                </span>
-              </label>
-            );
-          })}
-        </div>
-      </div>
-
-      <div className="space-y-2 pt-3 border-t border-zinc-200">
-        <span className="block font-mono text-[10px] tracking-widest text-zinc-500 uppercase font-bold">
-          Scale Ratio
-        </span>
-        <div className="flex flex-wrap gap-1.5">
-          {SCALE_OPTIONS.map((sz) => {
-            const isChecked = filters.size.includes(sz);
-            return (
-              <button
-                key={sz}
-                type="button"
-                onClick={() => toggleArrayFilter('size', sz)}
-                className={`px-2.5 py-1 text-[11px] border transition-colors cursor-pointer font-mono ${
-                  isChecked
-                    ? 'bg-[#E10600] text-white border-[#E10600]'
-                    : 'bg-[#F4F2EE] text-zinc-700 border-zinc-300 hover:border-[#08090B]'
-                }`}
-              >
-                {sz}
-              </button>
-            );
-          })}
-        </div>
-      </div>
-
-      <div className="space-y-2 pt-3 border-t border-zinc-200">
-        <span className="block font-mono text-[10px] tracking-widest text-zinc-500 uppercase font-bold">
-          Build Material
-        </span>
-        <div className="space-y-1.5">
-          {BUILD_OPTIONS.map((c) => {
-            const isChecked = filters.concentration.includes(c);
-            return (
-              <label key={c} className="flex items-center gap-2 cursor-pointer py-0.5">
-                <input
-                  type="checkbox"
-                  checked={isChecked}
-                  onChange={() => toggleArrayFilter('concentration', c)}
-                  className="accent-[#E10600] cursor-pointer"
-                />
-                <span className={isChecked ? 'font-semibold text-[#08090B]' : 'text-zinc-700'}>
-                  {c}
-                </span>
-              </label>
-            );
-          })}
-        </div>
-      </div>
-
-      <div className="space-y-2 pt-3 border-t border-zinc-200">
-        <span className="block font-mono text-[10px] tracking-widest text-zinc-500 uppercase font-bold">
-          Price Range (৳)
-        </span>
-        <div className="flex items-center gap-2">
-          <input
-            type="number"
-            value={filters.minPrice}
-            onChange={(e) => setFilters({ ...filters, minPrice: e.target.value })}
-            placeholder="Min ৳"
-            className="w-1/2 bg-[#F4F2EE] border border-zinc-300 px-2.5 py-1.5 text-xs font-mono focus:outline-none focus:border-[#08090B]"
-          />
-          <span className="text-zinc-400 font-mono">-</span>
-          <input
-            type="number"
-            value={filters.maxPrice}
-            onChange={(e) => setFilters({ ...filters, maxPrice: e.target.value })}
-            placeholder="Max ৳"
-            className="w-1/2 bg-[#F4F2EE] border border-zinc-300 px-2.5 py-1.5 text-xs font-mono focus:outline-none focus:border-[#08090B]"
-          />
-        </div>
-      </div>
-
-      <div className="space-y-2 pt-3 border-t border-zinc-200">
-        <span className="block font-mono text-[10px] tracking-widest text-zinc-500 uppercase font-bold">
-          Highlights
-        </span>
-        <div className="space-y-1.5">
-          <label className="flex items-center gap-2 cursor-pointer py-0.5">
-            <input
-              type="checkbox"
-              checked={filters.featured}
-              onChange={(e) => setFilters({ ...filters, featured: e.target.checked })}
-              className="accent-[#E10600] cursor-pointer"
-            />
-            <span className={filters.featured ? 'font-semibold text-[#08090B]' : 'text-zinc-700'}>
-              Best Sellers / Pole Picks
-            </span>
-          </label>
-          <label className="flex items-center gap-2 cursor-pointer py-0.5">
-            <input
-              type="checkbox"
-              checked={filters.newArrival}
-              onChange={(e) => setFilters({ ...filters, newArrival: e.target.checked })}
-              className="accent-[#E10600] cursor-pointer"
-            />
-            <span className={filters.newArrival ? 'font-semibold text-[#08090B]' : 'text-zinc-700'}>
-              New Arrivals
-            </span>
-          </label>
-        </div>
-      </div>
-
-      {activeFilterCount > 0 && (
-        <button
-          type="button"
-          onClick={handleClearAllFilters}
-          className="btn-f1 w-full py-2.5 bg-[#08090B] hover:bg-[#E10600] text-white font-display text-sm font-bold uppercase tracking-[0.08em] transition-colors cursor-pointer"
-        >
-          <span className="btn-f1-inner">Clear All ({activeFilterCount})</span>
-        </button>
-      )}
-    </div>
-  );
+  }, [collectionSlug, sortBy]);
 
   return (
     <div className="bg-[#F4F2EE] text-[#08090B] min-h-screen selection:bg-[#E10600] selection:text-white">
@@ -657,262 +276,75 @@ export const CollectionPage: React.FC<CollectionPageProps> = ({
       <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Top Control Bar */}
         <div className="bg-white border border-zinc-300 p-4 mb-6 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
-          <div className="flex items-center justify-between sm:justify-start gap-4">
-            <button
-              type="button"
-              onClick={() => setIsMobileFilterOpen(true)}
-              className="btn-f1 lg:hidden inline-flex items-center bg-[#08090B] hover:bg-[#E10600] text-white px-5 py-2 font-display text-sm uppercase tracking-[0.08em] font-bold transition-colors cursor-pointer"
-            >
-              <span className="btn-f1-inner">
-                <Filter className="w-3.5 h-3.5" />
-                <span>Filter ({activeFilterCount})</span>
-              </span>
-            </button>
-
-            <span className="text-xs text-zinc-600 font-mono">
-              Showing <strong className="text-[#08090B] tabular-nums">{filteredProducts.length}</strong> F1 models
-            </span>
-          </div>
+          <span className="text-xs text-zinc-600 font-mono">
+            Showing <strong className="text-[#08090B] tabular-nums">{filteredProducts.length}</strong> products
+          </span>
 
           <div className="flex items-center gap-2 self-end sm:self-auto">
             <span className="font-mono text-[10px] text-zinc-500 uppercase tracking-wider hidden sm:inline">
               Sort By:
             </span>
             <select
-              value={filters.sort}
-              onChange={(e) => setFilters({ ...filters, sort: e.target.value })}
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value)}
               className="bg-[#F4F2EE] border border-zinc-300 text-[#08090B] text-xs font-mono px-3 py-2 focus:outline-none focus:border-[#08090B] cursor-pointer"
             >
-              <option value="featured">Featured / Pole Picks</option>
+              <option value="featured">Featured</option>
               <option value="best-selling">Best Selling</option>
               <option value="newest">Newest Arrivals</option>
               <option value="price-asc">Price: Low to High</option>
               <option value="price-desc">Price: High to Low</option>
-              <option value="name-asc">Model: A to Z</option>
+              <option value="name-asc">Name: A to Z</option>
             </select>
           </div>
         </div>
 
-        {/* Active Filter Tags */}
-        {activeFilterCount > 0 && (
-          <div className="bg-white border border-zinc-300 p-3 mb-6 flex flex-wrap items-center gap-2 text-xs font-mono">
-            <span className="text-[10px] uppercase text-zinc-500 tracking-wider">Active:</span>
-
-            {[
-              ...filters.gender.map((g) => ({
-                key: `gender-${g}`,
-                label: `Division: ${formatDivisionLabel(g)}`,
-                onRemove: () => toggleArrayFilter('gender', g),
-              })),
-              ...filters.family.map((f) => ({
-                key: `family-${f}`,
-                label: `Class: ${f}`,
-                onRemove: () => toggleArrayFilter('family', f),
-              })),
-              ...filters.season.map((s) => ({
-                key: `season-${s}`,
-                label: `Era: ${s}`,
-                onRemove: () => toggleArrayFilter('season', s),
-              })),
-              ...filters.brand.map((b) => ({
-                key: `brand-${b}`,
-                label: `Maker: ${b}`,
-                onRemove: () => toggleArrayFilter('brand', b),
-              })),
-              ...filters.occasion.map((o) => ({
-                key: `occ-${o}`,
-                label: `Use: ${o}`,
-                onRemove: () => toggleArrayFilter('occasion', o),
-              })),
-              ...filters.size.map((sz) => ({
-                key: `size-${sz}`,
-                label: `Scale: ${sz}`,
-                onRemove: () => toggleArrayFilter('size', sz),
-              })),
-              ...filters.concentration.map((c) => ({
-                key: `conc-${c}`,
-                label: `Build: ${c}`,
-                onRemove: () => toggleArrayFilter('concentration', c),
-              })),
-            ].map((chip) => (
-              <span
-                key={chip.key}
-                className="bg-[#F4F2EE] text-[#08090B] border border-zinc-300 px-2.5 py-1 text-[11px] flex items-center gap-1.5"
-              >
-                <span>{chip.label}</span>
-                <button
-                  type="button"
-                  onClick={chip.onRemove}
-                  className="hover:text-[#E10600] cursor-pointer"
-                  aria-label={`Remove ${chip.label}`}
-                >
-                  <X className="w-3 h-3" />
-                </button>
-              </span>
+        {/* Full-Width Product Grid */}
+        {loadingProducts ? (
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-5">
+            {[1, 2, 3, 4, 5, 6, 7, 8].map((idx) => (
+              <div key={idx} className="bg-white border border-zinc-200 p-4 space-y-3">
+                <div className="w-full aspect-square bg-zinc-200/70" />
+                <div className="h-3 bg-zinc-200/70 w-1/2" />
+                <div className="h-4 bg-zinc-200 w-3/4" />
+                <div className="h-3 bg-zinc-200/70 w-1/3" />
+              </div>
             ))}
-
-            {filters.minPrice && (
-              <span className="bg-[#F4F2EE] text-[#08090B] border border-zinc-300 px-2.5 py-1 text-[11px] flex items-center gap-1.5">
-                Min: ৳{filters.minPrice}
-                <button
-                  type="button"
-                  onClick={() => setFilters({ ...filters, minPrice: '' })}
-                  className="hover:text-[#E10600] cursor-pointer"
-                >
-                  <X className="w-3 h-3" />
-                </button>
-              </span>
-            )}
-
-            {filters.maxPrice && (
-              <span className="bg-[#F4F2EE] text-[#08090B] border border-zinc-300 px-2.5 py-1 text-[11px] flex items-center gap-1.5">
-                Max: ৳{filters.maxPrice}
-                <button
-                  type="button"
-                  onClick={() => setFilters({ ...filters, maxPrice: '' })}
-                  className="hover:text-[#E10600] cursor-pointer"
-                >
-                  <X className="w-3 h-3" />
-                </button>
-              </span>
-            )}
-
-            {filters.search && (
-              <span className="bg-[#F4F2EE] text-[#08090B] border border-zinc-300 px-2.5 py-1 text-[11px] flex items-center gap-1.5">
-                Search: "{filters.search}"
-                <button
-                  type="button"
-                  onClick={() => setFilters({ ...filters, search: '' })}
-                  className="hover:text-[#E10600] cursor-pointer"
-                >
-                  <X className="w-3 h-3" />
-                </button>
-              </span>
-            )}
-
-            <button
-              type="button"
-              onClick={handleClearAllFilters}
-              className="text-[11px] font-bold text-[#E10600] hover:underline uppercase ml-auto cursor-pointer"
-            >
-              Clear All
-            </button>
+          </div>
+        ) : filteredProducts.length === 0 ? (
+          <div className="bg-white border border-zinc-300 p-12 text-center space-y-4">
+            <h3 className="font-display font-bold text-2xl uppercase text-[#08090B]">
+              No Products Found
+            </h3>
+            <p className="text-xs text-zinc-600 max-w-md mx-auto leading-relaxed">
+              No items are currently assigned to this category.
+            </p>
+            <div className="pt-2">
+              <button
+                type="button"
+                onClick={onNavigateHome}
+                className="btn-f1 inline-flex items-center bg-[#E10600] hover:bg-[#ff1e18] text-white px-7 py-2.5 font-display text-sm font-bold uppercase tracking-[0.08em] transition-colors cursor-pointer"
+              >
+                <span className="btn-f1-inner">
+                  <ArrowLeft className="w-3.5 h-3.5" />
+                  <span>Back to Shop</span>
+                </span>
+              </button>
+            </div>
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-5">
+            {filteredProducts.map((product) => (
+              <CollectionProductCard
+                key={product.id}
+                product={product}
+                onNavigateToProduct={onNavigateToProduct}
+                onAddToCart={onAddToCart}
+              />
+            ))}
           </div>
         )}
-
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-          {/* Desktop Sidebar */}
-          <div className="hidden lg:block lg:col-span-3 bg-white border border-zinc-300 p-6 sticky top-24">
-            <div className="flex items-center justify-between border-b border-zinc-200 pb-3 mb-5">
-              <span className="text-xs font-mono uppercase font-bold tracking-widest text-[#08090B] flex items-center gap-2">
-                <Filter className="w-4 h-4 text-[#E10600]" />
-                <span>Filter Grid</span>
-              </span>
-              {activeFilterCount > 0 && (
-                <button
-                  type="button"
-                  onClick={handleClearAllFilters}
-                  className="text-[10px] text-[#E10600] hover:underline uppercase font-mono cursor-pointer"
-                >
-                  Reset
-                </button>
-              )}
-            </div>
-            <FilterContent />
-          </div>
-
-          {/* Product Grid */}
-          <div className="lg:col-span-9">
-            {loadingProducts ? (
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 sm:gap-5">
-                {[1, 2, 3, 4, 5, 6].map((idx) => (
-                  <div key={idx} className="bg-white border border-zinc-200 p-4 space-y-3">
-                    <div className="w-full aspect-square bg-zinc-200/70" />
-                    <div className="h-3 bg-zinc-200/70 w-1/2" />
-                    <div className="h-4 bg-zinc-200 w-3/4" />
-                    <div className="h-3 bg-zinc-200/70 w-1/3" />
-                  </div>
-                ))}
-              </div>
-            ) : filteredProducts.length === 0 ? (
-              <div className="bg-white border border-zinc-300 p-12 text-center space-y-4">
-                <h3 className="font-display font-bold text-2xl uppercase text-[#08090B]">
-                  No F1 Models Match Your Filters
-                </h3>
-                <p className="text-xs text-zinc-600 max-w-md mx-auto leading-relaxed">
-                  Adjust or clear active filter selections to inspect more diecast and RC race cars.
-                </p>
-                <div className="pt-2">
-                  <button
-                    type="button"
-                    onClick={handleClearAllFilters}
-                    className="btn-f1 inline-flex items-center bg-[#E10600] hover:bg-[#ff1e18] text-white px-7 py-2.5 font-display text-sm font-bold uppercase tracking-[0.08em] transition-colors cursor-pointer"
-                  >
-                    <span className="btn-f1-inner">
-                      <RefreshCw className="w-3.5 h-3.5" />
-                      <span>Reset All Filters</span>
-                    </span>
-                  </button>
-                </div>
-              </div>
-            ) : (
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 sm:gap-5">
-                {filteredProducts.map((product) => (
-                  <CollectionProductCard
-                    key={product.id}
-                    product={product}
-                    onNavigateToProduct={onNavigateToProduct}
-                    onAddToCart={onAddToCart}
-                  />
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
       </div>
-
-      {/* Mobile Slide-Over Filter Drawer */}
-      {isMobileFilterOpen && (
-        <div className="fixed inset-0 z-50 overflow-hidden bg-black/75 backdrop-blur-sm flex justify-end lg:hidden">
-          <div className="relative w-full max-w-xs sm:max-w-sm bg-white h-full shadow-2xl flex flex-col">
-            <div className="flex items-center justify-between px-5 py-4 border-b border-zinc-200 bg-[#08090B] text-white">
-              <span className="text-xs font-mono uppercase font-bold tracking-widest flex items-center gap-2">
-                <Filter className="w-4 h-4 text-[#E10600]" />
-                <span>Filter ({activeFilterCount})</span>
-              </span>
-              <button
-                type="button"
-                onClick={() => setIsMobileFilterOpen(false)}
-                className="p-1 text-zinc-400 hover:text-white cursor-pointer"
-                aria-label="Close filter drawer"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            <div className="flex-1 overflow-y-auto p-5">
-              <FilterContent />
-            </div>
-
-            <div className="p-4 border-t border-zinc-200 bg-[#F4F2EE] flex items-center gap-3">
-              <button
-                type="button"
-                onClick={handleClearAllFilters}
-                className="btn-f1 w-1/3 py-2.5 bg-zinc-200 hover:bg-zinc-300 text-[#08090B] font-display text-sm uppercase tracking-[0.08em] font-bold transition-colors cursor-pointer"
-              >
-                <span className="btn-f1-inner">Reset</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => setIsMobileFilterOpen(false)}
-                className="btn-f1 w-2/3 py-2.5 bg-[#E10600] hover:bg-[#ff1e18] text-white font-display text-sm uppercase tracking-[0.08em] font-bold transition-colors cursor-pointer"
-              >
-                <span className="btn-f1-inner">Apply Filters</span>
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };

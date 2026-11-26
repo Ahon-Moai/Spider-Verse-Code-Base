@@ -37,13 +37,129 @@ if ($method === 'GET') {
 
 } elseif ($method === 'POST') {
     $input = getJsonInput();
+    $action = sanitizeString($_GET['action'] ?? $input['action'] ?? '');
+
+    // Server-side Quote & Validation (Pricing, Delivery, Coupon, Stock)
+    if ($action === 'quote') {
+        $cityZone = sanitizeString($input['city_zone'] ?? 'outside_dhaka');
+        $couponCode = sanitizeString($input['coupon_code'] ?? null);
+        $itemsInput = $input['items'] ?? [];
+
+        $setStmt = $db->query("SELECT setting_key, setting_value FROM store_settings");
+        $settings = $setStmt->fetchAll(PDO::FETCH_KEY_PAIR) ?: [];
+
+        $feeDhaka = (float)($settings['shipping_fee_dhaka'] ?? 70);
+        $feeOutside = (float)($settings['shipping_fee_outside_dhaka'] ?? 130);
+        $freeThreshold = (float)($settings['free_shipping_threshold'] ?? 3000);
+
+        $subtotal = 0.00;
+        $validatedItems = [];
+        $stockIssues = [];
+
+        if (is_array($itemsInput)) {
+            foreach ($itemsInput as $item) {
+                $productId = sanitizeString($item['product_id'] ?? $item['productId'] ?? null);
+                $size = sanitizeString($item['selected_size'] ?? $item['selectedSize'] ?? null);
+                $qty = max(1, (int)($item['quantity'] ?? 1));
+
+                if (!$productId || !$size) continue;
+
+                $pStmt = $db->prepare("SELECT id, name, brand, starting_price, inventory_qty FROM products WHERE id = ? LIMIT 1");
+                $pStmt->execute([$productId]);
+                $prod = $pStmt->fetch();
+                if (!$prod) continue;
+
+                $vStmt = $db->prepare("SELECT id, price, stock_qty FROM product_variants WHERE product_id = ? AND size = ? LIMIT 1");
+                $vStmt->execute([$productId, $size]);
+                $variant = $vStmt->fetch();
+
+                $unitPrice = $variant ? (float)$variant['price'] : (float)$prod['starting_price'];
+                $availableStock = $variant ? (int)$variant['stock_qty'] : (int)$prod['inventory_qty'];
+                $lineTotal = $unitPrice * $qty;
+                $subtotal += $lineTotal;
+
+                if ($availableStock > 0 && $qty > $availableStock) {
+                    $stockIssues[] = [
+                        'product_id' => $prod['id'],
+                        'product_name' => $prod['name'],
+                        'selected_size' => $size,
+                        'requested_qty' => $qty,
+                        'available_stock' => $availableStock
+                    ];
+                }
+
+                $validatedItems[] = [
+                    'product_id' => $prod['id'],
+                    'product_name' => $prod['name'],
+                    'brand_name' => $prod['brand'],
+                    'selected_size' => $size,
+                    'quantity' => $qty,
+                    'unit_price' => $unitPrice,
+                    'line_total' => $lineTotal,
+                    'available_stock' => $availableStock
+                ];
+            }
+        }
+
+        $isOutsideZone = in_array(strtolower($cityZone), ['outside_dhaka', 'outside_chittagong'], true);
+        $deliveryFee = $isOutsideZone ? $feeOutside : $feeDhaka;
+        if ($subtotal <= 0 || $subtotal >= $freeThreshold) {
+            $deliveryFee = 0.00;
+        }
+
+        $discount = 0.00;
+        $couponApplied = false;
+        $appliedCode = null;
+        $couponError = null;
+
+        if ($couponCode) {
+            $normalizedCode = strtoupper(trim($couponCode));
+            $cStmt = $db->prepare("SELECT * FROM coupons WHERE code = ? AND is_active = 1 LIMIT 1");
+            $cStmt->execute([$normalizedCode]);
+            $coupon = $cStmt->fetch();
+
+            if (!$coupon) {
+                $couponError = 'Invalid or inactive coupon code.';
+            } elseif (!empty($coupon['expiry_date']) && strtotime($coupon['expiry_date']) < time()) {
+                $couponError = 'This coupon code has expired.';
+            } elseif ($subtotal < (float)$coupon['min_spend']) {
+                $minSpendFormatted = number_format((float)$coupon['min_spend'], 0);
+                $couponError = "Minimum spend of ৳ {$minSpendFormatted} required for code {$normalizedCode}.";
+            } else {
+                if ($coupon['discount_type'] === 'percent') {
+                    $discount = round(($subtotal * (float)$coupon['discount_value']) / 100, 2);
+                } else {
+                    $discount = min($subtotal, (float)$coupon['discount_value']);
+                }
+                $couponApplied = true;
+                $appliedCode = $normalizedCode;
+            }
+        }
+
+        $totalAmount = max(0, ($subtotal - $discount)) + $deliveryFee;
+
+        jsonResponse([
+            'items' => $validatedItems,
+            'subtotal' => $subtotal,
+            'discount' => $discount,
+            'delivery_fee' => $deliveryFee,
+            'total_amount' => $totalAmount,
+            'shipping_fee_dhaka' => $feeDhaka,
+            'shipping_fee_outside_dhaka' => $feeOutside,
+            'free_shipping_threshold' => $freeThreshold,
+            'coupon_applied' => $couponApplied,
+            'coupon_code' => $appliedCode,
+            'coupon_error' => $couponError,
+            'stock_issues' => $stockIssues
+        ], 200);
+    }
 
     $customerName = sanitizeString($input['customer_name'] ?? '');
     $customerPhone = sanitizeString($input['customer_phone'] ?? '');
     $customerEmail = sanitizeString($input['customer_email'] ?? '');
     $shippingAddress = sanitizeString($input['shipping_address'] ?? '');
-    $cityZone = sanitizeString($input['city_zone'] ?? 'inside_dhaka'); // inside_dhaka | outside_dhaka
-    $paymentMethod = sanitizeString($input['payment_method'] ?? 'cod');
+    $cityZone = sanitizeString($input['city_zone'] ?? 'outside_dhaka'); // outside_dhaka | inside_dhaka
+    $paymentMethod = 'cod';
     $couponCode = sanitizeString($input['coupon_code'] ?? null);
     $itemsInput = $input['items'] ?? [];
 
@@ -93,6 +209,11 @@ if ($method === 'GET') {
             jsonError("Size variant $size for product {$prod['name']} not found", 400);
         }
 
+        $availableStock = (int)$variant['stock_qty'];
+        if ($availableStock > 0 && $qty > $availableStock) {
+            jsonError("Requested quantity ($qty) exceeds available stock ($availableStock) for {$prod['name']} ({$size})", 400);
+        }
+
         $unitPrice = (float)$variant['price'];
         $lineTotal = $unitPrice * $qty;
         $subtotal += $lineTotal;
@@ -110,7 +231,8 @@ if ($method === 'GET') {
     }
 
     // Calculate delivery fee
-    $deliveryFee = ($cityZone === 'outside_dhaka') ? $feeOutside : $feeDhaka;
+    $isOutsideZone = in_array(strtolower($cityZone), ['outside_dhaka', 'outside_chittagong'], true);
+    $deliveryFee = $isOutsideZone ? $feeOutside : $feeDhaka;
     if ($subtotal >= $freeThreshold) {
         $deliveryFee = 0.00;
     }
@@ -119,14 +241,15 @@ if ($method === 'GET') {
     $discount = 0.00;
     if ($couponCode) {
         $cStmt = $db->prepare("SELECT * FROM coupons WHERE code = ? AND is_active = 1 LIMIT 1");
-        $cStmt->execute([strtoupper($couponCode)]);
+        $cStmt->execute([strtoupper(trim($couponCode))]);
         $coupon = $cStmt->fetch();
 
-        if ($coupon && $subtotal >= (float)$coupon['min_spend']) {
+        $isNotExpired = !$coupon || empty($coupon['expiry_date']) || strtotime($coupon['expiry_date']) >= time();
+        if ($coupon && $isNotExpired && $subtotal >= (float)$coupon['min_spend']) {
             if ($coupon['discount_type'] === 'percent') {
                 $discount = round(($subtotal * (float)$coupon['discount_value']) / 100, 2);
             } else {
-                $discount = (float)$coupon['discount_value'];
+                $discount = min($subtotal, (float)$coupon['discount_value']);
             }
         }
     }
@@ -199,12 +322,6 @@ if ($method === 'GET') {
             $logIns->execute([$vItem['product_id'], $vItem['variant_id'], -$vItem['quantity']]);
         }
 
-        // Note: New orders are placed in 'pending' status.
-        // As per objective requirement: "The deduction must happen automatically when an order reaches the configured confirmed/paid status."
-        // "Do not deduct stock when a product is merely added to the cart."
-        // If store settings or checkout is configured to auto-confirm (e.g. paid online), ML deduction is executed.
-        // For standard pending checkout, stock deduction occurs when order reaches confirmed/paid.
-
         // 5. Status History
         $histStmt = $db->prepare("INSERT INTO order_status_history (order_id, old_status, new_status, note, changed_by) VALUES (?, NULL, 'pending', 'Order created at checkout', 'customer')");
         $histStmt->execute([$orderId]);
@@ -214,12 +331,17 @@ if ($method === 'GET') {
         jsonResponse([
             'order_number' => $orderNumber,
             'customer_name' => $customerName,
+            'customer_phone' => $customerPhone,
+            'customer_email' => $customerEmail,
+            'shipping_address' => $shippingAddress,
+            'city_zone' => $cityZone,
             'subtotal' => $subtotal,
             'discount' => $discount,
             'delivery_fee' => $deliveryFee,
             'total_amount' => $totalAmount,
             'payment_method' => $paymentMethod,
-            'status' => 'pending'
+            'status' => 'pending',
+            'items' => $validatedItems
         ], 201, 'Order placed successfully');
 
     } catch (\Exception $e) {

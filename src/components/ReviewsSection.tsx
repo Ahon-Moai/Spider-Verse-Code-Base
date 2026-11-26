@@ -14,8 +14,10 @@ const isLegacyPerfumeReviews = (arr?: ReviewItem[]) =>
 
 export const ReviewsSection: React.FC<ReviewsSectionProps> = ({ reviews }) => {
   const reviewsData = isLegacyPerfumeReviews(reviews) ? REVIEWS_LIST : reviews!;
+  const sectionRef = useRef<HTMLElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const [isPlaying, setIsPlaying] = useState(true);
+  const [isInView, setIsInView] = useState(false);
 
   const scrollLeft = () => {
     scrollRef.current?.scrollBy({ left: -340, behavior: 'smooth' });
@@ -26,24 +28,38 @@ export const ReviewsSection: React.FC<ReviewsSectionProps> = ({ reviews }) => {
   };
 
   useEffect(() => {
-    if (!isPlaying) return;
+    const el = sectionRef.current;
+    if (!el || typeof IntersectionObserver === 'undefined') {
+      setIsInView(true);
+      return;
+    }
+    const observer = new IntersectionObserver(
+      ([entry]) => setIsInView(entry.isIntersecting),
+      { threshold: 0.1 }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
+  useEffect(() => {
+    if (!isPlaying || !isInView) return;
     const interval = setInterval(() => {
-      if (scrollRef.current) {
-        const { scrollLeft, scrollWidth, clientWidth } = scrollRef.current;
-        if (scrollLeft + clientWidth >= scrollWidth - 10) {
-          scrollRef.current.scrollTo({ left: 0, behavior: 'smooth' });
-        } else {
-          scrollRef.current.scrollBy({ left: 320, behavior: 'smooth' });
-        }
+      if (document.hidden || !scrollRef.current) return;
+      const { scrollLeft, scrollWidth, clientWidth } = scrollRef.current;
+      if (scrollLeft + clientWidth >= scrollWidth - 10) {
+        scrollRef.current.scrollTo({ left: 0, behavior: 'smooth' });
+      } else {
+        scrollRef.current.scrollBy({ left: 320, behavior: 'smooth' });
       }
     }, 5000);
     return () => clearInterval(interval);
-  }, [isPlaying]);
+  }, [isPlaying, isInView]);
 
   return (
     <section
+      ref={sectionRef}
       id="reviews"
-      className="w-full bg-[#111317] text-[#F4F2EE] py-16 sm:py-24 border-b border-white/10"
+      className="perf-section w-full bg-[#111317] text-[#F4F2EE] py-16 sm:py-24 border-b border-white/10"
     >
       <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">

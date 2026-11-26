@@ -48,7 +48,7 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
   ];
 
   return (
-    <div className="fixed bottom-0 inset-x-0 z-40 md:hidden bg-[#08090B]/95 backdrop-blur-md border-t border-white/15 pb-[env(safe-area-inset-bottom)] select-none">
+    <div className="fixed bottom-0 inset-x-0 z-40 md:hidden bg-[#08090B]/[0.98] border-t border-white/15 pb-[env(safe-area-inset-bottom)] select-none">
       <nav aria-label="Mobile Bottom Navigation" className="grid grid-cols-4 h-14">
         {navItems.map((item) => {
           const Icon = item.icon;

@@ -34,7 +34,7 @@ export const JournalSection: React.FC<JournalSectionProps> = ({ onReadArticle, a
   return (
     <section
       id="journal"
-      className="w-full bg-[#F4F2EE] text-[#08090B] py-16 sm:py-24 border-b border-zinc-300/70"
+      className="perf-section w-full bg-[#F4F2EE] text-[#08090B] py-16 sm:py-24 border-b border-zinc-300/70"
     >
       <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-start">
@@ -89,6 +89,7 @@ export const JournalSection: React.FC<JournalSectionProps> = ({ onReadArticle, a
                       <img
                         src={article.image}
                         alt={article.title}
+                        decoding="async"
                         className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500"
                         referrerPolicy="no-referrer"
                         loading="lazy"

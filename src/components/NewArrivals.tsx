@@ -45,6 +45,7 @@ const NewArrivalProductCard: React.FC<{
           <img
             src={product.image}
             alt={product.name}
+            decoding="async"
             className="w-full h-full object-contain object-center group-hover:scale-105 transition-transform duration-500 ease-out"
             referrerPolicy="no-referrer"
             loading="lazy"
@@ -145,7 +146,7 @@ export const NewArrivals: React.FC<NewArrivalsProps> = ({
   return (
     <section
       id="new-arrivals"
-      className="w-full bg-[#F4F2EE] text-[#08090B] py-14 sm:py-20 border-b border-zinc-300/70 apex-grid-light"
+      className="perf-section w-full bg-[#F4F2EE] text-[#08090B] py-14 sm:py-20 border-b border-zinc-300/70 apex-grid-light"
     >
       <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}

@@ -40,7 +40,7 @@ export const Footer: React.FC<FooterProps> = ({ storeSettings }) => {
   return (
     <footer
       id="account-section"
-      className="w-full bg-[#07080A] text-[#F4F2EE] pt-10 pb-20 md:pb-12 overflow-hidden border-t border-white/10"
+      className="perf-section w-full bg-[#07080A] text-[#F4F2EE] pt-10 pb-20 md:pb-12 overflow-hidden border-t border-white/10"
     >
       {/* Oversized Marvel-Style Brand Wordmark Banner */}
       <div className="w-full border-b border-white/10 bg-[#08090B] py-8 sm:py-12 select-none overflow-hidden">
@@ -166,17 +166,17 @@ export const Footer: React.FC<FooterProps> = ({ storeSettings }) => {
                     </a>
                   </li>
                   <li>
-                    <a href="#trust-section" className="hover:text-white transition-colors">
+                    <a href="#faq" className="hover:text-white transition-colors">
                       Shipping & Delivery
                     </a>
                   </li>
                   <li>
-                    <a href="#trust-section" className="hover:text-white transition-colors">
+                    <a href="#faq" className="hover:text-white transition-colors">
                       Payment Methods
                     </a>
                   </li>
                   <li>
-                    <a href="#trust-section" className="hover:text-white transition-colors">
+                    <a href="#faq" className="hover:text-white transition-colors">
                       Wing Protection Policy
                     </a>
                   </li>

@@ -1,6 +1,8 @@
 export interface DecantSize {
+  id?: string;
   size: string; // e.g. "3ml", "5ml", "9ml", "15ml"
   price: number; // in BDT (৳)
+  stock_qty?: number;
   image?: string; // custom size/bottle image URL
 }
 
@@ -61,6 +63,7 @@ export interface FragranceProduct {
   concentration?: string; // e.g. "Eau de Parfum", "Extrait de Parfum"
   shortDescription?: string;
   description?: string;
+  inventoryQty?: number;
 }
 
 export interface CartItem {
@@ -68,6 +71,64 @@ export interface CartItem {
   selectedSize: string;
   price: number;
   quantity: number;
+}
+
+export interface OrderQuoteItem {
+  product_id: string;
+  product_name: string;
+  brand_name: string;
+  selected_size: string;
+  quantity: number;
+  unit_price: number;
+  line_total: number;
+  available_stock: number;
+}
+
+export interface OrderQuoteResponse {
+  items: OrderQuoteItem[];
+  subtotal: number;
+  discount: number;
+  delivery_fee: number;
+  total_amount: number;
+  shipping_fee_dhaka: number;
+  shipping_fee_outside_dhaka: number;
+  free_shipping_threshold: number;
+  coupon_applied: boolean;
+  coupon_code: string | null;
+  coupon_error: string | null;
+  stock_issues: Array<{
+    product_id: string;
+    product_name: string;
+    selected_size: string;
+    requested_qty: number;
+    available_stock: number;
+  }>;
+}
+
+export interface CompletedOrderData {
+  order_number: string;
+  customer_name: string;
+  customer_phone?: string;
+  customer_email?: string;
+  shipping_address?: string;
+  city_zone?: string;
+  subtotal: number;
+  discount?: number;
+  delivery_fee?: number;
+  total_amount: number;
+  payment_method: string;
+  status: string;
+  order_status?: string;
+  created_at?: string;
+  items?: Array<{
+    product_id?: string;
+    product_name: string;
+    brand_name?: string;
+    selected_size: string;
+    quantity: number;
+    unit_price: number;
+    line_total: number;
+  }>;
 }
 
 export interface ReviewItem {

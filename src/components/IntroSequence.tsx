@@ -16,42 +16,18 @@ export const IntroSequence: React.FC<IntroSequenceProps> = ({
   isPageTransition = false,
 }) => {
   const [isVisible, setIsVisible] = useState(true);
-  const [counter, setCounter] = useState(0);
 
   useEffect(() => {
     setIsVisible(true);
-    setCounter(0);
 
     const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    if (prefersReducedMotion) {
-      setCounter(100);
-      const timer = setTimeout(() => setIsVisible(false), 350);
-      return () => clearTimeout(timer);
-    }
+    const displayDuration = prefersReducedMotion ? 220 : isPageTransition ? 450 : 750;
 
-    const duration = isPageTransition ? 850 : 1450;
-    const steps = 100;
-    const intervalTime = duration / steps;
+    const exitTimer = setTimeout(() => {
+      setIsVisible(false);
+    }, displayDuration);
 
-    let exitTimeout: ReturnType<typeof setTimeout> | null = null;
-
-    const interval = setInterval(() => {
-      setCounter((prev) => {
-        if (prev >= 100) {
-          clearInterval(interval);
-          exitTimeout = setTimeout(() => {
-            setIsVisible(false);
-          }, 120);
-          return 100;
-        }
-        return prev + 2 > 100 ? 100 : prev + 2;
-      });
-    }, intervalTime * 2);
-
-    return () => {
-      clearInterval(interval);
-      if (exitTimeout) clearTimeout(exitTimeout);
-    };
+    return () => clearTimeout(exitTimer);
   }, [isPageTransition]);
 
   const handleSkip = () => {
@@ -62,11 +38,11 @@ export const IntroSequence: React.FC<IntroSequenceProps> = ({
     <AnimatePresence onExitComplete={onComplete}>
       {isVisible && (
         <motion.div
-          className="fixed inset-0 z-[9999] bg-[#08090B] text-[#F4F2EE] flex flex-col justify-between overflow-hidden select-none cursor-pointer apex-grid-dark"
+          className="fixed inset-0 z-[9999] bg-[#08090B] text-[#F4F2EE] flex flex-col justify-between overflow-hidden select-none cursor-pointer apex-grid-dark will-change-transform"
           initial={{ opacity: 1, y: '0%' }}
           animate={{ opacity: 1, y: '0%' }}
           exit={{ y: '-100%' }}
-          transition={{ duration: 0.65, ease: [0.76, 0, 0.24, 1] }}
+          transition={{ duration: 0.45, ease: [0.76, 0, 0.24, 1] }}
           onClick={handleSkip}
           aria-label="Intro sequence. Click anywhere to enter."
         >
@@ -86,14 +62,15 @@ export const IntroSequence: React.FC<IntroSequenceProps> = ({
               {/* Left Angled 1:18 Frame */}
               <motion.div
                 className="hidden sm:block absolute w-48 md:w-64 aspect-[16/10] border border-white/15 bg-[#111317] overflow-hidden shadow-2xl"
-                initial={{ opacity: 0, x: -40, rotate: -6 }}
+                initial={{ opacity: 0, x: -30, rotate: -6 }}
                 animate={{ opacity: 0.72, x: -165, y: 18, rotate: -7 }}
-                exit={{ opacity: 0, y: -30 }}
-                transition={{ duration: 0.55, ease: [0.16, 1, 0.3, 1] }}
+                exit={{ opacity: 0, y: -20 }}
+                transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
               >
                 <img
                   src={pro118Img}
                   alt="1:18 Scale Carbon Formula 1 Diecast Model"
+                  decoding="async"
                   className="w-full h-full object-cover brightness-75 contrast-125"
                 />
                 <div className="absolute inset-x-0 bottom-0 h-[2px] bg-[#E10600]" />
@@ -102,14 +79,15 @@ export const IntroSequence: React.FC<IntroSequenceProps> = ({
               {/* Right Angled 1:43 Frame */}
               <motion.div
                 className="hidden sm:block absolute w-48 md:w-64 aspect-[16/10] border border-white/15 bg-[#111317] overflow-hidden shadow-2xl"
-                initial={{ opacity: 0, x: 40, rotate: 6 }}
+                initial={{ opacity: 0, x: 30, rotate: 6 }}
                 animate={{ opacity: 0.72, x: 165, y: -18, rotate: 7 }}
-                exit={{ opacity: 0, y: -30 }}
-                transition={{ duration: 0.55, ease: [0.16, 1, 0.3, 1], delay: 0.06 }}
+                exit={{ opacity: 0, y: -20 }}
+                transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1], delay: 0.04 }}
               >
                 <img
                   src={display143Img}
                   alt="1:43 Collector Edition F1 Display Cars"
+                  decoding="async"
                   className="w-full h-full object-cover brightness-75 contrast-125"
                 />
                 <div className="absolute inset-x-0 bottom-0 h-[2px] bg-[#E10600]" />
@@ -118,14 +96,16 @@ export const IntroSequence: React.FC<IntroSequenceProps> = ({
               {/* Center Hero Plate */}
               <motion.div
                 className="relative w-64 sm:w-80 md:w-96 aspect-[16/10] border border-white/25 bg-[#111317] overflow-hidden shadow-[0_30px_80px_rgba(0,0,0,0.85)] z-10"
-                initial={{ opacity: 0, scale: 0.92 }}
+                initial={{ opacity: 0, scale: 0.94 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.96 }}
-                transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+                transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
               >
                 <img
                   src={heroF1Img}
                   alt="Spider-Verse 1:18 Signature Formula 1 Toy Car"
+                  decoding="async"
+                  fetchPriority="high"
                   className="w-full h-full object-cover"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-transparent to-black/20" />
@@ -135,9 +115,9 @@ export const IntroSequence: React.FC<IntroSequenceProps> = ({
               {/* Oversized Display Lockup */}
               <motion.div
                 className="absolute inset-0 flex flex-col items-center justify-center z-20 pointer-events-none text-center"
-                initial={{ opacity: 0, y: 16 }}
+                initial={{ opacity: 0, y: 12 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.45, delay: 0.12 }}
+                transition={{ duration: 0.35, delay: 0.08 }}
               >
                 <span className="font-mono text-[10px] sm:text-xs tracking-[0.35em] uppercase text-[#E10600] font-semibold mb-1.5 bg-[#08090B]/80 px-2.5 py-0.5 border border-white/10">
                   F1 DIECAST & RC
@@ -149,18 +129,18 @@ export const IntroSequence: React.FC<IntroSequenceProps> = ({
             </div>
           </div>
 
-          {/* Bottom Pit-Wall Progress Bar & Lap Counter */}
+          {/* Bottom Pit-Wall Progress Bar (GPU-driven scaleX, zero React re-renders) */}
           <div className="w-full px-6 sm:px-10 pb-6 pt-4 border-t border-white/10 space-y-3">
             <div className="flex items-center justify-between text-xs font-mono uppercase tracking-[0.2em]">
               <span className="text-[#9CA3AF]">FORMULA 1 TOY CARS & SCALE MODELS</span>
-              <span className="text-white font-semibold tabular-nums">
-                {String(counter).padStart(3, '0')}%
-              </span>
+              <span className="text-white font-semibold">GRID READY</span>
             </div>
             <div className="w-full h-[2px] bg-white/10 overflow-hidden">
-              <div
-                className="h-full bg-[#E10600] origin-left transition-transform duration-100 ease-out"
-                style={{ transform: `scaleX(${counter / 100})` }}
+              <motion.div
+                className="h-full bg-[#E10600] origin-left"
+                initial={{ scaleX: 0 }}
+                animate={{ scaleX: 1 }}
+                transition={{ duration: isPageTransition ? 0.42 : 0.7, ease: 'easeOut' }}
               />
             </div>
           </div>
