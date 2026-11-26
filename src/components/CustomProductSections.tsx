@@ -29,18 +29,18 @@ const CustomProductCard: React.FC<{
   const [selectedSize, setSelectedSize] = useState<DecantSize>(defaultSize);
 
   return (
-    <div className="group bg-white border border-zinc-200/90 hover:border-[#08090B] p-4 flex flex-col justify-between transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_14px_30px_-10px_rgba(8,9,11,0.12)] relative h-full">
+    <div className="group bg-white border border-zinc-200/90 hover:border-[#08090B] flex flex-col justify-between transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_14px_30px_-10px_rgba(8,9,11,0.12)] relative h-full">
       <div>
         {/* Image Stage */}
         <div
           onClick={() => onSelectProduct(product)}
-          className="aspect-square w-full flex items-center justify-center p-5 cursor-pointer overflow-hidden relative bg-[#FAF9F6] border border-zinc-200/60"
+          className="aspect-square w-full flex items-center justify-center cursor-pointer overflow-hidden relative bg-[#FAF9F6] border-b border-zinc-200/60"
         >
           <img
             src={product.image}
             alt={product.name}
             decoding="async"
-            className="max-h-full max-w-full object-contain group-hover:scale-105 transition-transform duration-500"
+            className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-500"
             loading="lazy"
             referrerPolicy="no-referrer"
           />
@@ -54,7 +54,7 @@ const CustomProductCard: React.FC<{
         </div>
 
         {/* Clean Unboxed Details */}
-        <div className="mt-4 space-y-1.5 text-left">
+        <div className="p-4 pb-2 space-y-1.5 text-left">
           <div className="flex items-center justify-between text-[10px] font-mono text-zinc-500 uppercase tracking-[0.14em]">
             <span className="truncate">{product.brand}</span>
             <span className="truncate text-zinc-400 ml-2">
@@ -107,7 +107,7 @@ const CustomProductCard: React.FC<{
       </div>
 
       {/* Action Bar */}
-      <div className="mt-4 pt-3 border-t border-zinc-200/80 flex items-center gap-2.5">
+      <div className="p-4 pt-3 mt-2 border-t border-zinc-200/80 flex items-center gap-2.5">
         <button
           type="button"
           onClick={() => onSelectProduct(product)}

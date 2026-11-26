@@ -168,11 +168,11 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start">
           {/* Product Gallery */}
           <div className="lg:col-span-7 flex flex-col gap-4 lg:sticky lg:top-24">
-            <div className="relative w-full aspect-square sm:aspect-[4/3] lg:aspect-square bg-white border border-zinc-300 flex items-center justify-center p-8 sm:p-12 overflow-hidden group">
+            <div className="relative w-full aspect-square sm:aspect-[4/3] lg:aspect-square bg-white border border-zinc-300 flex items-center justify-center overflow-hidden group">
               <img
                 src={activeImage}
                 alt={product.name}
-                className="max-h-[85%] max-w-[85%] object-contain transition-transform duration-500 group-hover:scale-105"
+                className="w-full h-full object-contain transition-transform duration-500 group-hover:scale-105"
                 referrerPolicy="no-referrer"
               />
 
@@ -198,7 +198,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
                     key={idx}
                     type="button"
                     onClick={() => setSelectedImageIndex(idx)}
-                    className={`relative w-20 h-20 sm:w-24 sm:h-24 bg-white border transition-colors cursor-pointer p-2 shrink-0 flex items-center justify-center ${
+                    className={`relative w-20 h-20 sm:w-24 sm:h-24 bg-white border transition-colors cursor-pointer overflow-hidden shrink-0 flex items-center justify-center ${
                       selectedImageIndex === idx
                         ? 'border-[#E10600] ring-1 ring-[#E10600]'
                         : 'border-zinc-300 opacity-70 hover:opacity-100 hover:border-[#08090B]'
@@ -207,7 +207,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
                     <img
                       src={img}
                       alt={`${product.name} view ${idx + 1}`}
-                      className="max-h-full max-w-full object-contain"
+                      className="w-full h-full object-contain"
                       referrerPolicy="no-referrer"
                     />
                   </button>
@@ -391,17 +391,17 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
               <div
                 key={relProd.id}
                 onClick={() => onNavigateToProduct(relProd)}
-                className="bg-white border border-zinc-300 hover:border-[#08090B] p-4 flex flex-col justify-between cursor-pointer group transition-colors"
+                className="bg-white border border-zinc-300 hover:border-[#08090B] flex flex-col justify-between cursor-pointer group transition-colors"
               >
-                <div className="w-full aspect-square bg-[#FAF9F6] p-4 flex items-center justify-center overflow-hidden mb-3 border border-zinc-200/70">
+                <div className="w-full aspect-square bg-[#FAF9F6] flex items-center justify-center overflow-hidden border-b border-zinc-200/70">
                   <img
                     src={relProd.image}
                     alt={relProd.name}
-                    className="max-h-full max-w-full object-contain group-hover:scale-105 transition-transform duration-500"
+                    className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-500"
                     referrerPolicy="no-referrer"
                   />
                 </div>
-                <div>
+                <div className="p-4">
                   {relProd.category && (
                     <span className="text-[10px] font-mono tracking-[0.14em] text-zinc-500 uppercase">
                       {relProd.category}

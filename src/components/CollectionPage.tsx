@@ -37,15 +37,15 @@ const CollectionProductCard: React.FC<{
   return (
     <div
       onClick={() => onNavigateToProduct(product)}
-      className="group bg-white border border-zinc-200/90 hover:border-[#08090B] transition-all duration-200 hover:-translate-y-0.5 flex flex-col justify-between p-4 cursor-pointer"
+      className="group bg-white border border-zinc-200/90 hover:border-[#08090B] transition-all duration-200 hover:-translate-y-0.5 flex flex-col justify-between cursor-pointer"
     >
       <div>
-        <div className="relative w-full aspect-square bg-[#FAF9F6] border border-zinc-200/70 p-4 flex items-center justify-center overflow-hidden mb-3.5">
+        <div className="relative w-full aspect-square bg-[#FAF9F6] border-b border-zinc-200/70 flex items-center justify-center overflow-hidden">
           <img
             src={product.image}
             alt={product.name}
             decoding="async"
-            className="max-h-full max-w-full object-contain group-hover:scale-105 transition-transform duration-500"
+            className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-500"
             loading="lazy"
             referrerPolicy="no-referrer"
           />
@@ -64,7 +64,7 @@ const CollectionProductCard: React.FC<{
           </button>
         </div>
 
-        <div className="space-y-1">
+        <div className="p-4 pb-2 space-y-1">
           <div className="flex items-center justify-between text-[10px] font-mono tracking-[0.14em] text-zinc-500 uppercase">
             <span className="truncate">{product.brand}</span>
             {product.gender && (
@@ -82,7 +82,7 @@ const CollectionProductCard: React.FC<{
         </div>
       </div>
 
-      <div className="pt-3 mt-3 border-t border-zinc-200/80 space-y-2.5" onClick={(e) => e.stopPropagation()}>
+      <div className="p-4 pt-3 mt-1 border-t border-zinc-200/80 space-y-2.5" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-baseline justify-between tabular-nums">
           <span className="font-mono text-sm font-bold text-[#08090B]">
             ৳ {selectedSize.price.toLocaleString()}

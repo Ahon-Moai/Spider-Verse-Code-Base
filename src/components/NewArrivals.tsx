@@ -41,7 +41,7 @@ const NewArrivalProductCard: React.FC<{
     >
       <div>
         {/* Uniform Square Studio Image Stage */}
-        <div className="relative w-full aspect-square bg-[#FAF9F6] overflow-hidden flex items-center justify-center p-5 border-b border-zinc-200/70">
+        <div className="relative w-full aspect-square bg-[#FAF9F6] overflow-hidden flex items-center justify-center border-b border-zinc-200/70">
           <img
             src={product.image}
             alt={product.name}
