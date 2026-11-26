@@ -9,7 +9,6 @@ import { Hero } from './components/Hero';
 import { CategoryMarquee } from './components/CategoryMarquee';
 import { NewArrivals } from './components/NewArrivals';
 import { CampaignBanners } from './components/CampaignBanners';
-import { VideoSection } from './components/VideoSection';
 import { CustomProductSections } from './components/CustomProductSections';
 import { TrustSection } from './components/TrustSection';
 import { FAQSection } from './components/FAQSection';
@@ -412,6 +411,7 @@ export default function App() {
 
             <CategoryMarquee
               items={homepageData?.sections?.category_marquee?.content?.items}
+              links={homepageData?.sections?.category_marquee?.content?.links}
               onNavigateToCollection={navigateToCollection}
             />
 
@@ -426,16 +426,6 @@ export default function App() {
               onSelectCategory={handleSelectGenderCategory}
               onNavigateToCollection={navigateToCollection}
               campaignData={homepageData?.sections?.campaign_banners?.content}
-            />
-
-            <VideoSection
-              videoData={
-                homepageData?.sections?.video_showcase?.content ||
-                homepageData?.sections?.video_hero?.content
-              }
-              products={products}
-              onSelectProduct={(p) => navigateToProduct(p)}
-              onExploreClick={handleExploreClick}
             />
 
             <CustomProductSections

@@ -168,12 +168,12 @@ export const InventoryManager: React.FC<InventoryManagerProps> = ({ csrfToken })
   // Open Create Modal
   const handleOpenCreate = () => {
     setEditingItem({
-      brand: 'ARRINA',
+      brand: '',
       name: '',
       product_id: '',
-      bottle_size_ml: 100,
-      remaining_ml: 100,
-      low_stock_threshold_ml: 15,
+      bottle_size_ml: 0,
+      remaining_ml: 0,
+      low_stock_threshold_ml: 0,
       notes: ''
     });
     setIsAddEditOpen(true);
@@ -232,11 +232,9 @@ export const InventoryManager: React.FC<InventoryManagerProps> = ({ csrfToken })
   const handleOpenAdjust = (item: InventoryItem, mode: 'adjust' | 'restock' = 'adjust') => {
     setAdjustingItem(item);
     setAdjustMode(mode);
-    setAdjustChangeMl(mode === 'restock' ? '50' : '');
+    setAdjustChangeMl('');
     setAdjustTargetMl(item.remaining_ml.toString());
-    setAdjustReason(
-      mode === 'restock' ? 'New batch / stock refill' : 'Physical count reconciliation'
-    );
+    setAdjustReason('');
     setIsAdjustOpen(true);
   };
 

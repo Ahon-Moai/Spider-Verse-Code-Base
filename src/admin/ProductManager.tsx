@@ -19,7 +19,6 @@ interface ProductVariant {
   size: string;
   price: number;
   stock_qty: number;
-  image?: string;
 }
 
 interface Product {
@@ -172,12 +171,11 @@ export const ProductManager: React.FC<ProductManagerProps> = ({ csrfToken }) => 
   };
 
   const handleOpenCreate = () => {
-    const firstCat = categories[0];
     setEditingProduct({
       id: 'prod-' + Math.random().toString(36).substring(2, 8),
       brand: '',
       name: '',
-      category: firstCat ? getCategoryValue(firstCat) : '',
+      category: '',
       gender: 'Unisex',
       concentration: '',
       starting_price: 0,
@@ -186,9 +184,9 @@ export const ProductManager: React.FC<ProductManagerProps> = ({ csrfToken }) => 
       short_description: '',
       description: '',
       status: 'published',
-      inventory_qty: 25,
-      is_featured: true,
-      is_new_arrival: true,
+      inventory_qty: 0,
+      is_featured: false,
+      is_new_arrival: false,
       variants: []
     });
     setShowQuickCategory(false);
@@ -556,13 +554,12 @@ export const ProductManager: React.FC<ProductManagerProps> = ({ csrfToken }) => 
                         }
                         required
                         className={inputCls}
-                        placeholder="e.g. Ferrari SF-24 1:18 Model"
                       />
                     </div>
 
                     <div className="space-y-1.5">
                       <label className="block text-xs font-medium text-zinc-700 dark:text-zinc-300">
-                        Brand / Maker *
+                        Brand
                       </label>
                       <input
                         type="text"
@@ -570,9 +567,7 @@ export const ProductManager: React.FC<ProductManagerProps> = ({ csrfToken }) => 
                         onChange={(e) =>
                           setEditingProduct({ ...editingProduct, brand: e.target.value })
                         }
-                        required
                         className={inputCls}
-                        placeholder="e.g. Bburago, Minichamps, Spark"
                       />
                     </div>
 
@@ -662,24 +657,6 @@ export const ProductManager: React.FC<ProductManagerProps> = ({ csrfToken }) => 
 
                     <div className="space-y-1.5">
                       <label className="block text-xs font-medium text-zinc-700 dark:text-zinc-300">
-                        Edition / Spec Label
-                      </label>
-                      <input
-                        type="text"
-                        value={editingProduct.concentration || ''}
-                        onChange={(e) =>
-                          setEditingProduct({
-                            ...editingProduct,
-                            concentration: e.target.value
-                          })
-                        }
-                        className={inputCls}
-                        placeholder="e.g. Zinc Alloy Diecast, Limited Edition"
-                      />
-                    </div>
-
-                    <div className="space-y-1.5">
-                      <label className="block text-xs font-medium text-zinc-700 dark:text-zinc-300">
                         Price (৳ BDT) *
                       </label>
                       <input
@@ -714,26 +691,6 @@ export const ProductManager: React.FC<ProductManagerProps> = ({ csrfToken }) => 
                         required
                         className={`${inputCls} font-mono tabular-nums`}
                       />
-                    </div>
-
-                    <div className="space-y-1.5">
-                      <label className="block text-xs font-medium text-zinc-700 dark:text-zinc-300">
-                        Collection Division
-                      </label>
-                      <select
-                        value={editingProduct.gender || 'Unisex'}
-                        onChange={(e) =>
-                          setEditingProduct({
-                            ...editingProduct,
-                            gender: e.target.value as 'Him' | 'Her' | 'Unisex'
-                          })
-                        }
-                        className={inputCls}
-                      >
-                        <option value="Unisex">All / Standard</option>
-                        <option value="Him">1:18 Pro Diecast</option>
-                        <option value="Her">1:43 Display Grid</option>
-                      </select>
                     </div>
 
                     <div className="space-y-1.5">
@@ -879,7 +836,6 @@ export const ProductManager: React.FC<ProductManagerProps> = ({ csrfToken }) => 
                       }
                       rows={2}
                       className="w-full rounded-md bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 px-3 py-2 text-xs text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 focus:outline-none focus:border-zinc-900 dark:focus:border-zinc-400"
-                      placeholder="Brief highlight shown on product cards..."
                     />
                   </div>
 
@@ -895,9 +851,8 @@ export const ProductManager: React.FC<ProductManagerProps> = ({ csrfToken }) => 
                           description: e.target.value
                         })
                       }
-                      rows={3}
+                      rows={4}
                       className="w-full rounded-md bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 px-3 py-2 text-xs text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 focus:outline-none focus:border-zinc-900 dark:focus:border-zinc-400"
-                      placeholder="Detailed specifications, materials, dimensions, and box contents..."
                     />
                   </div>
                 </div>
@@ -933,20 +888,20 @@ export const ProductManager: React.FC<ProductManagerProps> = ({ csrfToken }) => 
 
                   {(editingProduct.variants || []).length === 0 ? (
                     <p className="text-[11px] text-zinc-500 dark:text-zinc-400 bg-zinc-50 dark:bg-zinc-900/40 border border-dashed border-zinc-200 dark:border-zinc-800 rounded-lg p-3.5">
-                      Optional: Add size, scale, or edition variants (e.g. 1:43 Scale, 1:18 Scale, Gift Box) with separate pricing and stock.
+                      Optional: Add options or variants with separate pricing and stock.
                     </p>
                   ) : (
-                    <div className="space-y-3">
+                    <div className="space-y-2.5">
                       {(editingProduct.variants || []).map((v, idx) => (
                         <div
                           key={idx}
-                          className="bg-zinc-50 dark:bg-zinc-900/50 p-3.5 rounded-lg border border-zinc-200/80 dark:border-zinc-800 space-y-3"
+                          className="bg-zinc-50 dark:bg-zinc-900/50 p-3 rounded-lg border border-zinc-200/80 dark:border-zinc-800"
                         >
                           <div className="flex flex-wrap sm:flex-nowrap items-center gap-2">
                             <input
                               type="text"
                               value={v.size || ''}
-                              placeholder="Option / Scale (e.g. 1:43 Scale, 1:18 Pro)"
+                              placeholder="Option name"
                               onChange={(e) => {
                                 const vars = [...(editingProduct.variants || [])];
                                 vars[idx].size = e.target.value;
@@ -969,7 +924,7 @@ export const ProductManager: React.FC<ProductManagerProps> = ({ csrfToken }) => 
                             <input
                               type="number"
                               value={v.stock_qty === 0 || v.stock_qty ? v.stock_qty : ''}
-                              placeholder="Stock Qty"
+                              placeholder="Stock"
                               onChange={(e) => {
                                 const vars = [...(editingProduct.variants || [])];
                                 vars[idx].stock_qty =
@@ -992,17 +947,6 @@ export const ProductManager: React.FC<ProductManagerProps> = ({ csrfToken }) => 
                               <Trash2 className="w-4 h-4" />
                             </button>
                           </div>
-
-                          <ImageUploader
-                            label={`Variant Image (${v.size || 'Option ' + (idx + 1)})`}
-                            value={v.image || ''}
-                            onChange={(url) => {
-                              const vars = [...(editingProduct.variants || [])];
-                              vars[idx].image = url;
-                              setEditingProduct({ ...editingProduct, variants: vars });
-                            }}
-                            csrfToken={csrfToken}
-                          />
                         </div>
                       ))}
                     </div>

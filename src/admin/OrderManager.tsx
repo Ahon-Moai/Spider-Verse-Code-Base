@@ -456,7 +456,6 @@ export const OrderManager: React.FC<OrderManagerProps> = ({ csrfToken }) => {
               <div>
                 <h1 className="text-xl font-bold tracking-tight text-zinc-950">SPIDER VERSE</h1>
                 <p className="text-[11px] text-zinc-500 mt-0.5">Official Storefront Tax &amp; Dispatch Invoice</p>
-                <p className="text-[11px] text-zinc-500">Banani High Street, Block 11, Dhaka 1213, Bangladesh</p>
               </div>
               <div className="text-right">
                 <span className="text-[10px] font-mono font-semibold uppercase bg-zinc-100 text-zinc-800 px-2 py-1 rounded">

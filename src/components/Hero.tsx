@@ -76,8 +76,7 @@ export const Hero: React.FC<HeroProps> = ({
     offset: ['start start', 'end start'],
   });
 
-  const bgY = useTransform(scrollYProgress, [0, 1], ['0%', '12%']);
-  const bgScale = useTransform(scrollYProgress, [0, 1], [1.01, 1.08]);
+  const bgScale = useTransform(scrollYProgress, [0, 1], [1.0, 1.05]);
 
   const cmsSlides: HeroSlideConfig[] | null =
     Array.isArray(heroData?.slides) && heroData.slides.length > 0 ? heroData.slides : null;
@@ -150,11 +149,11 @@ export const Hero: React.FC<HeroProps> = ({
       ref={sectionRef}
       className="relative w-full bg-[#08090B] text-[#F4F2EE] overflow-hidden border-b border-white/10"
     >
-      {/* Full-bleed Clean Cinematic Hero Stage (No Darkness Scrim) */}
-      <div className="relative min-h-[78vh] lg:min-h-[86vh] flex flex-col justify-end">
-        {/* Parallax Backdrop Media (Image or Video per Slide) */}
+      {/* Full-bleed Clean Cinematic Hero Stage (Locked 2px Red Divider at Bottom Edge) */}
+      <div className="relative h-[76svh] sm:h-[80svh] lg:h-[84svh] min-h-[460px] max-h-[820px] flex flex-col justify-end overflow-hidden border-b-2 border-[#E10600]">
+        {/* Backdrop Media (Image or Video per Slide) */}
         <motion.div
-          style={{ y: bgY, scale: bgScale }}
+          style={{ scale: bgScale }}
           className="absolute inset-0 pointer-events-none will-change-transform"
         >
           {slides.map((slide, idx) => {
@@ -249,9 +248,6 @@ export const Hero: React.FC<HeroProps> = ({
             ))}
           </div>
         </div>
-
-        {/* Racing-Red Speed Divider */}
-        <div className="relative z-10 w-full h-[2px] bg-[#E10600]" />
       </div>
 
       {/* Integrated 4-Column F1 Series Strip */}

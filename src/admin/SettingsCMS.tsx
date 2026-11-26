@@ -8,17 +8,17 @@ interface SettingsCMSProps {
 
 export const SettingsCMS: React.FC<SettingsCMSProps> = ({ csrfToken }) => {
   const [settings, setSettings] = useState({
-    store_name: 'AROMATICA ONE',
-    tagline: 'Signature Decants Edition by ARRINA ATELIER',
-    contact_phone: '+880 1700-000000',
-    contact_email: 'concierge@aromatica.com.bd',
-    address: 'Banani High Street, Block 11, Dhaka 1213, Bangladesh',
+    store_name: '',
+    tagline: '',
+    contact_phone: '',
+    contact_email: '',
+    address: '',
     currency: 'BDT',
     currency_symbol: '৳',
-    shipping_fee_dhaka: '70',
-    shipping_fee_outside_dhaka: '130',
-    free_shipping_threshold: '3000',
-    announcement_bar: 'AUTHENTIC LUXURY DECANTS · FREE NATIONWIDE SHIPPING OVER ৳ 3,000'
+    shipping_fee_dhaka: '',
+    shipping_fee_outside_dhaka: '',
+    free_shipping_threshold: '',
+    announcement_bar: ''
   });
 
   const [loading, setLoading] = useState(true);

@@ -37,15 +37,18 @@ export const HomepageCMS: React.FC<HomepageCMSProps> = ({ csrfToken }) => {
   const [availableProducts, setAvailableProducts] = useState<
     Array<{ id: string; name: string; brand: string; image?: string }>
   >([]);
+  const [availableCategories, setAvailableCategories] = useState<
+    Array<{ id: string; title: string; slug: string }>
+  >([]);
 
   // Hero Form + 3 Carousel Slides
   const [heroForm, setHeroForm] = useState({
-    headline: 'COLLECTION IS LIVE',
+    headline: '',
     tagline: '',
-    specifier: "SEASON '26",
-    primary_cta_text: 'Explore Model',
-    secondary_cta_text: 'Shop All',
-    image: '/src/assets/images/hero_f1_diecast_studio_1794664768996.jpg',
+    specifier: '',
+    primary_cta_text: '',
+    secondary_cta_text: '',
+    image: '',
     video_url: ''
   });
 
@@ -61,90 +64,60 @@ export const HomepageCMS: React.FC<HomepageCMSProps> = ({ csrfToken }) => {
     }>
   >([
     {
-      eyebrow: "SEASON '26",
-      headline: 'COLLECTION IS LIVE',
-      cta_text: 'Explore Model',
+      eyebrow: '',
+      headline: '',
+      cta_text: '',
       product_id: '',
-      image: '/src/assets/images/hero_f1_diecast_studio_1794664768996.jpg',
+      image: '',
       video_url: '',
       media_type: 'image'
     },
     {
-      eyebrow: '1:18 PRO DIECAST',
-      headline: 'BUILT FOR THE GRID',
-      cta_text: 'Explore Model',
+      eyebrow: '',
+      headline: '',
+      cta_text: '',
       product_id: '',
-      image: '/src/assets/images/campaign_f1_pro_118_1794664772367.jpg',
+      image: '',
       video_url: '',
       media_type: 'image'
     },
     {
-      eyebrow: '1:43 & 2.4GHZ RC',
-      headline: 'RACE OR DISPLAY',
-      cta_text: 'Explore Model',
+      eyebrow: '',
+      headline: '',
+      cta_text: '',
       product_id: '',
-      image: '/src/assets/images/campaign_f1_display_143_1794664770809.jpg',
+      image: '',
       video_url: '',
       media_type: 'image'
     }
   ]);
 
-  // Campaign Banners Form (For Him / For Her)
+  // Campaign Banners Form
   const [campaignForm, setCampaignForm] = useState({
-    section_title: 'FOR HIM | HER',
-    for_him_title: 'For Him',
-    for_him_button_text: 'SHOP DECANTS',
-    for_him_image: '/src/assets/images/campaign_for_him_1791908163466.jpg',
-    for_her_title: 'For Her',
-    for_her_button_text: 'SHOP DECANTS',
-    for_her_image: '/src/assets/images/campaign_for_her_1791908163547.jpg'
+    section_title: '',
+    for_him_title: '',
+    for_him_button_text: '',
+    for_him_image: '',
+    for_her_title: '',
+    for_her_button_text: '',
+    for_her_image: ''
   });
 
   // Seasons Gallery Form
   const [seasonsHeader, setSeasonsHeader] = useState({
-    section_title: 'SEASONS',
-    section_subtitle: 'CHOOSE YOURS'
+    section_title: '',
+    section_subtitle: ''
   });
 
   const [seasonCards, setSeasonCards] = useState<
     Array<{ id: string; name: string; description: string; image: string; alt?: string }>
-  >([
-    {
-      id: 'season-autumn',
-      name: 'Night Grid Aero',
-      description: 'Floodlit street-circuit liveries & sculpted ground-effect wings',
-      image: '/src/assets/images/series_f1_night_aero_1794664771085.jpg',
-      alt: 'Crimson and obsidian F1 toy car under dramatic pit-lane floodlights'
-    },
-    {
-      id: 'season-winter',
-      name: '1990s Red Legends',
-      description: 'Classic V10-era scarlet diecast icons on dark stone plinths',
-      image: '/src/assets/images/series_f1_classic_red_1794664772823.jpg',
-      alt: 'Vintage 1990s scarlet Formula 1 diecast race car on dark pedestal'
-    },
-    {
-      id: 'season-summer',
-      name: 'Carbon Pro 1:18',
-      description: 'Matte weave chassis with halo cockpit & alloy suspension arms',
-      image: '/src/assets/images/series_f1_carbon_stealth_1794664773109.jpg',
-      alt: 'Stealth matte carbon 1:18 Formula 1 model car front wing and halo detail'
-    },
-    {
-      id: 'season-spring',
-      name: '2.4GHz RC Racers',
-      description: 'High-torque radio-controlled F1 toy cars tuned for living-room sprints',
-      image: '/src/assets/images/series_f1_rc_sprint_1794664772832.jpg',
-      alt: 'Two high-speed RC Formula 1 toy cars lined up on starting grid'
-    }
-  ]);
+  >([]);
 
   // Video Product Showcase Section State
   const [showcaseHeader, setShowcaseHeader] = useState({
-    headline: 'AURA & SILLAGE IN MOTION',
-    tagline:
-      'Weightless liquid gold suspended in high-pressure glass atomizers. Experience the delicate art of artisanal decanting.',
-    badge_text: 'ARRINA CINEMATIC ATELIER',
+    headline: '',
+    tagline: '',
+    badge_text: '',
     is_enabled: true
   });
 
@@ -155,33 +128,33 @@ export const HomepageCMS: React.FC<HomepageCMSProps> = ({ csrfToken }) => {
     Record<string, { title: string; subtitle: string; is_enabled: boolean; product_ids: string[] }>
   >({
     custom_section_1: {
-      title: 'MOST LOVED DECANTS',
-      subtitle: 'CURATED BESTSELLERS FOR DISCOVERING YOUR SIGNATURE SCENT',
+      title: '',
+      subtitle: '',
       is_enabled: true,
-      product_ids: ['prod-pure-portions', 'prod-vanilla01', 'prod-rose01']
+      product_ids: []
     },
     custom_section_2: {
-      title: 'ORIENTAL & OUD SELECTIONS',
-      subtitle: 'DEEP, SMOKY & REFINED RESINS',
+      title: '',
+      subtitle: '',
       is_enabled: true,
-      product_ids: ['prod-genesis-leo', 'prod-venena']
+      product_ids: []
     },
     custom_section_3: {
-      title: 'FLORAL & AMBER ESSENCES',
-      subtitle: 'RADIANT VELVET PETALS & SOLAR DEW',
+      title: '',
+      subtitle: '',
       is_enabled: true,
-      product_ids: ['prod-asdaaf-raneen', 'prod-rose01']
+      product_ids: []
     },
     custom_section_4: {
-      title: 'LIMITED VAULT EDITIONS',
-      subtitle: 'EXCLUSIVE BATCH ALLOCATIONS',
+      title: '',
+      subtitle: '',
       is_enabled: true,
-      product_ids: ['prod-vanilla01', 'prod-genesis-leo', 'prod-pure-portions']
+      product_ids: []
     }
   });
 
-  // Marquee
-  const [marqueeText, setMarqueeText] = useState('CURATE, JUDGE, REFINE, TEST');
+  // Marquee (CMS links with label + category/slug)
+  const [marqueeLinks, setMarqueeLinks] = useState<Array<{ label: string; slug: string }>>([]);
 
   // FAQs
   const [faqs, setFaqs] = useState<Array<{ id: string; question: string; answer: string }>>([]);
@@ -226,17 +199,25 @@ export const HomepageCMS: React.FC<HomepageCMSProps> = ({ csrfToken }) => {
   const fetchCMSData = async () => {
     setLoading(true);
     try {
-      const [cmsRes, prodRes] = await Promise.all([
+      const [cmsRes, prodRes, colRes] = await Promise.all([
         fetch('/api/admin/homepage.php'),
-        fetch('/api/admin/products.php')
+        fetch('/api/admin/products.php'),
+        fetch('/api/admin/collections.php')
       ]);
 
       const data = await cmsRes.json();
       const pData = await prodRes.json();
+      const colData = await colRes.json();
 
       if (pData.success && Array.isArray(pData.data)) {
         setAvailableProducts(
           pData.data.map((p: any) => ({ id: p.id, name: p.name, brand: p.brand, image: p.image }))
+        );
+      }
+
+      if (colData.success && Array.isArray(colData.data)) {
+        setAvailableCategories(
+          colData.data.map((c: any) => ({ id: c.id, title: c.title, slug: c.slug }))
         );
       }
 
@@ -247,20 +228,15 @@ export const HomepageCMS: React.FC<HomepageCMSProps> = ({ csrfToken }) => {
         const heroSec = payload.sections?.hero;
         if (heroSec && heroSec.content) {
           const c = heroSec.content;
-          setHeroForm((prev) => ({
-            ...prev,
-            headline: c.headline && !/by the ml/i.test(c.headline) ? c.headline : prev.headline,
-            primary_cta_text:
-              c.primary_cta_text && !/portions|decant/i.test(c.primary_cta_text)
-                ? c.primary_cta_text
-                : prev.primary_cta_text,
-            secondary_cta_text:
-              c.secondary_cta_text && !/decant/i.test(c.secondary_cta_text)
-                ? c.secondary_cta_text
-                : prev.secondary_cta_text,
-            image: c.image || prev.image,
+          setHeroForm({
+            headline: c.headline || '',
+            tagline: c.tagline || '',
+            specifier: c.specifier || '',
+            primary_cta_text: c.primary_cta_text || '',
+            secondary_cta_text: c.secondary_cta_text || '',
+            image: c.image || '',
             video_url: c.video_url || ''
-          }));
+          });
 
           if (Array.isArray(c.slides) && c.slides.length > 0) {
             setHeroSlides((prev) =>
@@ -268,12 +244,12 @@ export const HomepageCMS: React.FC<HomepageCMSProps> = ({ csrfToken }) => {
                 const s = c.slides[idx];
                 if (!s) return def;
                 return {
-                  eyebrow: s.eyebrow ?? def.eyebrow,
-                  headline: s.headline ?? def.headline,
-                  cta_text: s.cta_text ?? def.cta_text,
-                  product_id: s.product_id ?? def.product_id,
-                  image: s.image ?? def.image,
-                  video_url: s.video_url ?? '',
+                  eyebrow: s.eyebrow || '',
+                  headline: s.headline || '',
+                  cta_text: s.cta_text || '',
+                  product_id: s.product_id || '',
+                  image: s.image || '',
+                  video_url: s.video_url || '',
                   media_type: s.media_type === 'video' ? 'video' : 'image'
                 };
               })
@@ -281,7 +257,7 @@ export const HomepageCMS: React.FC<HomepageCMSProps> = ({ csrfToken }) => {
           }
         }
 
-        // Campaign Banners (For Him | Her)
+        // Campaign Banners
         const campSec = payload.sections?.campaign_banners;
         if (campSec && campSec.content) {
           setCampaignForm((prev) => ({ ...prev, ...campSec.content }));
@@ -291,9 +267,9 @@ export const HomepageCMS: React.FC<HomepageCMSProps> = ({ csrfToken }) => {
         const seasonsSec = payload.sections?.seasons_gallery;
         if (seasonsSec && seasonsSec.content) {
           setSeasonsHeader({
-            section_title: seasonsSec.title || seasonsSec.content.section_title || 'SEASONS',
+            section_title: seasonsSec.title || seasonsSec.content.section_title || '',
             section_subtitle:
-              seasonsSec.subtitle || seasonsSec.content.section_subtitle || 'CHOOSE YOURS'
+              seasonsSec.subtitle || seasonsSec.content.section_subtitle || ''
           });
           if (Array.isArray(seasonsSec.content.cards)) {
             setSeasonCards(seasonsSec.content.cards);
@@ -304,12 +280,9 @@ export const HomepageCMS: React.FC<HomepageCMSProps> = ({ csrfToken }) => {
         const vidSec = payload.sections?.video_showcase || payload.sections?.video_hero;
         if (vidSec && vidSec.content) {
           setShowcaseHeader({
-            headline: vidSec.title || vidSec.content.headline || 'AURA & SILLAGE IN MOTION',
-            tagline:
-              vidSec.subtitle ||
-              vidSec.content.tagline ||
-              'Weightless liquid gold suspended in high-pressure glass atomizers.',
-            badge_text: vidSec.content.badge_text || 'ARRINA CINEMATIC ATELIER',
+            headline: vidSec.title || vidSec.content.headline || '',
+            tagline: vidSec.subtitle || vidSec.content.tagline || '',
+            badge_text: vidSec.content.badge_text || '',
             is_enabled: vidSec.is_enabled !== undefined ? Boolean(vidSec.is_enabled) : true
           });
 
@@ -319,10 +292,10 @@ export const HomepageCMS: React.FC<HomepageCMSProps> = ({ csrfToken }) => {
             setShowcaseCards([
               {
                 id: 'card-1',
-                product_id: 'prod-pure-portions',
-                title: vidSec.content.headline || 'Pure Portions (5ml)',
+                product_id: '',
+                title: vidSec.content.headline || '',
                 video_url: vidSec.content.video_url,
-                thumbnail_url: vidSec.content.poster_image,
+                thumbnail_url: vidSec.content.poster_image || '',
                 display_order: 1,
                 is_enabled: true
               }
@@ -331,18 +304,24 @@ export const HomepageCMS: React.FC<HomepageCMSProps> = ({ csrfToken }) => {
         }
 
         // Custom Sections
-        const nextCustom: any = { ...customSections };
+        const nextCustom: Record<
+          string,
+          { title: string; subtitle: string; is_enabled: boolean; product_ids: string[] }
+        > = {
+          custom_section_1: { title: '', subtitle: '', is_enabled: true, product_ids: [] },
+          custom_section_2: { title: '', subtitle: '', is_enabled: true, product_ids: [] },
+          custom_section_3: { title: '', subtitle: '', is_enabled: true, product_ids: [] },
+          custom_section_4: { title: '', subtitle: '', is_enabled: true, product_ids: [] }
+        };
         ['custom_section_1', 'custom_section_2', 'custom_section_3', 'custom_section_4'].forEach(
           (key) => {
             if (payload.sections?.[key]) {
               const sec = payload.sections[key];
               nextCustom[key] = {
-                title: sec.title || nextCustom[key].title,
-                subtitle: sec.subtitle || nextCustom[key].subtitle,
+                title: sec.title || '',
+                subtitle: sec.subtitle || '',
                 is_enabled: sec.is_enabled !== undefined ? Boolean(sec.is_enabled) : true,
-                product_ids: Array.isArray(sec.content?.product_ids)
-                  ? sec.content.product_ids
-                  : nextCustom[key].product_ids
+                product_ids: Array.isArray(sec.content?.product_ids) ? sec.content.product_ids : []
               };
             }
           }
@@ -351,8 +330,30 @@ export const HomepageCMS: React.FC<HomepageCMSProps> = ({ csrfToken }) => {
 
         // Marquee
         const marqueeSec = payload.sections?.category_marquee;
-        if (marqueeSec && marqueeSec.content?.items) {
-          setMarqueeText(marqueeSec.content.items.join(', '));
+        if (marqueeSec?.content) {
+          if (Array.isArray(marqueeSec.content.links)) {
+            setMarqueeLinks(
+              marqueeSec.content.links.map((l: any) => ({
+                label: l?.label || '',
+                slug: l?.slug || ''
+              }))
+            );
+          } else if (Array.isArray(marqueeSec.content.items)) {
+            const legacyWords = ['curate', 'judge', 'refine', 'test', 'extract', 'calibrate', 'wear'];
+            const nonLegacy = (marqueeSec.content.items as string[]).filter(
+              (w) => typeof w === 'string' && w.trim() && !legacyWords.includes(w.trim().toLowerCase())
+            );
+            setMarqueeLinks(
+              nonLegacy.map((label) => ({
+                label: label.trim(),
+                slug: label
+                  .toLowerCase()
+                  .trim()
+                  .replace(/[^a-z0-9]+/g, '-')
+                  .replace(/^-|-$/g, '')
+              }))
+            );
+          }
         }
 
         // FAQs
@@ -393,10 +394,8 @@ export const HomepageCMS: React.FC<HomepageCMSProps> = ({ csrfToken }) => {
         body: JSON.stringify({
           type: 'section',
           section_key: 'video_showcase',
-          title: showcaseHeader.headline || 'AURA & SILLAGE IN MOTION',
-          subtitle:
-            showcaseHeader.tagline ||
-            'Weightless liquid gold suspended in high-pressure glass atomizers.',
+          title: showcaseHeader.headline,
+          subtitle: showcaseHeader.tagline,
           content: {
             headline: showcaseHeader.headline,
             tagline: showcaseHeader.tagline,
@@ -426,13 +425,10 @@ export const HomepageCMS: React.FC<HomepageCMSProps> = ({ csrfToken }) => {
   const handleAddCard = () => {
     const newCard: VideoShowcaseCard = {
       id: 'card-' + Date.now(),
-      product_id: availableProducts[0]?.id || '',
-      title: availableProducts[0]?.name || 'New Video Product Showcase',
-      video_url:
-        'https://assets.mixkit.co/videos/preview/mixkit-perfume-bottle-in-a-dark-background-41527-large.mp4',
-      thumbnail_url:
-        availableProducts[0]?.image ||
-        '/src/assets/images/element_pure_portions_bottle_1791911761493.jpg',
+      product_id: '',
+      title: '',
+      video_url: '',
+      thumbnail_url: '',
       display_order: showcaseCards.length + 1,
       is_enabled: true
     };
@@ -530,8 +526,8 @@ export const HomepageCMS: React.FC<HomepageCMSProps> = ({ csrfToken }) => {
         body: JSON.stringify({
           type: 'section',
           section_key: 'campaign_banners',
-          title: campaignForm.section_title || 'FOR HIM | HER',
-          subtitle: 'GENDER CATEGORY CAMPAIGNS',
+          title: campaignForm.section_title,
+          subtitle: '',
           content: campaignForm,
           is_enabled: true,
           display_order: 2.5
@@ -540,7 +536,7 @@ export const HomepageCMS: React.FC<HomepageCMSProps> = ({ csrfToken }) => {
 
       const data = await res.json();
       if (data.success) {
-        alert('Campaign Banners (For Him / Her) saved successfully!');
+        alert('Campaign Banners saved successfully!');
         fetchCMSData();
       } else {
         alert(getErrorMessage(data?.error || data, 'Failed to save Campaign Banners'));
@@ -565,8 +561,8 @@ export const HomepageCMS: React.FC<HomepageCMSProps> = ({ csrfToken }) => {
         body: JSON.stringify({
           type: 'section',
           section_key: 'seasons_gallery',
-          title: seasonsHeader.section_title || 'SEASONS',
-          subtitle: seasonsHeader.section_subtitle || 'CHOOSE YOURS',
+          title: seasonsHeader.section_title,
+          subtitle: seasonsHeader.section_subtitle,
           content: {
             section_title: seasonsHeader.section_title,
             section_subtitle: seasonsHeader.section_subtitle,
@@ -594,10 +590,10 @@ export const HomepageCMS: React.FC<HomepageCMSProps> = ({ csrfToken }) => {
   const handleAddSeasonCard = () => {
     const newCard = {
       id: 'season-' + Date.now(),
-      name: 'New Racing Season',
-      description: 'Season livery & collector edition details',
-      image: '/src/assets/images/series_f1_night_aero_1794664771085.jpg',
-      alt: 'Formula 1 racing season card image'
+      name: '',
+      description: '',
+      image: '',
+      alt: ''
     };
     setSeasonCards([...seasonCards, newCard]);
   };
@@ -672,8 +668,8 @@ export const HomepageCMS: React.FC<HomepageCMSProps> = ({ csrfToken }) => {
         body: JSON.stringify({
           type: 'section',
           section_key: 'hero',
-          title: firstSlide.headline || 'COLLECTION IS LIVE',
-          subtitle: firstSlide.eyebrow || "SEASON '26",
+          title: firstSlide.headline,
+          subtitle: firstSlide.eyebrow,
           content: heroPayload,
           is_enabled: true,
           display_order: 1
@@ -694,14 +690,57 @@ export const HomepageCMS: React.FC<HomepageCMSProps> = ({ csrfToken }) => {
     }
   };
 
+  const handleAddMarqueeItem = (label = '', slug = '') => {
+    setMarqueeLinks((prev) => [...prev, { label, slug }]);
+  };
+
+  const handleUpdateMarqueeItem = (
+    index: number,
+    updates: Partial<{ label: string; slug: string }>
+  ) => {
+    setMarqueeLinks((prev) =>
+      prev.map((item, idx) => (idx === index ? { ...item, ...updates } : item))
+    );
+  };
+
+  const handleRemoveMarqueeItem = (index: number) => {
+    setMarqueeLinks((prev) => prev.filter((_, idx) => idx !== index));
+  };
+
+  const handleMoveMarqueeItem = (index: number, direction: 'up' | 'down') => {
+    if (
+      (direction === 'up' && index === 0) ||
+      (direction === 'down' && index === marqueeLinks.length - 1)
+    ) {
+      return;
+    }
+    const targetIndex = direction === 'up' ? index - 1 : index + 1;
+    const next = [...marqueeLinks];
+    const temp = next[index];
+    next[index] = next[targetIndex];
+    next[targetIndex] = temp;
+    setMarqueeLinks(next);
+  };
+
   const handleSaveMarquee = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
     try {
-      const items = marqueeText
-        .split(',')
-        .map((s) => s.trim().toUpperCase())
-        .filter(Boolean);
+      const cleanLinks = marqueeLinks
+        .map((item) => ({
+          label: item.label.trim(),
+          slug:
+            item.slug.trim() ||
+            item.label
+              .toLowerCase()
+              .trim()
+              .replace(/[^a-z0-9]+/g, '-')
+              .replace(/^-|-$/g, '') ||
+            'all'
+        }))
+        .filter((item) => item.label.length > 0);
+
+      const items = cleanLinks.map((item) => item.label);
 
       const res = await fetch('/api/admin/homepage.php', {
         method: 'PUT',
@@ -713,7 +752,7 @@ export const HomepageCMS: React.FC<HomepageCMSProps> = ({ csrfToken }) => {
           type: 'section',
           section_key: 'category_marquee',
           title: 'Category Marquee',
-          content: { items },
+          content: { items, links: cleanLinks },
           is_enabled: true,
           display_order: 2
         })
@@ -968,16 +1007,16 @@ export const HomepageCMS: React.FC<HomepageCMSProps> = ({ csrfToken }) => {
             </span>
           </div>
 
-          {/* Shared Secondary "Shop All" Button Text */}
+          {/* Shared Secondary Button Text */}
           <div className="bg-zinc-50/70 dark:bg-zinc-900/50 border border-zinc-200/80 dark:border-zinc-800 rounded-lg p-4 max-w-md space-y-1.5">
             <label className="block text-xs font-medium text-zinc-700 dark:text-zinc-300">
-              Second Button Text (Links to Shop All Collection)
+              Second Button Text (Links to All Products)
             </label>
             <input
               type="text"
               value={heroForm.secondary_cta_text}
               onChange={(e) => setHeroForm({ ...heroForm, secondary_cta_text: e.target.value })}
-              placeholder="Shop All"
+              placeholder="Secondary button text"
               className={inputCls}
             />
           </div>
@@ -1037,7 +1076,7 @@ export const HomepageCMS: React.FC<HomepageCMSProps> = ({ csrfToken }) => {
                         type="text"
                         value={slide.eyebrow}
                         onChange={(e) => handleUpdateHeroSlide(idx, { eyebrow: e.target.value })}
-                        placeholder="e.g. SEASON '26"
+                        placeholder="Enter eyebrow text"
                         className={inputCls}
                       />
                     </div>
@@ -1050,7 +1089,7 @@ export const HomepageCMS: React.FC<HomepageCMSProps> = ({ csrfToken }) => {
                         type="text"
                         value={slide.headline}
                         onChange={(e) => handleUpdateHeroSlide(idx, { headline: e.target.value })}
-                        placeholder="e.g. COLLECTION IS LIVE"
+                        placeholder="Enter headline"
                         className={inputCls}
                       />
                     </div>
@@ -1065,7 +1104,7 @@ export const HomepageCMS: React.FC<HomepageCMSProps> = ({ csrfToken }) => {
                         type="text"
                         value={slide.cta_text}
                         onChange={(e) => handleUpdateHeroSlide(idx, { cta_text: e.target.value })}
-                        placeholder="e.g. View Car / Shop Model"
+                        placeholder="Button label"
                         className={inputCls}
                       />
                     </div>
@@ -1639,8 +1678,8 @@ export const HomepageCMS: React.FC<HomepageCMSProps> = ({ csrfToken }) => {
               'custom_section_4'
             ].map((secKey, idx) => {
               const sec = customSections[secKey] || {
-                title: `Collection Section ${idx + 1}`,
-                subtitle: 'Curated selection',
+                title: '',
+                subtitle: '',
                 is_enabled: true,
                 product_ids: []
               };
@@ -1769,30 +1808,165 @@ export const HomepageCMS: React.FC<HomepageCMSProps> = ({ csrfToken }) => {
       {activeTab === 'marquee' && (
         <form
           onSubmit={handleSaveMarquee}
-          className="bg-white dark:bg-[#111113] border border-zinc-200/80 dark:border-zinc-800/80 rounded-lg p-6 space-y-5 text-xs"
+          className="bg-white dark:bg-[#111113] border border-zinc-200/80 dark:border-zinc-800/80 rounded-lg p-6 space-y-6 text-xs"
         >
-          <div className="flex items-center gap-2 pb-4 border-b border-zinc-100 dark:border-zinc-800/80">
-            <Layout className="w-4 h-4 text-zinc-400" />
-            <h3 className="text-sm font-semibold text-zinc-950 dark:text-zinc-100">
-              Category Marquee Ticker Settings
-            </h3>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-zinc-100 dark:border-zinc-800/80">
+            <div className="flex items-center gap-2">
+              <Layout className="w-4 h-4 text-zinc-400" />
+              <div>
+                <h3 className="text-sm font-semibold text-zinc-950 dark:text-zinc-100">
+                  Category Marquee Ticker
+                </h3>
+                <p className="text-[11px] text-zinc-500 dark:text-zinc-400">
+                  Attach store categories or custom links to the scrolling banner right below the hero.
+                </p>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => handleAddMarqueeItem('', '')}
+              className={secondaryBtnCls}
+            >
+              <Plus className="w-3.5 h-3.5" />
+              <span>Add Custom Item</span>
+            </button>
           </div>
 
-          <div className="space-y-1.5">
+          {/* Quick Attach Existing Categories */}
+          <div className="bg-zinc-50/70 dark:bg-zinc-900/40 border border-zinc-200/80 dark:border-zinc-800 rounded-lg p-4 space-y-2.5">
             <label className="block text-xs font-medium text-zinc-700 dark:text-zinc-300">
-              Infinite Marquee Words / Ticker Items (comma-separated)
+              Quick Attach Category / Slug
             </label>
-            <input
-              type="text"
-              value={marqueeText}
-              onChange={(e) => setMarqueeText(e.target.value)}
-              placeholder="CURATE, JUDGE, REFINE, TEST"
-              className={`${inputCls} font-mono`}
-            />
-            <p className="text-[11px] text-zinc-400 dark:text-zinc-500">
-              Example: CURATE, JUDGE, REFINE, TEST, COLLECTOR EDITIONS
-            </p>
+            <div className="flex flex-wrap gap-2">
+              <button
+                type="button"
+                onClick={() => handleAddMarqueeItem('ALL PRODUCTS', 'all')}
+                className="h-7 px-2.5 rounded-md border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 hover:bg-zinc-100 dark:hover:bg-zinc-800 text-[11px] font-medium text-zinc-700 dark:text-zinc-200 inline-flex items-center gap-1 cursor-pointer transition-colors"
+              >
+                <Plus className="w-3 h-3" />
+                <span>All Products (/all)</span>
+              </button>
+              {availableCategories.map((cat) => (
+                <button
+                  key={cat.id}
+                  type="button"
+                  onClick={() => handleAddMarqueeItem(cat.title.toUpperCase(), cat.slug)}
+                  className="h-7 px-2.5 rounded-md border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 hover:bg-zinc-100 dark:hover:bg-zinc-800 text-[11px] font-medium text-zinc-700 dark:text-zinc-200 inline-flex items-center gap-1 cursor-pointer transition-colors"
+                >
+                  <Plus className="w-3 h-3" />
+                  <span>{cat.title}</span>
+                  <span className="text-zinc-400 font-mono">/{cat.slug}</span>
+                </button>
+              ))}
+            </div>
           </div>
+
+          {/* Active Marquee Items List */}
+          {marqueeLinks.length === 0 ? (
+            <div className="p-8 text-center text-zinc-500 dark:text-zinc-400 border border-dashed border-zinc-200 dark:border-zinc-800 rounded-lg">
+              No marquee items configured yet. Click a category above or &quot;Add Custom Item&quot;.
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {marqueeLinks.map((item, idx) => (
+                <div
+                  key={idx}
+                  className="bg-zinc-50/70 dark:bg-zinc-900/40 border border-zinc-200/80 dark:border-zinc-800 rounded-lg p-3.5 grid grid-cols-1 md:grid-cols-12 gap-3 items-end"
+                >
+                  <div className="md:col-span-4 space-y-1">
+                    <label className="block text-[11px] font-medium text-zinc-600 dark:text-zinc-400">
+                      Display Label
+                    </label>
+                    <input
+                      type="text"
+                      value={item.label}
+                      onChange={(e) => handleUpdateMarqueeItem(idx, { label: e.target.value })}
+                      placeholder="Label text"
+                      className={inputCls}
+                    />
+                  </div>
+
+                  <div className="md:col-span-4 space-y-1">
+                    <label className="block text-[11px] font-medium text-zinc-600 dark:text-zinc-400">
+                      Attach Category
+                    </label>
+                    <select
+                      value={
+                        item.slug === 'all' ||
+                        availableCategories.some((cat) => cat.slug === item.slug)
+                          ? item.slug
+                          : ''
+                      }
+                      onChange={(e) => {
+                        const selectedSlug = e.target.value;
+                        if (!selectedSlug) return;
+                        const matched = availableCategories.find((c) => c.slug === selectedSlug);
+                        handleUpdateMarqueeItem(idx, {
+                          slug: selectedSlug,
+                          label: item.label.trim()
+                            ? item.label
+                            : matched
+                            ? matched.title.toUpperCase()
+                            : 'ALL PRODUCTS'
+                        });
+                      }}
+                      className={`${inputCls} cursor-pointer`}
+                    >
+                      <option value="">-- Custom slug --</option>
+                      <option value="all">All Products (/collections/all)</option>
+                      {availableCategories.map((cat) => (
+                        <option key={cat.id} value={cat.slug}>
+                          {cat.title} (/collections/{cat.slug})
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="md:col-span-3 space-y-1">
+                    <label className="block text-[11px] font-medium text-zinc-600 dark:text-zinc-400">
+                      Target Slug
+                    </label>
+                    <input
+                      type="text"
+                      value={item.slug}
+                      onChange={(e) => handleUpdateMarqueeItem(idx, { slug: e.target.value })}
+                      placeholder="slug"
+                      className={`${inputCls} font-mono`}
+                    />
+                  </div>
+
+                  <div className="md:col-span-1 flex items-center justify-end gap-1 pb-0.5">
+                    <button
+                      type="button"
+                      disabled={idx === 0}
+                      onClick={() => handleMoveMarqueeItem(idx, 'up')}
+                      className="p-1.5 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-800 text-zinc-700 dark:text-zinc-200 disabled:opacity-30 rounded cursor-pointer"
+                      title="Move Up"
+                    >
+                      <ArrowUp className="w-3 h-3" />
+                    </button>
+                    <button
+                      type="button"
+                      disabled={idx === marqueeLinks.length - 1}
+                      onClick={() => handleMoveMarqueeItem(idx, 'down')}
+                      className="p-1.5 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-800 text-zinc-700 dark:text-zinc-200 disabled:opacity-30 rounded cursor-pointer"
+                      title="Move Down"
+                    >
+                      <ArrowDown className="w-3 h-3" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveMarqueeItem(idx)}
+                      className="p-1.5 rounded text-zinc-400 hover:text-rose-600 dark:hover:text-rose-400 cursor-pointer"
+                      title="Remove Item"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
 
           <div className="pt-4 border-t border-zinc-200/80 dark:border-zinc-800 flex justify-end">
             <button type="submit" disabled={saving} className={primaryBtnCls}>
@@ -1814,9 +1988,9 @@ export const HomepageCMS: React.FC<HomepageCMSProps> = ({ csrfToken }) => {
               onClick={() =>
                 setEditingReview({
                   id: 'rev-' + Date.now(),
-                  quote: 'Awesome build quality!',
-                  content: '100% authentic model and fast shipping in Dhaka!',
-                  author: 'New Customer',
+                  quote: '',
+                  content: '',
+                  author: '',
                   rating: 5
                 })
               }
@@ -1952,8 +2126,8 @@ export const HomepageCMS: React.FC<HomepageCMSProps> = ({ csrfToken }) => {
               onClick={() =>
                 setEditingFaq({
                   id: 'faq-' + Date.now(),
-                  question: 'New Question Title?',
-                  answer: 'Detailed answer response explaining order or shipping policies.'
+                  question: '',
+                  answer: ''
                 })
               }
               className={primaryBtnCls}
@@ -2048,12 +2222,11 @@ export const HomepageCMS: React.FC<HomepageCMSProps> = ({ csrfToken }) => {
               onClick={() =>
                 setEditingArticle({
                   id: 'art-' + Date.now(),
-                  title: 'New Article Headline',
-                  date: 'FEB 20, 2026',
-                  publisher: 'SPIDER VERSE',
-                  description:
-                    'Short introduction or preview snippet of the editorial collector guide.',
-                  image: '/src/assets/images/article_decant_buyers_guide_1791908274237.jpg'
+                  title: '',
+                  date: '',
+                  publisher: '',
+                  description: '',
+                  image: ''
                 })
               }
               className={primaryBtnCls}
