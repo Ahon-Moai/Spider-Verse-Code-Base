@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { ArrowRight, Check } from 'lucide-react';
+import { BrandLogo } from './BrandLogo';
 
 interface FooterProps {
   storeSettings?: any;
@@ -40,14 +41,12 @@ export const Footer: React.FC<FooterProps> = ({ storeSettings }) => {
   return (
     <footer
       id="account-section"
-      className="perf-section w-full bg-[#07080A] text-[#F4F2EE] pt-10 pb-20 md:pb-12 overflow-hidden border-t border-white/10"
+      className="perf-section w-full bg-[#212428] text-[#F4F2EE] pt-10 pb-20 md:pb-12 overflow-hidden border-t border-white/10"
     >
-      {/* Oversized Marvel-Style Brand Wordmark Banner */}
-      <div className="w-full border-b border-white/10 bg-[#08090B] py-8 sm:py-12 select-none overflow-hidden">
+      {/* Oversized SPIDER | VERSE Brand Wordmark Banner */}
+      <div className="w-full border-b border-white/10 bg-[#25282E] py-8 sm:py-12 select-none overflow-hidden">
         <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 text-center flex items-center justify-center">
-          <p className="font-logo bg-[#EC1D24] text-white px-5 sm:px-8 py-2 sm:py-3 text-[11vw] sm:text-[8.5vw] lg:text-[6.8vw] tracking-[-0.02em] uppercase leading-[0.86] whitespace-nowrap">
-            {storeName}
-          </p>
+          <BrandLogo name={storeName} variant="footer" />
         </div>
       </div>
 
@@ -63,7 +62,7 @@ export const Footer: React.FC<FooterProps> = ({ storeSettings }) => {
             </h3>
 
             <p className="text-xs sm:text-sm text-[#9CA3AF] leading-relaxed max-w-md">
-              Receive immediate alerts on limited 1:18 championship drops, new seasonal team liveries, and 2.4GHz RC restocks.
+              Receive immediate alerts on limited 1:18 championship drops, new team liveries, and 2.4GHz RC restocks.
             </p>
 
             <form onSubmit={handleSubscribe} className="max-w-md space-y-2">
@@ -76,7 +75,7 @@ export const Footer: React.FC<FooterProps> = ({ storeSettings }) => {
                     if (error) setError('');
                   }}
                   placeholder="Enter your email address"
-                  className="flex-1 bg-[#111317] border border-white/15 text-white placeholder-[#9CA3AF] text-xs px-4 py-3.5 focus:outline-none focus:border-[#E10600] transition-colors"
+                  className="flex-1 bg-[#2B2F36] border border-white/15 text-white placeholder-[#9CA3AF] text-xs px-4 py-3.5 focus:outline-none focus:border-[#E10600] transition-colors"
                 />
                 <button
                   type="submit"
@@ -107,11 +106,7 @@ export const Footer: React.FC<FooterProps> = ({ storeSettings }) => {
             </form>
 
             <p className="text-[11px] text-[#9CA3AF]">
-              By subscribing, you agree to our{' '}
-              <a href="#faq" className="underline hover:text-white">
-                Privacy Policy
-              </a>
-              . Unsubscribe anytime.
+              By subscribing, you agree to receive dispatch updates. Unsubscribe anytime.
             </p>
           </div>
 
@@ -133,18 +128,31 @@ export const Footer: React.FC<FooterProps> = ({ storeSettings }) => {
                     </a>
                   </li>
                   <li>
-                    <a href="#for-him-her" className="hover:text-white transition-colors">
-                      1:18 & 1:43 Divisions
-                    </a>
-                  </li>
-                  <li>
-                    <a href="#seasons" className="hover:text-white transition-colors">
+                    <a href="#showcase" className="hover:text-white transition-colors">
                       Racing Series
                     </a>
                   </li>
+                </ul>
+              </div>
+
+              <div className="space-y-3">
+                <p className="font-mono text-[10px] tracking-[0.2em] uppercase text-[#E10600] font-semibold">
+                  Orders
+                </p>
+                <ul className="space-y-2 text-[#9CA3AF]">
                   <li>
-                    <a href="#journal" className="hover:text-white transition-colors">
-                      Scale Guides
+                    <a href="/collections/all" className="hover:text-white transition-colors">
+                      All Products
+                    </a>
+                  </li>
+                  <li>
+                    <a href="/cart" className="hover:text-white transition-colors">
+                      Shopping Bag
+                    </a>
+                  </li>
+                  <li>
+                    <a href="#reviews" className="hover:text-white transition-colors">
+                      Shipping & Delivery Info
                     </a>
                   </li>
                 </ul>
@@ -152,47 +160,9 @@ export const Footer: React.FC<FooterProps> = ({ storeSettings }) => {
 
               <div className="space-y-3">
                 <p className="font-mono text-[10px] tracking-[0.2em] uppercase text-[#E10600] font-semibold">
-                  Support
+                  Community
                 </p>
                 <ul className="space-y-2 text-[#9CA3AF]">
-                  <li>
-                    <a href="#faq" className="hover:text-white transition-colors">
-                      1:18 vs 1:43 Guide
-                    </a>
-                  </li>
-                  <li>
-                    <a href="#faq" className="hover:text-white transition-colors">
-                      FAQs
-                    </a>
-                  </li>
-                  <li>
-                    <a href="#faq" className="hover:text-white transition-colors">
-                      Shipping & Delivery
-                    </a>
-                  </li>
-                  <li>
-                    <a href="#faq" className="hover:text-white transition-colors">
-                      Payment Methods
-                    </a>
-                  </li>
-                  <li>
-                    <a href="#faq" className="hover:text-white transition-colors">
-                      Wing Protection Policy
-                    </a>
-                  </li>
-                </ul>
-              </div>
-
-              <div className="space-y-3">
-                <p className="font-mono text-[10px] tracking-[0.2em] uppercase text-[#E10600] font-semibold">
-                  Garage
-                </p>
-                <ul className="space-y-2 text-[#9CA3AF]">
-                  <li>
-                    <a href="#studio-section" className="hover:text-white transition-colors">
-                      Inside Our Pit Garage
-                    </a>
-                  </li>
                   <li>
                     <a href="#reviews" className="hover:text-white transition-colors">
                       Collector Reviews

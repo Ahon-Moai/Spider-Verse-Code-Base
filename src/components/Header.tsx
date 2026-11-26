@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { X, Search, ShoppingBag } from 'lucide-react';
+import { BrandLogo } from './BrandLogo';
 
 interface HeaderProps {
   cartCount: number;
@@ -58,8 +59,8 @@ export const Header: React.FC<HeaderProps> = ({
   };
 
   return (
-    <header className="sticky top-0 z-40 w-full bg-[#08090B]/[0.97] border-b border-white/10 transition-colors duration-200">
-      <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 h-11 md:h-12 flex items-center justify-between gap-4 md:gap-8">
+    <header className="sticky top-0 z-40 w-full bg-[#212428]/[0.97] border-b border-white/10 transition-colors duration-200">
+      <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 h-12 md:h-14 flex items-center justify-between gap-4 md:gap-8">
         {/* Mobile Left: Clean Search Icon (no bg, no border) */}
         <div className="flex items-center justify-start w-10 md:hidden">
           <button
@@ -73,7 +74,7 @@ export const Header: React.FC<HeaderProps> = ({
           </button>
         </div>
 
-        {/* Zone 1: Marvel-style Compressed Block Brand Wordmark (Flush Top-to-Bottom of Navbar) */}
+        {/* Zone 1: SPIDER | VERSE Brand Wordmark */}
         <a
           href="/"
           onClick={(e) => {
@@ -82,10 +83,10 @@ export const Header: React.FC<HeaderProps> = ({
               onNavigateHome();
             }
           }}
-          className="h-full inline-flex items-center justify-center bg-[#EC1D24] text-white px-1 sm:px-1.5 font-logo text-[32px] md:text-[38px] tracking-[-0.035em] leading-[0.78] uppercase hover:brightness-110 transition-all whitespace-nowrap shrink-0 overflow-hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+          className="inline-flex items-center justify-center hover:brightness-110 transition-all whitespace-nowrap shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
           aria-label={`${brandName} Home`}
         >
-          <span className="inline-block scale-y-[1.08] translate-y-[0.02em]">{brandName}</span>
+          <BrandLogo name={brandName} variant="header" />
         </a>
 
         {/* Zone 2: Concise Single-Line Navigation Links (PC) */}
@@ -106,17 +107,17 @@ export const Header: React.FC<HeaderProps> = ({
           </button>
           <button
             type="button"
-            onClick={() => scrollToSection('for-him-her', 'featured')}
+            onClick={() => scrollToSection('showcase', 'all')}
             className="relative py-1 hover:text-white transition-colors whitespace-nowrap shrink-0 cursor-pointer after:content-[''] after:absolute after:left-0 after:bottom-0 after:w-full after:h-[2px] after:bg-[#E10600] after:scale-x-0 hover:after:scale-x-100 after:origin-left after:transition-transform after:duration-200"
           >
-            Scales
+            Series
           </button>
           <button
             type="button"
-            onClick={() => scrollToSection('studio-section')}
+            onClick={() => scrollToSection('reviews')}
             className="relative py-1 hover:text-white transition-colors whitespace-nowrap shrink-0 cursor-pointer after:content-[''] after:absolute after:left-0 after:bottom-0 after:w-full after:h-[2px] after:bg-[#E10600] after:scale-x-0 hover:after:scale-x-100 after:origin-left after:transition-transform after:duration-200"
           >
-            Garage
+            Reviews
           </button>
         </nav>
 
@@ -137,12 +138,12 @@ export const Header: React.FC<HeaderProps> = ({
           </button>
         </div>
 
-        {/* Zone 3: PC Primary Action & Search (Unchanged on Desktop) */}
+        {/* Zone 3: PC Primary Action & Search */}
         <div className="hidden md:flex items-center gap-3 shrink-0">
           <button
             type="button"
             onClick={onOpenSearch}
-            className="p-2 text-[#C4C9D4] hover:text-white border border-white/10 hover:border-white/30 bg-[#111317] transition-colors cursor-pointer whitespace-nowrap shrink-0"
+            className="p-2 text-[#C4C9D4] hover:text-white border border-white/15 hover:border-white/35 bg-[#2B2F36] transition-colors cursor-pointer whitespace-nowrap shrink-0"
             aria-label="Search F1 Models"
             title="Search F1 Models"
           >
@@ -165,13 +166,11 @@ export const Header: React.FC<HeaderProps> = ({
 
       {/* Slide-out Navigation Drawer */}
       {mobileMenuOpen && (
-        <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex justify-end animate-fade-in">
-          <div className="bg-[#0B0D11] text-[#F4F2EE] w-full max-w-sm h-full p-6 sm:p-8 border-l border-white/10 shadow-2xl flex flex-col justify-between overflow-y-auto">
+        <div className="fixed inset-0 z-50 bg-[#1B1E23]/80 backdrop-blur-sm flex justify-end animate-fade-in">
+          <div className="bg-[#212428] text-[#F4F2EE] w-full max-w-sm h-full p-6 sm:p-8 border-l border-white/15 shadow-2xl flex flex-col justify-between overflow-y-auto">
             <div className="space-y-8">
               <div className="flex items-center justify-between border-b border-white/10 pb-4">
-                <span className="font-display font-extrabold text-2xl tracking-[0.14em] uppercase">
-                  {brandName}
-                </span>
+                <BrandLogo name={brandName} variant="drawer" />
                 <button
                   type="button"
                   onClick={() => setMobileMenuOpen(false)}
@@ -188,8 +187,8 @@ export const Header: React.FC<HeaderProps> = ({
                   { label: '1:18 Pro Diecast', action: () => handleCollectionClick('forhim') },
                   { label: '1:43 Acrylic Grid', action: () => handleCollectionClick('forher') },
                   { label: 'New Arrivals', action: () => scrollToSection('new-arrivals', 'new-arrivals') },
-                  { label: 'Pit Garage', action: () => scrollToSection('studio-section') },
-                  { label: 'Collector Reviews & FAQ', action: () => scrollToSection('faq') },
+                  { label: 'Racing Series', action: () => scrollToSection('showcase', 'all') },
+                  { label: 'Collector Reviews', action: () => scrollToSection('reviews') },
                 ].map((item) => (
                   <button
                     key={item.label}

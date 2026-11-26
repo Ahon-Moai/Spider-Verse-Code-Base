@@ -191,6 +191,7 @@ export interface SeasonCardData {
   name: string;
   description: string;
   image: string;
+  slug?: string;
   alt?: string;
 }
 

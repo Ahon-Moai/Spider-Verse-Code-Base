@@ -2,8 +2,8 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 @theme {
-  --font-sans: "Plus Jakarta Sans", system-ui, -apple-system, sans-serif;
-  --font-serif: "Barlow Condensed", "Plus Jakarta Sans", system-ui, sans-serif;
+  --font-sans: "Poppins", system-ui, -apple-system, sans-serif;
+  --font-serif: "Barlow Condensed", "Poppins", system-ui, sans-serif;
   --font-display: "Barlow Condensed", system-ui, sans-serif;
   --font-bodoni: "Barlow Condensed", system-ui, sans-serif;
   --font-editorial: "Barlow Condensed", system-ui, sans-serif;
@@ -12,13 +12,13 @@
 
 @layer base {
   html {
-    background-color: #08090b;
+    background-color: #212428;
     color: #f4f2ee;
-    font-family: "Plus Jakarta Sans", system-ui, -apple-system, sans-serif;
+    font-family: "Poppins", system-ui, -apple-system, sans-serif;
   }
 
   body {
-    font-family: "Plus Jakarta Sans", system-ui, -apple-system, sans-serif;
+    font-family: "Poppins", system-ui, -apple-system, sans-serif;
     overflow-x: hidden;
   }
 }

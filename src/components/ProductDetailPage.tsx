@@ -60,9 +60,9 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
 
   if (!product) {
     return (
-      <div className="min-h-[70vh] bg-[#F4F2EE] text-[#08090B] flex flex-col items-center justify-center px-4 py-20 text-center">
+      <div className="min-h-[70vh] bg-[#F4F2EE] text-[#212428] flex flex-col items-center justify-center px-4 py-20 text-center">
         <div className="max-w-md space-y-4">
-          <h1 className="font-display font-black text-4xl sm:text-5xl uppercase text-[#08090B]">
+          <h1 className="font-display font-black text-4xl sm:text-5xl uppercase text-[#212428]">
             Product Not Found
           </h1>
           <p className="text-sm text-zinc-600 leading-relaxed">
@@ -126,9 +126,9 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
   const relatedProducts = allProducts.filter((p) => p.id !== product.id).slice(0, 4);
 
   return (
-    <div className="bg-[#F4F2EE] text-[#08090B] min-h-screen selection:bg-[#E10600] selection:text-white">
+    <div className="bg-[#F4F2EE] text-[#212428] min-h-screen selection:bg-[#E10600] selection:text-white">
       {/* Breadcrumb Header */}
-      <div className="bg-[#08090B] text-[#C4C9D4] border-b border-white/10">
+      <div className="bg-[#212428] text-[#C4C9D4] border-b border-white/10">
         <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex items-center justify-between text-[11px] font-mono">
           <div className="flex items-center gap-2 truncate">
             <button
@@ -179,7 +179,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
               <button
                 type="button"
                 onClick={handleCopyShareLink}
-                className="absolute top-4 right-4 p-2.5 bg-white hover:bg-[#08090B] hover:text-white text-[#08090B] transition-colors border border-zinc-300 cursor-pointer"
+                className="absolute top-4 right-4 p-2.5 bg-white hover:bg-[#212428] hover:text-white text-[#212428] transition-colors border border-zinc-300 cursor-pointer"
                 title="Share product link"
                 aria-label="Share product link"
               >
@@ -201,7 +201,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
                     className={`relative w-20 h-20 sm:w-24 sm:h-24 bg-white border transition-colors cursor-pointer overflow-hidden shrink-0 flex items-center justify-center ${
                       selectedImageIndex === idx
                         ? 'border-[#E10600] ring-1 ring-[#E10600]'
-                        : 'border-zinc-300 opacity-70 hover:opacity-100 hover:border-[#08090B]'
+                        : 'border-zinc-300 opacity-70 hover:opacity-100 hover:border-[#212428]'
                     }`}
                   >
                     <img
@@ -226,7 +226,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
 
             {/* Product Title */}
             <div>
-              <h1 className="font-display font-black text-3xl sm:text-4xl lg:text-5xl text-[#08090B] uppercase tracking-tight leading-[0.94]">
+              <h1 className="font-display font-black text-3xl sm:text-4xl lg:text-5xl text-[#212428] uppercase tracking-tight leading-[0.94]">
                 {product.name}
               </h1>
               {product.shortDescription && (
@@ -237,7 +237,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
             </div>
 
             {/* Price Block */}
-            <div className="bg-[#08090B] text-white p-4 sm:p-5 flex items-center justify-between border-b-2 border-[#E10600]">
+            <div className="bg-[#212428] text-white p-4 sm:p-5 flex items-center justify-between border-b-2 border-[#E10600]">
               <div>
                 <span className="font-mono text-[10px] tracking-[0.18em] text-[#9CA3AF] uppercase block">
                   {hasVariants ? `${currentSize.size} · ` : ''}
@@ -258,7 +258,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
             {hasVariants && (
               <div className="space-y-3">
                 <div className="flex items-center justify-between text-xs font-mono">
-                  <span className="font-bold tracking-[0.16em] uppercase text-[#08090B]">
+                  <span className="font-bold tracking-[0.16em] uppercase text-[#212428]">
                     Select Option
                   </span>
                 </div>
@@ -275,7 +275,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
                         className={`py-2.5 px-3 border transition-colors text-center cursor-pointer ${
                           isSelected
                             ? 'border-[#E10600] bg-[#E10600] text-white'
-                            : 'border-zinc-300 bg-[#F4F2EE] text-[#08090B] hover:border-[#08090B]'
+                            : 'border-zinc-300 bg-[#F4F2EE] text-[#212428] hover:border-[#212428]'
                         }`}
                       >
                         <span className="text-xs font-mono font-bold uppercase block">
@@ -302,7 +302,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
                   <button
                     type="button"
                     onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                    className="px-4 py-3 text-[#08090B] hover:bg-zinc-200 transition-colors font-mono cursor-pointer"
+                    className="px-4 py-3 text-[#212428] hover:bg-zinc-200 transition-colors font-mono cursor-pointer"
                     aria-label="Decrease quantity"
                   >
                     -
@@ -316,7 +316,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
                       setQuantity((q) => (maxStock !== null ? Math.min(maxStock, q + 1) : q + 1))
                     }
                     disabled={maxStock !== null && quantity >= maxStock}
-                    className="px-4 py-3 text-[#08090B] hover:bg-zinc-200 transition-colors font-mono cursor-pointer disabled:opacity-35 disabled:cursor-not-allowed"
+                    className="px-4 py-3 text-[#212428] hover:bg-zinc-200 transition-colors font-mono cursor-pointer disabled:opacity-35 disabled:cursor-not-allowed"
                     aria-label="Increase quantity"
                   >
                     +
@@ -327,7 +327,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
                   type="button"
                   onClick={handleAddToCartClick}
                   disabled={added}
-                  className="btn-f1 flex-1 bg-[#08090B] hover:bg-[#1F242C] text-white py-3.5 px-6 font-display text-sm sm:text-base font-bold tracking-[0.08em] uppercase flex items-center justify-center transition-colors cursor-pointer"
+                  className="btn-f1 flex-1 bg-[#212428] hover:bg-[#1F242C] text-white py-3.5 px-6 font-display text-sm sm:text-base font-bold tracking-[0.08em] uppercase flex items-center justify-center transition-colors cursor-pointer"
                 >
                   <span className="btn-f1-inner">
                     {added ? (
@@ -362,7 +362,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
       {/* Simple Product Description */}
       <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 pb-16">
         <div className="bg-white border border-zinc-300 p-6 sm:p-8 space-y-3">
-          <h2 className="font-display font-bold text-xl sm:text-2xl uppercase text-[#08090B] border-b border-zinc-200 pb-3">
+          <h2 className="font-display font-bold text-xl sm:text-2xl uppercase text-[#212428] border-b border-zinc-200 pb-3">
             Description
           </h2>
           {fullDescription ? (
@@ -381,7 +381,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
       {relatedProducts.length > 0 && (
         <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 pb-16 pt-8 border-t border-zinc-300">
           <div className="mb-6">
-            <h2 className="font-display text-3xl text-[#08090B] uppercase font-black tracking-tight">
+            <h2 className="font-display text-3xl text-[#212428] uppercase font-black tracking-tight">
               You May Also Like
             </h2>
           </div>
@@ -391,7 +391,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
               <div
                 key={relProd.id}
                 onClick={() => onNavigateToProduct(relProd)}
-                className="bg-white border border-zinc-300 hover:border-[#08090B] flex flex-col justify-between cursor-pointer group transition-colors"
+                className="bg-white border border-zinc-300 hover:border-[#212428] flex flex-col justify-between cursor-pointer group transition-colors"
               >
                 <div className="w-full aspect-square bg-[#FAF9F6] flex items-center justify-center overflow-hidden border-b border-zinc-200/70">
                   <img
@@ -407,10 +407,10 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
                       {relProd.category}
                     </span>
                   )}
-                  <h4 className="font-display text-lg font-bold uppercase text-[#08090B] mt-0.5 line-clamp-1 group-hover:text-[#E10600] transition-colors">
+                  <h4 className="font-display text-lg font-bold uppercase text-[#212428] mt-0.5 line-clamp-1 group-hover:text-[#E10600] transition-colors">
                     {relProd.name}
                   </h4>
-                  <p className="text-xs font-mono font-bold text-[#08090B] mt-1 tabular-nums">
+                  <p className="text-xs font-mono font-bold text-[#212428] mt-1 tabular-nums">
                     From ৳ {relProd.startingPrice.toLocaleString()}
                   </p>
                 </div>

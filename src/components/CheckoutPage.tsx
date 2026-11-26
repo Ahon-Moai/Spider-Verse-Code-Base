@@ -315,14 +315,14 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
   };
 
   const inputBaseCls =
-    'w-full bg-[#F4F2EE] border px-3.5 py-2.5 text-sm text-[#08090B] placeholder:text-zinc-400 focus:outline-none transition-colors';
+    'w-full bg-[#F4F2EE] border px-3.5 py-2.5 text-sm text-[#212428] placeholder:text-zinc-400 focus:outline-none transition-colors';
 
   const selectedLocationLabel = formatZoneLabel(cityZone);
 
   return (
-    <div className="bg-[#F4F2EE] text-[#08090B] min-h-screen selection:bg-[#E10600] selection:text-white">
+    <div className="bg-[#F4F2EE] text-[#212428] min-h-screen selection:bg-[#E10600] selection:text-white">
       {/* Dark Breadcrumb Bar */}
-      <div className="bg-[#08090B] text-[#C4C9D4] border-b border-white/10">
+      <div className="bg-[#212428] text-[#C4C9D4] border-b border-white/10">
         <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex items-center justify-between text-[11px] font-mono">
           <div className="flex items-center gap-2 truncate">
             <button
@@ -360,12 +360,12 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
       {/* Main Content */}
       <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-end justify-between border-b-2 border-[#08090B] pb-4 mb-8 gap-3">
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between border-b-2 border-[#212428] pb-4 mb-8 gap-3">
           <div>
             <span className="font-mono text-[11px] tracking-[0.2em] text-[#E10600] uppercase font-semibold block">
               Order Placement
             </span>
-            <h1 className="font-display font-black text-3xl sm:text-4xl lg:text-5xl tracking-tight text-[#08090B] uppercase leading-none mt-1">
+            <h1 className="font-display font-black text-3xl sm:text-4xl lg:text-5xl tracking-tight text-[#212428] uppercase leading-none mt-1">
               Checkout
             </h1>
           </div>
@@ -396,7 +396,7 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
             {/* Section 01 – Customer Information */}
             <section className="bg-white border border-zinc-300 p-6 sm:p-7 space-y-5">
               <div className="border-b border-zinc-200 pb-3 flex items-baseline justify-between">
-                <h2 className="font-display font-bold text-2xl uppercase text-[#08090B]">
+                <h2 className="font-display font-bold text-2xl uppercase text-[#212428]">
                   01. Customer Information
                 </h2>
                 <span className="font-mono text-[10px] uppercase tracking-wider text-zinc-500">
@@ -431,7 +431,7 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
                     className={`${inputBaseCls} ${
                       fieldErrors.customerName
                         ? 'border-[#E10600] focus:border-[#E10600]'
-                        : 'border-zinc-300 focus:border-[#08090B]'
+                        : 'border-zinc-300 focus:border-[#212428]'
                     }`}
                   />
                   {fieldErrors.customerName && (
@@ -467,7 +467,7 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
                     className={`${inputBaseCls} font-mono ${
                       fieldErrors.customerPhone
                         ? 'border-[#E10600] focus:border-[#E10600]'
-                        : 'border-zinc-300 focus:border-[#08090B]'
+                        : 'border-zinc-300 focus:border-[#212428]'
                     }`}
                   />
                   {fieldErrors.customerPhone && (
@@ -502,7 +502,7 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
                     className={`${inputBaseCls} ${
                       fieldErrors.customerEmail
                         ? 'border-[#E10600] focus:border-[#E10600]'
-                        : 'border-zinc-300 focus:border-[#08090B]'
+                        : 'border-zinc-300 focus:border-[#212428]'
                     }`}
                   />
                   {fieldErrors.customerEmail && (
@@ -517,7 +517,7 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
             {/* Section 02 – Delivery Location & Address */}
             <section className="bg-white border border-zinc-300 p-6 sm:p-7 space-y-5">
               <div className="border-b border-zinc-200 pb-3 flex items-baseline justify-between">
-                <h2 className="font-display font-bold text-2xl uppercase text-[#08090B]">
+                <h2 className="font-display font-bold text-2xl uppercase text-[#212428]">
                   02. Delivery Location
                 </h2>
                 <span className="font-mono text-[10px] uppercase tracking-wider text-zinc-500">
@@ -540,7 +540,7 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
                   className={`p-4 sm:p-5 border-2 text-left transition-colors cursor-pointer flex items-start justify-between gap-3 ${
                     cityZone === 'outside_dhaka'
                       ? 'border-[#E10600] bg-[#FAF9F6]'
-                      : 'border-zinc-200 bg-white hover:border-[#08090B]'
+                      : 'border-zinc-200 bg-white hover:border-[#212428]'
                   }`}
                 >
                   <div className="flex items-start gap-3 min-w-0">
@@ -555,7 +555,7 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
                       {cityZone === 'outside_dhaka' && <Check className="w-3.5 h-3.5" />}
                     </span>
                     <div className="min-w-0">
-                      <span className="text-sm font-bold text-[#08090B] block">
+                      <span className="text-sm font-bold text-[#212428] block">
                         Outside Chittagong
                       </span>
                       <span className="text-xs text-zinc-600 block mt-0.5">
@@ -563,7 +563,7 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
                       </span>
                     </div>
                   </div>
-                  <span className="font-mono text-xs sm:text-sm font-bold text-[#08090B] tabular-nums shrink-0">
+                  <span className="font-mono text-xs sm:text-sm font-bold text-[#212428] tabular-nums shrink-0">
                     {subtotal >= effectiveThreshold
                       ? 'FREE'
                       : `${currencySymbol} ${effectiveFeeOutside}`}
@@ -579,7 +579,7 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
                   className={`p-4 sm:p-5 border-2 text-left transition-colors cursor-pointer flex items-start justify-between gap-3 ${
                     cityZone === 'inside_dhaka'
                       ? 'border-[#E10600] bg-[#FAF9F6]'
-                      : 'border-zinc-200 bg-white hover:border-[#08090B]'
+                      : 'border-zinc-200 bg-white hover:border-[#212428]'
                   }`}
                 >
                   <div className="flex items-start gap-3 min-w-0">
@@ -594,7 +594,7 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
                       {cityZone === 'inside_dhaka' && <Check className="w-3.5 h-3.5" />}
                     </span>
                     <div className="min-w-0">
-                      <span className="text-sm font-bold text-[#08090B] block">
+                      <span className="text-sm font-bold text-[#212428] block">
                         Inside Chittagong
                       </span>
                       <span className="text-xs text-zinc-600 block mt-0.5">
@@ -602,7 +602,7 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
                       </span>
                     </div>
                   </div>
-                  <span className="font-mono text-xs sm:text-sm font-bold text-[#08090B] tabular-nums shrink-0">
+                  <span className="font-mono text-xs sm:text-sm font-bold text-[#212428] tabular-nums shrink-0">
                     {subtotal >= effectiveThreshold
                       ? 'FREE'
                       : `${currencySymbol} ${effectiveFeeInside}`}
@@ -636,7 +636,7 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
                   className={`${inputBaseCls} resize-y ${
                     fieldErrors.streetAddress
                       ? 'border-[#E10600] focus:border-[#E10600]'
-                      : 'border-zinc-300 focus:border-[#08090B]'
+                      : 'border-zinc-300 focus:border-[#212428]'
                   }`}
                 />
                 {fieldErrors.streetAddress && (
@@ -659,7 +659,7 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
                   value={deliveryInstructions}
                   onChange={(e) => setDeliveryInstructions(e.target.value)}
                   placeholder="Optional notes for courier or delivery time preference"
-                  className={`${inputBaseCls} border-zinc-300 focus:border-[#08090B]`}
+                  className={`${inputBaseCls} border-zinc-300 focus:border-[#212428]`}
                 />
               </div>
             </section>
@@ -667,21 +667,21 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
             {/* Section 03 – Payment Method (Cash on Delivery Only) */}
             <section className="bg-white border border-zinc-300 p-6 sm:p-7 space-y-4">
               <div className="border-b border-zinc-200 pb-3">
-                <h2 className="font-display font-bold text-2xl uppercase text-[#08090B]">
+                <h2 className="font-display font-bold text-2xl uppercase text-[#212428]">
                   03. Payment Method
                 </h2>
               </div>
 
-              <div className="p-4 sm:p-5 border-2 border-[#08090B] bg-[#FAF9F6] flex items-center justify-between gap-4">
+              <div className="p-4 sm:p-5 border-2 border-[#212428] bg-[#FAF9F6] flex items-center justify-between gap-4">
                 <div className="flex items-start gap-3">
                   <span
                     aria-hidden="true"
-                    className="mt-0.5 w-5 h-5 bg-[#08090B] text-white flex items-center justify-center shrink-0"
+                    className="mt-0.5 w-5 h-5 bg-[#212428] text-white flex items-center justify-center shrink-0"
                   >
                     <Check className="w-3.5 h-3.5" />
                   </span>
                   <div>
-                    <p className="text-sm font-bold text-[#08090B]">
+                    <p className="text-sm font-bold text-[#212428]">
                       Cash on Delivery
                     </p>
                     <p className="text-xs text-zinc-600 mt-0.5">
@@ -701,7 +701,7 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
           <aside className="lg:col-span-5 lg:sticky lg:top-20">
             <div className="bg-white border border-zinc-300 p-6 space-y-5">
               <div className="border-b border-zinc-200 pb-3 flex items-center justify-between">
-                <h2 className="font-display font-bold text-2xl uppercase text-[#08090B]">
+                <h2 className="font-display font-bold text-2xl uppercase text-[#212428]">
                   Order Summary
                 </h2>
                 <button
@@ -743,7 +743,7 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
                       </div>
 
                       <div className="flex-1 min-w-0">
-                        <p className="font-display text-base font-bold uppercase text-[#08090B] truncate">
+                        <p className="font-display text-base font-bold uppercase text-[#212428] truncate">
                           {item.product.name}
                         </p>
                         <p className="font-mono text-[11px] text-zinc-500 mt-0.5 tabular-nums">
@@ -752,7 +752,7 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
                         </p>
                       </div>
 
-                      <span className="font-mono text-xs sm:text-sm font-bold text-[#08090B] tabular-nums shrink-0">
+                      <span className="font-mono text-xs sm:text-sm font-bold text-[#212428] tabular-nums shrink-0">
                         {currencySymbol} {lineTotal.toLocaleString()}
                       </span>
                     </div>
@@ -793,13 +793,13 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
                       }}
                       placeholder="Coupon code (optional)"
                       aria-label="Coupon code"
-                      className="flex-1 min-w-0 bg-[#F4F2EE] border border-zinc-300 px-3 py-2 text-xs font-mono uppercase text-[#08090B] placeholder:normal-case placeholder:text-zinc-400 focus:outline-none focus:border-[#08090B]"
+                      className="flex-1 min-w-0 bg-[#F4F2EE] border border-zinc-300 px-3 py-2 text-xs font-mono uppercase text-[#212428] placeholder:normal-case placeholder:text-zinc-400 focus:outline-none focus:border-[#212428]"
                     />
                     <button
                       type="button"
                       onClick={handleApplyCoupon}
                       disabled={applyingCoupon}
-                      className="px-4 py-2 bg-[#08090B] hover:bg-zinc-800 text-white font-mono text-[11px] font-semibold uppercase tracking-wider transition-colors cursor-pointer disabled:opacity-50 shrink-0"
+                      className="px-4 py-2 bg-[#212428] hover:bg-zinc-800 text-white font-mono text-[11px] font-semibold uppercase tracking-wider transition-colors cursor-pointer disabled:opacity-50 shrink-0"
                     >
                       {applyingCoupon ? '...' : 'Apply'}
                     </button>
@@ -823,21 +823,21 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
               <div className="space-y-2.5 pt-4 border-t border-zinc-200 text-xs">
                 <div className="flex items-center justify-between text-zinc-600">
                   <span>Products Subtotal</span>
-                  <span className="font-mono font-semibold text-[#08090B] tabular-nums">
+                  <span className="font-mono font-semibold text-[#212428] tabular-nums">
                     {currencySymbol} {subtotal.toLocaleString()}
                   </span>
                 </div>
 
                 <div className="flex items-center justify-between text-zinc-600">
                   <span>Delivery Location</span>
-                  <span className="font-semibold text-[#08090B]">
+                  <span className="font-semibold text-[#212428]">
                     {selectedLocationLabel}
                   </span>
                 </div>
 
                 <div className="flex items-center justify-between text-zinc-600">
                   <span>Delivery Charge</span>
-                  <span className="font-mono font-semibold text-[#08090B] tabular-nums">
+                  <span className="font-mono font-semibold text-[#212428] tabular-nums">
                     {deliveryFee === 0
                       ? 'FREE'
                       : `${currencySymbol} ${deliveryFee.toLocaleString()}`}
@@ -855,16 +855,16 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
 
                 <div className="flex items-center justify-between text-zinc-600">
                   <span>Payment Method</span>
-                  <span className="font-semibold text-[#08090B]">
+                  <span className="font-semibold text-[#212428]">
                     Cash on Delivery
                   </span>
                 </div>
 
                 <div className="flex items-baseline justify-between pt-3 border-t border-zinc-300">
-                  <span className="font-mono text-xs font-bold uppercase tracking-wider text-[#08090B]">
+                  <span className="font-mono text-xs font-bold uppercase tracking-wider text-[#212428]">
                     Final Payable Amount
                   </span>
-                  <span className="font-mono text-2xl font-bold text-[#08090B] tabular-nums">
+                  <span className="font-mono text-2xl font-bold text-[#212428] tabular-nums">
                     {currencySymbol} {totalPayable.toLocaleString()}
                   </span>
                 </div>

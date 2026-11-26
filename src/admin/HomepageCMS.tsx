@@ -24,7 +24,7 @@ export const HomepageCMS: React.FC<HomepageCMSProps> = ({ csrfToken }) => {
   const [activeTab, setActiveTab] = useState<
     | 'hero'
     | 'campaigns'
-    | 'seasons'
+    | 'showcase'
     | 'video'
     | 'sections'
     | 'marquee'
@@ -103,14 +103,21 @@ export const HomepageCMS: React.FC<HomepageCMSProps> = ({ csrfToken }) => {
     for_her_image: ''
   });
 
-  // Seasons Gallery Form
-  const [seasonsHeader, setSeasonsHeader] = useState({
+  // Showcase Boxes Form
+  const [showcaseBoxesHeader, setShowcaseBoxesHeader] = useState({
     section_title: '',
     section_subtitle: ''
   });
 
-  const [seasonCards, setSeasonCards] = useState<
-    Array<{ id: string; name: string; description: string; image: string; alt?: string }>
+  const [showcaseBoxes, setShowcaseBoxes] = useState<
+    Array<{
+      id: string;
+      name: string;
+      description: string;
+      slug?: string;
+      image: string;
+      alt?: string;
+    }>
   >([]);
 
   // Video Product Showcase Section State
@@ -263,16 +270,25 @@ export const HomepageCMS: React.FC<HomepageCMSProps> = ({ csrfToken }) => {
           setCampaignForm((prev) => ({ ...prev, ...campSec.content }));
         }
 
-        // Seasons Gallery
-        const seasonsSec = payload.sections?.seasons_gallery;
-        if (seasonsSec && seasonsSec.content) {
-          setSeasonsHeader({
-            section_title: seasonsSec.title || seasonsSec.content.section_title || '',
+        // Showcase Boxes (stored under section_key 'seasons_gallery' for DB compatibility)
+        const showcaseSec = payload.sections?.seasons_gallery;
+        if (showcaseSec && showcaseSec.content) {
+          setShowcaseBoxesHeader({
+            section_title: showcaseSec.title || showcaseSec.content.section_title || '',
             section_subtitle:
-              seasonsSec.subtitle || seasonsSec.content.section_subtitle || ''
+              showcaseSec.subtitle || showcaseSec.content.section_subtitle || ''
           });
-          if (Array.isArray(seasonsSec.content.cards)) {
-            setSeasonCards(seasonsSec.content.cards);
+          if (Array.isArray(showcaseSec.content.cards)) {
+            setShowcaseBoxes(
+              showcaseSec.content.cards.map((c: any) => ({
+                id: c.id || 'box-' + Date.now(),
+                name: c.name || '',
+                description: c.description || '',
+                slug: c.slug || '',
+                image: c.image || '',
+                alt: c.alt || ''
+              }))
+            );
           }
         }
 
@@ -548,10 +564,15 @@ export const HomepageCMS: React.FC<HomepageCMSProps> = ({ csrfToken }) => {
     }
   };
 
-  const handleSaveSeasonsGallery = async (e: React.FormEvent) => {
+  const handleSaveShowcaseBoxes = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
     try {
+      const cleanedBoxes = showcaseBoxes.map((box) => ({
+        ...box,
+        slug: (box.slug || '').trim()
+      }));
+
       const res = await fetch('/api/admin/homepage.php', {
         method: 'PUT',
         headers: {
@@ -561,12 +582,12 @@ export const HomepageCMS: React.FC<HomepageCMSProps> = ({ csrfToken }) => {
         body: JSON.stringify({
           type: 'section',
           section_key: 'seasons_gallery',
-          title: seasonsHeader.section_title,
-          subtitle: seasonsHeader.section_subtitle,
+          title: showcaseBoxesHeader.section_title,
+          subtitle: showcaseBoxesHeader.section_subtitle,
           content: {
-            section_title: seasonsHeader.section_title,
-            section_subtitle: seasonsHeader.section_subtitle,
-            cards: seasonCards
+            section_title: showcaseBoxesHeader.section_title,
+            section_subtitle: showcaseBoxesHeader.section_subtitle,
+            cards: cleanedBoxes
           },
           is_enabled: true,
           display_order: 2.8
@@ -575,56 +596,63 @@ export const HomepageCMS: React.FC<HomepageCMSProps> = ({ csrfToken }) => {
 
       const data = await res.json();
       if (data.success) {
-        alert('Seasons Gallery saved successfully!');
+        alert('Showcase Boxes saved successfully!');
         fetchCMSData();
       } else {
-        alert(getErrorMessage(data?.error || data, 'Failed to save Seasons Gallery'));
+        alert(getErrorMessage(data?.error || data, 'Failed to save Showcase Boxes'));
       }
     } catch (e) {
-      alert('Error saving Seasons Gallery');
+      alert('Error saving Showcase Boxes');
     } finally {
       setSaving(false);
     }
   };
 
-  const handleAddSeasonCard = () => {
-    const newCard = {
-      id: 'season-' + Date.now(),
-      name: '',
+  const handleAddShowcaseBox = (presetName = '', presetSlug = '') => {
+    const newBox = {
+      id: 'box-' + Date.now() + '-' + Math.random().toString(36).slice(2, 6),
+      name: presetName,
       description: '',
+      slug: presetSlug,
       image: '',
       alt: ''
     };
-    setSeasonCards([...seasonCards, newCard]);
+    setShowcaseBoxes((prev) => [...prev, newBox]);
   };
 
-  const handleUpdateSeasonCard = (
+  const handleUpdateShowcaseBox = (
     id: string,
-    updates: Partial<{ name: string; description: string; image: string; alt: string }>
+    updates: Partial<{
+      name: string;
+      description: string;
+      slug: string;
+      image: string;
+      alt: string;
+    }>
   ) => {
-    setSeasonCards((prev) =>
+    setShowcaseBoxes((prev) =>
       prev.map((card) => (card.id === id ? { ...card, ...updates } : card))
     );
   };
 
-  const handleDeleteSeasonCard = (id: string) => {
-    if (!confirm('Are you sure you want to delete this seasonal card?')) return;
-    setSeasonCards((prev) => prev.filter((c) => c.id !== id));
+  const handleDeleteShowcaseBox = (id: string) => {
+    if (!confirm('Are you sure you want to delete this showcase box?')) return;
+    setShowcaseBoxes((prev) => prev.filter((c) => c.id !== id));
   };
 
-  const handleMoveSeasonCard = (index: number, direction: 'up' | 'down') => {
+  const handleMoveShowcaseBox = (index: number, direction: 'up' | 'down') => {
     if (
       (direction === 'up' && index === 0) ||
-      (direction === 'down' && index === seasonCards.length - 1)
+      (direction === 'down' && index === showcaseBoxes.length - 1)
     ) {
       return;
     }
     const targetIndex = direction === 'up' ? index - 1 : index + 1;
-    const next = [...seasonCards];
+    const next = [...showcaseBoxes];
     const temp = next[index];
     next[index] = next[targetIndex];
     next[targetIndex] = temp;
-    setSeasonCards(next);
+    setShowcaseBoxes(next);
   };
 
   const handleUpdateHeroSlide = (
@@ -965,14 +993,9 @@ export const HomepageCMS: React.FC<HomepageCMSProps> = ({ csrfToken }) => {
         <div className="inline-flex bg-zinc-100 dark:bg-zinc-900 p-1 rounded-lg border border-zinc-200/80 dark:border-zinc-800 gap-1">
           {[
             { id: 'hero', label: 'Hero Banner' },
-            { id: 'campaigns', label: 'Campaign Banners' },
-            { id: 'seasons', label: 'Seasons Gallery' },
-            { id: 'video', label: 'Video Showcase' },
+            { id: 'showcase', label: 'Showcase Boxes' },
             { id: 'sections', label: 'Custom Sections' },
-            { id: 'marquee', label: 'Marquee Ticker' },
-            { id: 'reviews', label: 'Reviews' },
-            { id: 'faqs', label: 'FAQs' },
-            { id: 'articles', label: 'Journal Articles' }
+            { id: 'reviews', label: 'Reviews' }
           ].map((tab) => (
             <button
               key={tab.id}
@@ -1287,17 +1310,32 @@ export const HomepageCMS: React.FC<HomepageCMSProps> = ({ csrfToken }) => {
         </form>
       )}
 
-      {/* Tab: Seasons Gallery */}
-      {activeTab === 'seasons' && (
+      {/* Tab: Showcase Boxes (Unlimited boxes with custom category/slug routes) */}
+      {activeTab === 'showcase' && (
         <form
-          onSubmit={handleSaveSeasonsGallery}
+          onSubmit={handleSaveShowcaseBoxes}
           className="bg-white dark:bg-[#111113] border border-zinc-200/80 dark:border-zinc-800/80 rounded-lg p-6 space-y-6 text-xs"
         >
-          <div className="flex items-center gap-2 pb-4 border-b border-zinc-100 dark:border-zinc-800/80">
-            <Sparkles className="w-4 h-4 text-zinc-400" />
-            <h3 className="text-sm font-semibold text-zinc-950 dark:text-zinc-100">
-              Seasons Campaign Gallery
-            </h3>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-zinc-100 dark:border-zinc-800/80">
+            <div className="flex items-center gap-2">
+              <Sparkles className="w-4 h-4 text-zinc-400" />
+              <div>
+                <h3 className="text-sm font-semibold text-zinc-950 dark:text-zinc-100">
+                  Showcase Boxes
+                </h3>
+                <p className="text-[11px] text-zinc-500 dark:text-zinc-400">
+                  Create as many boxes as you want and set a category or custom slug route for each box.
+                </p>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => handleAddShowcaseBox('', '')}
+              className={secondaryBtnCls}
+            >
+              <Plus className="w-3.5 h-3.5" />
+              <span>Add Showcase Box</span>
+            </button>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-zinc-50/70 dark:bg-zinc-900/40 p-4 rounded-lg border border-zinc-200/80 dark:border-zinc-800">
@@ -1307,10 +1345,14 @@ export const HomepageCMS: React.FC<HomepageCMSProps> = ({ csrfToken }) => {
               </label>
               <input
                 type="text"
-                value={seasonsHeader.section_title}
+                value={showcaseBoxesHeader.section_title}
                 onChange={(e) =>
-                  setSeasonsHeader({ ...seasonsHeader, section_title: e.target.value })
+                  setShowcaseBoxesHeader({
+                    ...showcaseBoxesHeader,
+                    section_title: e.target.value
+                  })
                 }
+                placeholder="Section title"
                 className={inputCls}
               />
             </div>
@@ -1321,111 +1363,235 @@ export const HomepageCMS: React.FC<HomepageCMSProps> = ({ csrfToken }) => {
               </label>
               <input
                 type="text"
-                value={seasonsHeader.section_subtitle}
+                value={showcaseBoxesHeader.section_subtitle}
                 onChange={(e) =>
-                  setSeasonsHeader({ ...seasonsHeader, section_subtitle: e.target.value })
+                  setShowcaseBoxesHeader({
+                    ...showcaseBoxesHeader,
+                    section_subtitle: e.target.value
+                  })
                 }
+                placeholder="Section subtitle"
                 className={inputCls}
               />
             </div>
           </div>
 
-          {/* Season Cards Manager */}
+          {/* Quick Add Box from Created Categories / Slugs */}
+          <div className="bg-zinc-50/70 dark:bg-zinc-900/40 border border-zinc-200/80 dark:border-zinc-800 rounded-lg p-4 space-y-2.5">
+            <label className="block text-xs font-medium text-zinc-700 dark:text-zinc-300">
+              Quick Add Box Linked to Created Category / Slug
+            </label>
+            <div className="flex flex-wrap gap-2">
+              <button
+                type="button"
+                onClick={() => handleAddShowcaseBox('All Products', 'all')}
+                className="h-7 px-2.5 rounded-md border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 hover:bg-zinc-100 dark:hover:bg-zinc-800 text-[11px] font-medium text-zinc-700 dark:text-zinc-200 inline-flex items-center gap-1 cursor-pointer transition-colors"
+              >
+                <Plus className="w-3 h-3" />
+                <span>All Products (/collections/all)</span>
+              </button>
+              {availableCategories.map((cat) => (
+                <button
+                  key={cat.id}
+                  type="button"
+                  onClick={() => handleAddShowcaseBox(cat.title, cat.slug)}
+                  className="h-7 px-2.5 rounded-md border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 hover:bg-zinc-100 dark:hover:bg-zinc-800 text-[11px] font-medium text-zinc-700 dark:text-zinc-200 inline-flex items-center gap-1 cursor-pointer transition-colors"
+                >
+                  <Plus className="w-3 h-3" />
+                  <span>{cat.title}</span>
+                  <span className="text-zinc-400 font-mono">/{cat.slug}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Showcase Boxes Manager */}
           <div className="space-y-4">
             <div className="flex items-center justify-between border-b border-zinc-200/80 dark:border-zinc-800 pb-3">
               <h4 className="text-xs font-semibold text-zinc-900 dark:text-zinc-100">
-                Seasonal Cards ({seasonCards.length})
+                Active Showcase Boxes ({showcaseBoxes.length})
               </h4>
-              <button type="button" onClick={handleAddSeasonCard} className={secondaryBtnCls}>
+              <button
+                type="button"
+                onClick={() => handleAddShowcaseBox('', '')}
+                className={secondaryBtnCls}
+              >
                 <Plus className="w-3.5 h-3.5" />
-                <span>Add Season Card</span>
+                <span>Add Box</span>
               </button>
             </div>
 
-            {seasonCards.length === 0 ? (
+            {showcaseBoxes.length === 0 ? (
               <div className="p-8 text-center text-zinc-500 dark:text-zinc-400 border border-dashed border-zinc-200 dark:border-zinc-800 rounded-lg">
-                No season cards configured. Click &quot;Add Season Card&quot; to create one.
+                No showcase boxes configured. Click &quot;Add Box&quot; or select a category above to create one.
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {seasonCards.map((card, idx) => (
-                  <div
-                    key={card.id}
-                    className="bg-zinc-50/70 dark:bg-zinc-900/40 border border-zinc-200/80 dark:border-zinc-800 rounded-lg p-4 space-y-4"
-                  >
-                    <div className="flex items-center justify-between border-b border-zinc-200/70 dark:border-zinc-800 pb-2.5">
-                      <div className="flex items-center gap-2.5">
-                        <span className="font-mono text-xs font-semibold text-zinc-900 dark:text-zinc-100">
-                          Season #{idx + 1}
-                        </span>
-                        <div className="flex items-center gap-1">
-                          <button
-                            type="button"
-                            disabled={idx === 0}
-                            onClick={() => handleMoveSeasonCard(idx, 'up')}
-                            className="p-1 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-800 text-zinc-700 dark:text-zinc-200 disabled:opacity-30 rounded cursor-pointer"
-                            title="Move Up"
-                          >
-                            <ArrowUp className="w-3 h-3" />
-                          </button>
-                          <button
-                            type="button"
-                            disabled={idx === seasonCards.length - 1}
-                            onClick={() => handleMoveSeasonCard(idx, 'down')}
-                            className="p-1 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-800 text-zinc-700 dark:text-zinc-200 disabled:opacity-30 rounded cursor-pointer"
-                            title="Move Down"
-                          >
-                            <ArrowDown className="w-3 h-3" />
-                          </button>
+                {showcaseBoxes.map((card, idx) => {
+                  const currentSlug = (card.slug || '').trim();
+                  const isKnownRoute =
+                    currentSlug === 'all' ||
+                    currentSlug === 'new-arrivals' ||
+                    currentSlug === 'best-sellers' ||
+                    availableCategories.some((cat) => cat.slug === currentSlug);
+
+                  const routePreview = !currentSlug
+                    ? '/collections/all'
+                    : /^https?:\/\//i.test(currentSlug) || currentSlug.startsWith('/')
+                    ? currentSlug
+                    : `/collections/${currentSlug}`;
+
+                  return (
+                    <div
+                      key={card.id}
+                      className="bg-zinc-50/70 dark:bg-zinc-900/40 border border-zinc-200/80 dark:border-zinc-800 rounded-lg p-4 space-y-4"
+                    >
+                      <div className="flex items-center justify-between border-b border-zinc-200/70 dark:border-zinc-800 pb-2.5">
+                        <div className="flex items-center gap-2.5">
+                          <span className="font-mono text-xs font-semibold text-zinc-900 dark:text-zinc-100">
+                            Box #{idx + 1}
+                          </span>
+                          <div className="flex items-center gap-1">
+                            <button
+                              type="button"
+                              disabled={idx === 0}
+                              onClick={() => handleMoveShowcaseBox(idx, 'up')}
+                              className="p-1 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-800 text-zinc-700 dark:text-zinc-200 disabled:opacity-30 rounded cursor-pointer"
+                              title="Move Up"
+                            >
+                              <ArrowUp className="w-3 h-3" />
+                            </button>
+                            <button
+                              type="button"
+                              disabled={idx === showcaseBoxes.length - 1}
+                              onClick={() => handleMoveShowcaseBox(idx, 'down')}
+                              className="p-1 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-800 text-zinc-700 dark:text-zinc-200 disabled:opacity-30 rounded cursor-pointer"
+                              title="Move Down"
+                            >
+                              <ArrowDown className="w-3 h-3" />
+                            </button>
+                          </div>
                         </div>
+
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteShowcaseBox(card.id)}
+                          className="p-1 rounded text-zinc-400 hover:text-rose-600 dark:hover:text-rose-400 transition-colors cursor-pointer"
+                          title="Delete Box"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
                       </div>
 
-                      <button
-                        type="button"
-                        onClick={() => handleDeleteSeasonCard(card.id)}
-                        className="p-1 rounded text-zinc-400 hover:text-rose-600 dark:hover:text-rose-400 transition-colors cursor-pointer"
-                        title="Delete Season Card"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
-                    </div>
+                      <div className="space-y-3">
+                        <div className="space-y-1.5">
+                          <label className="block text-xs font-medium text-zinc-700 dark:text-zinc-300">
+                            Box Title
+                          </label>
+                          <input
+                            type="text"
+                            value={card.name}
+                            onChange={(e) =>
+                              handleUpdateShowcaseBox(card.id, { name: e.target.value })
+                            }
+                            placeholder="Enter box title"
+                            className={inputCls}
+                          />
+                        </div>
 
-                    <div className="space-y-3">
-                      <div className="space-y-1.5">
-                        <label className="block text-xs font-medium text-zinc-700 dark:text-zinc-300">
-                          Card Name
-                        </label>
-                        <input
-                          type="text"
-                          value={card.name}
-                          onChange={(e) => handleUpdateSeasonCard(card.id, { name: e.target.value })}
-                          className={inputCls}
-                        />
-                      </div>
+                        <div className="space-y-1.5">
+                          <label className="block text-xs font-medium text-zinc-700 dark:text-zinc-300">
+                            Description
+                          </label>
+                          <input
+                            type="text"
+                            value={card.description}
+                            onChange={(e) =>
+                              handleUpdateShowcaseBox(card.id, { description: e.target.value })
+                            }
+                            placeholder="Optional short description"
+                            className={inputCls}
+                          />
+                        </div>
 
-                      <div className="space-y-1.5">
-                        <label className="block text-xs font-medium text-zinc-700 dark:text-zinc-300">
-                          Description
-                        </label>
-                        <input
-                          type="text"
-                          value={card.description}
-                          onChange={(e) =>
-                            handleUpdateSeasonCard(card.id, { description: e.target.value })
+                        {/* Route / Category Slug Selector */}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                          <div className="space-y-1.5">
+                            <label className="block text-xs font-medium text-zinc-700 dark:text-zinc-300">
+                              Select Created Category / Slug
+                            </label>
+                            <select
+                              value={isKnownRoute ? currentSlug : ''}
+                              onChange={(e) => {
+                                const selectedSlug = e.target.value;
+                                if (!selectedSlug) return;
+                                const matched = availableCategories.find(
+                                  (c) => c.slug === selectedSlug
+                                );
+                                const fallbackLabel =
+                                  selectedSlug === 'all'
+                                    ? 'All Products'
+                                    : selectedSlug === 'new-arrivals'
+                                    ? 'New Arrivals'
+                                    : selectedSlug === 'best-sellers'
+                                    ? 'Best Sellers'
+                                    : '';
+                                handleUpdateShowcaseBox(card.id, {
+                                  slug: selectedSlug,
+                                  name: card.name.trim()
+                                    ? card.name
+                                    : matched?.title || fallbackLabel
+                                });
+                              }}
+                              className={`${inputCls} cursor-pointer`}
+                            >
+                              <option value="">-- Custom slug / route --</option>
+                              <option value="all">All Products (/collections/all)</option>
+                              <option value="new-arrivals">
+                                New Arrivals (/collections/new-arrivals)
+                              </option>
+                              <option value="best-sellers">
+                                Best Sellers (/collections/best-sellers)
+                              </option>
+                              {availableCategories.map((cat) => (
+                                <option key={cat.id} value={cat.slug}>
+                                  {cat.title} (/collections/{cat.slug})
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+
+                          <div className="space-y-1.5">
+                            <label className="block text-xs font-medium text-zinc-700 dark:text-zinc-300">
+                              Target Slug / Route
+                            </label>
+                            <input
+                              type="text"
+                              value={card.slug || ''}
+                              onChange={(e) =>
+                                handleUpdateShowcaseBox(card.id, { slug: e.target.value })
+                              }
+                              placeholder="e.g. f1-118 or all"
+                              className={`${inputCls} font-mono`}
+                            />
+                          </div>
+                        </div>
+                        <p className="text-[11px] font-mono text-zinc-500 dark:text-zinc-400">
+                          Click destination: {routePreview}
+                        </p>
+
+                        <ImageUploader
+                          label="Box Image"
+                          value={card.image}
+                          onChange={(url) =>
+                            handleUpdateShowcaseBox(card.id, { image: url })
                           }
-                          className={inputCls}
+                          csrfToken={csrfToken}
                         />
                       </div>
-
-                      <ImageUploader
-                        label="Seasonal Image"
-                        value={card.image}
-                        onChange={(url) => handleUpdateSeasonCard(card.id, { image: url })}
-                        csrfToken={csrfToken}
-                      />
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </div>
@@ -1433,7 +1599,7 @@ export const HomepageCMS: React.FC<HomepageCMSProps> = ({ csrfToken }) => {
           <div className="pt-4 border-t border-zinc-200/80 dark:border-zinc-800 flex justify-end">
             <button type="submit" disabled={saving} className={primaryBtnCls}>
               <Save className="w-3.5 h-3.5" />
-              <span>{saving ? 'Saving...' : 'Save Seasons Gallery'}</span>
+              <span>{saving ? 'Saving...' : 'Save Showcase Boxes'}</span>
             </button>
           </div>
         </form>

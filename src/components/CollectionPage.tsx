@@ -37,7 +37,7 @@ const CollectionProductCard: React.FC<{
   return (
     <div
       onClick={() => onNavigateToProduct(product)}
-      className="group bg-white border border-zinc-200/90 hover:border-[#08090B] transition-all duration-200 hover:-translate-y-0.5 flex flex-col justify-between cursor-pointer"
+      className="group bg-white border border-zinc-200/90 hover:border-[#212428] transition-all duration-200 hover:-translate-y-0.5 flex flex-col justify-between cursor-pointer"
     >
       <div>
         <div className="relative w-full aspect-square bg-[#FAF9F6] border-b border-zinc-200/70 flex items-center justify-center overflow-hidden">
@@ -56,7 +56,7 @@ const CollectionProductCard: React.FC<{
               e.stopPropagation();
               onAddToCart(product, selectedSize.size, selectedSize.price, 1);
             }}
-            className="absolute bottom-2.5 right-2.5 bg-[#08090B] hover:bg-[#E10600] text-white p-2 opacity-90 sm:opacity-0 group-hover:opacity-100 transition-all duration-200 cursor-pointer"
+            className="absolute bottom-2.5 right-2.5 bg-[#212428] hover:bg-[#E10600] text-white p-2 opacity-90 sm:opacity-0 group-hover:opacity-100 transition-all duration-200 cursor-pointer"
             aria-label={`Quick add ${selectedSize.size} ${product.name}`}
             title={`Quick add ${selectedSize.size}`}
           >
@@ -73,7 +73,7 @@ const CollectionProductCard: React.FC<{
               </span>
             )}
           </div>
-          <h3 className="font-display text-lg sm:text-xl font-bold uppercase text-[#08090B] leading-tight line-clamp-1 group-hover:text-[#E10600] transition-colors">
+          <h3 className="font-display text-lg sm:text-xl font-bold uppercase text-[#212428] leading-tight line-clamp-1 group-hover:text-[#E10600] transition-colors">
             {product.name}
           </h3>
           <p className="text-[11px] font-mono text-zinc-500 uppercase truncate">
@@ -84,7 +84,7 @@ const CollectionProductCard: React.FC<{
 
       <div className="p-4 pt-3 mt-1 border-t border-zinc-200/80 space-y-2.5" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-baseline justify-between tabular-nums">
-          <span className="font-mono text-sm font-bold text-[#08090B]">
+          <span className="font-mono text-sm font-bold text-[#212428]">
             ৳ {selectedSize.price.toLocaleString()}
           </span>
           <span className="font-mono text-[11px] text-zinc-500">{selectedSize.size}</span>
@@ -99,7 +99,7 @@ const CollectionProductCard: React.FC<{
                 if (matched) setSelectedSize(matched);
               }}
               aria-label={`Select scale for ${product.name}`}
-              className="w-full appearance-none bg-[#F4F2EE] hover:bg-zinc-200/70 border border-zinc-300 text-[#08090B] text-[11px] font-mono py-2 pl-2.5 pr-7 focus:outline-none focus:border-[#08090B] cursor-pointer transition-colors"
+              className="w-full appearance-none bg-[#F4F2EE] hover:bg-zinc-200/70 border border-zinc-300 text-[#212428] text-[11px] font-mono py-2 pl-2.5 pr-7 focus:outline-none focus:border-[#212428] cursor-pointer transition-colors"
             >
               {product.sizes.map((sz, idx) => (
                 <option key={sz.size || idx} value={sz.size}>
@@ -212,9 +212,9 @@ export const CollectionPage: React.FC<CollectionPageProps> = ({
   }, [collectionSlug, sortBy]);
 
   return (
-    <div className="bg-[#F4F2EE] text-[#08090B] min-h-screen selection:bg-[#E10600] selection:text-white">
+    <div className="bg-[#F4F2EE] text-[#212428] min-h-screen selection:bg-[#E10600] selection:text-white">
       {/* 1. Dark Breadcrumb Bar */}
-      <div className="bg-[#08090B] text-[#C4C9D4] border-b border-white/10">
+      <div className="bg-[#212428] text-[#C4C9D4] border-b border-white/10">
         <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex items-center justify-between text-[11px] font-mono">
           <div className="flex items-center gap-2 truncate">
             <button
@@ -244,11 +244,11 @@ export const CollectionPage: React.FC<CollectionPageProps> = ({
       </div>
 
       {/* 2. Dark Obsidian Collection Banner */}
-      <div className="bg-[#111317] text-white border-b border-white/10 relative overflow-hidden">
+      <div className="bg-[#2B2F36] text-white border-b border-white/10 relative overflow-hidden">
         {collection?.image && (
           <div className="absolute right-0 top-0 bottom-0 w-1/2 opacity-25 pointer-events-none hidden md:block">
             <img src={collection.image} alt={collection.title} className="w-full h-full object-cover" />
-            <div className="absolute inset-0 bg-gradient-to-r from-[#111317] via-[#111317]/75 to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-r from-[#2B2F36] via-[#2B2F36]/75 to-transparent" />
           </div>
         )}
 
@@ -277,7 +277,7 @@ export const CollectionPage: React.FC<CollectionPageProps> = ({
         {/* Top Control Bar */}
         <div className="bg-white border border-zinc-300 p-4 mb-6 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
           <span className="text-xs text-zinc-600 font-mono">
-            Showing <strong className="text-[#08090B] tabular-nums">{filteredProducts.length}</strong> products
+            Showing <strong className="text-[#212428] tabular-nums">{filteredProducts.length}</strong> products
           </span>
 
           <div className="flex items-center gap-2 self-end sm:self-auto">
@@ -287,7 +287,7 @@ export const CollectionPage: React.FC<CollectionPageProps> = ({
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value)}
-              className="bg-[#F4F2EE] border border-zinc-300 text-[#08090B] text-xs font-mono px-3 py-2 focus:outline-none focus:border-[#08090B] cursor-pointer"
+              className="bg-[#F4F2EE] border border-zinc-300 text-[#212428] text-xs font-mono px-3 py-2 focus:outline-none focus:border-[#212428] cursor-pointer"
             >
               <option value="featured">Featured</option>
               <option value="best-selling">Best Selling</option>
@@ -313,7 +313,7 @@ export const CollectionPage: React.FC<CollectionPageProps> = ({
           </div>
         ) : filteredProducts.length === 0 ? (
           <div className="bg-white border border-zinc-300 p-12 text-center space-y-4">
-            <h3 className="font-display font-bold text-2xl uppercase text-[#08090B]">
+            <h3 className="font-display font-bold text-2xl uppercase text-[#212428]">
               No Products Found
             </h3>
             <p className="text-xs text-zinc-600 max-w-md mx-auto leading-relaxed">

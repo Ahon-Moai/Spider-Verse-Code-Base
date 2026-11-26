@@ -6,14 +6,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Header } from './components/Header';
 import { Hero } from './components/Hero';
-import { CategoryMarquee } from './components/CategoryMarquee';
 import { NewArrivals } from './components/NewArrivals';
-import { CampaignBanners } from './components/CampaignBanners';
 import { CustomProductSections } from './components/CustomProductSections';
-import { FAQSection } from './components/FAQSection';
 import { ReviewsSection } from './components/ReviewsSection';
-import { StudioSection } from './components/StudioSection';
-import { JournalSection } from './components/JournalSection';
 import { Footer } from './components/Footer';
 import { ProductDetailPage } from './components/ProductDetailPage';
 import { CollectionPage } from './components/CollectionPage';
@@ -22,13 +17,11 @@ import { CheckoutPage } from './components/CheckoutPage';
 import { OrderConfirmationPage } from './components/OrderConfirmationPage';
 import { SearchModal } from './components/SearchModal';
 import { MobileBottomNav } from './components/MobileBottomNav';
-import { IntroSequence } from './components/IntroSequence';
 import { AdminLogin } from './admin/AdminLogin';
 import { AdminLayout } from './admin/AdminLayout';
 import {
   FragranceProduct,
   CartItem,
-  JournalArticle,
   CompletedOrderData,
 } from './types';
 import {
@@ -87,8 +80,6 @@ function loadInitialCoupon(): string {
 }
 
 export default function App() {
-  const [showIntro, setShowIntro] = useState<boolean>(true);
-
   const [products, setProducts] = useState<FragranceProduct[]>([]);
   const [cart, setCart] = useState<CartItem[]>(loadInitialCart);
   const [appliedCoupon, setAppliedCoupon] = useState<string>(loadInitialCoupon);
@@ -458,17 +449,6 @@ export default function App() {
     }
   };
 
-  const handleSelectGenderCategory = (gender: 'Him' | 'Her') => {
-    handleExploreClick();
-    showToast(
-      gender === 'Him' ? 'Displaying 1:18 Pro Diecast F1 cars' : 'Displaying 1:43 Collector Grid models'
-    );
-  };
-
-  const handleReadArticle = (article: JournalArticle) => {
-    showToast(`Reading: "${article.title}"`);
-  };
-
   const handleAdminLogout = async () => {
     try {
       await fetch('/api/auth.php?action=logout');
@@ -516,11 +496,7 @@ export default function App() {
   }
 
   return (
-    <div className="min-h-screen bg-[#08090B] text-[#F4F2EE] font-sans flex flex-col selection:bg-[#E10600] selection:text-white relative">
-      {showIntro && (
-        <IntroSequence onComplete={() => setShowIntro(false)} />
-      )}
-
+    <div className="min-h-screen bg-[#212428] text-[#F4F2EE] font-sans flex flex-col selection:bg-[#E10600] selection:text-white relative">
       {/* Admin CMS Switch Button (preserved) */}
       <button
         type="button"
@@ -528,7 +504,7 @@ export default function App() {
           setViewMode('admin');
           window.location.hash = '#admin';
         }}
-        className="fixed bottom-16 md:bottom-6 left-4 md:left-6 z-40 bg-[#111317] text-white hover:bg-[#E10600] px-3 py-2 border border-white/15 shadow-2xl text-[10px] font-mono tracking-widest uppercase flex items-center gap-2 transition-colors cursor-pointer"
+        className="fixed bottom-16 md:bottom-6 left-4 md:left-6 z-40 bg-[#2B2F36] text-white hover:bg-[#E10600] px-3 py-2 border border-white/15 shadow-2xl text-[10px] font-mono tracking-widest uppercase flex items-center gap-2 transition-colors cursor-pointer"
         title="Open Admin CMS Dashboard"
       >
         <Shield className="w-3.5 h-3.5 text-[#E10600] group-hover:text-white" />
@@ -537,7 +513,7 @@ export default function App() {
 
       {/* Toast Notification */}
       {toastMessage && (
-        <div className="fixed bottom-16 md:bottom-6 right-4 md:right-6 z-50 bg-[#08090B] text-white border border-[#E10600] px-4 py-3 shadow-2xl text-xs font-mono tracking-wide flex items-center gap-2.5 animate-fade-in">
+        <div className="fixed bottom-16 md:bottom-6 right-4 md:right-6 z-50 bg-[#212428] text-white border border-[#E10600] px-4 py-3 shadow-2xl text-xs font-mono tracking-wide flex items-center gap-2.5 animate-fade-in">
           <span className="w-2 h-[2px] bg-[#E10600] shrink-0" />
           <span>{toastMessage}</span>
         </div>
@@ -619,23 +595,11 @@ export default function App() {
               seasonsData={homepageData?.sections?.seasons_gallery?.content}
             />
 
-            <CategoryMarquee
-              items={homepageData?.sections?.category_marquee?.content?.items}
-              links={homepageData?.sections?.category_marquee?.content?.links}
-              onNavigateToCollection={navigateToCollection}
-            />
-
             <NewArrivals
               products={products}
               onSelectProduct={(p) => navigateToProduct(p)}
               onAddToCart={(p, size, price) => handleAddToCart(p, size, price, 1)}
               onNavigateToCollection={navigateToCollection}
-            />
-
-            <CampaignBanners
-              onSelectCategory={handleSelectGenderCategory}
-              onNavigateToCollection={navigateToCollection}
-              campaignData={homepageData?.sections?.campaign_banners?.content}
             />
 
             <CustomProductSections
@@ -646,16 +610,7 @@ export default function App() {
               onNavigateToCollection={navigateToCollection}
             />
 
-            <FAQSection faqs={homepageData?.faqs} />
-
             <ReviewsSection reviews={homepageData?.reviews} />
-
-            <StudioSection socialCards={homepageData?.socialCards} />
-
-            <JournalSection
-              onReadArticle={handleReadArticle}
-              articles={homepageData?.articles}
-            />
           </>
         )}
       </main>

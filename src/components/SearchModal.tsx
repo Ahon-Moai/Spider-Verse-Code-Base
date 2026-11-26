@@ -53,15 +53,15 @@ export const SearchModal: React.FC<SearchModalProps> = ({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-start justify-center pt-6 sm:pt-16 p-3 sm:p-4 bg-black/80 backdrop-blur-md animate-fade-in"
+      className="fixed inset-0 z-50 flex items-start justify-center pt-6 sm:pt-16 p-3 sm:p-4 bg-[#1C1E22]/80 backdrop-blur-md animate-fade-in"
       onClick={onClose}
     >
       <div
-        className="w-full max-w-2xl bg-[#111317] text-[#F4F2EE] shadow-2xl border border-white/15 overflow-hidden flex flex-col max-h-[85vh]"
+        className="w-full max-w-2xl bg-[#2B2F36] text-[#F4F2EE] shadow-2xl border border-white/15 overflow-hidden flex flex-col max-h-[85vh]"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Top Bar */}
-        <div className="p-4 sm:p-5 border-b border-white/10 bg-[#08090B] space-y-4">
+        <div className="p-4 sm:p-5 border-b border-white/10 bg-[#212428] space-y-4">
           <div className="flex items-center justify-between">
             <span className="font-mono text-[11px] font-semibold uppercase tracking-[0.2em] text-[#E10600]">
               Garage Search
@@ -83,7 +83,7 @@ export const SearchModal: React.FC<SearchModalProps> = ({
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Search F1 team, driver, scale or car (e.g. 1:18, Ferrari, Red Bull, RC)..."
-              className="w-full bg-[#111317] border border-white/15 pl-10 pr-16 py-3 text-sm text-white placeholder-[#9CA3AF] focus:outline-none focus:border-[#E10600] transition-colors"
+              className="w-full bg-[#2B2F36] border border-white/15 pl-10 pr-16 py-3 text-sm text-white placeholder-[#9CA3AF] focus:outline-none focus:border-[#E10600] transition-colors"
               autoFocus
             />
             {query && (
@@ -107,7 +107,7 @@ export const SearchModal: React.FC<SearchModalProps> = ({
                 className={`text-[11px] font-mono px-2.5 py-1 border whitespace-nowrap transition-colors cursor-pointer ${
                   query === tag
                     ? 'bg-[#E10600] text-white border-[#E10600]'
-                    : 'bg-[#171A20] text-[#C4C9D4] border-white/10 hover:border-white/30 hover:text-white'
+                    : 'bg-[#343942] text-[#C4C9D4] border-white/10 hover:border-white/30 hover:text-white'
                 }`}
               >
                 {tag}
@@ -138,7 +138,7 @@ export const SearchModal: React.FC<SearchModalProps> = ({
                         onSelectProduct(item);
                         onClose();
                       }}
-                      className="flex items-center gap-3 p-3 bg-[#08090B] hover:border-[#E10600] border border-white/10 transition-colors cursor-pointer group"
+                      className="flex items-center gap-3 p-3 bg-[#212428] hover:border-[#E10600] border border-white/10 transition-colors cursor-pointer group"
                     >
                       <div className="w-14 h-14 bg-white p-1.5 flex items-center justify-center shrink-0">
                         <img
@@ -199,7 +199,7 @@ export const SearchModal: React.FC<SearchModalProps> = ({
                       onSelectProduct(item);
                       onClose();
                     }}
-                    className="flex items-center justify-between p-3 bg-[#08090B] border border-white/10 hover:border-[#E10600] transition-colors cursor-pointer group"
+                    className="flex items-center justify-between p-3 bg-[#212428] border border-white/10 hover:border-[#E10600] transition-colors cursor-pointer group"
                   >
                     <div className="flex items-center gap-3.5 min-w-0">
                       <div className="w-12 h-12 bg-white p-1 flex items-center justify-center shrink-0">
