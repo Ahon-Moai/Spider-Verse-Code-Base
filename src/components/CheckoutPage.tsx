@@ -5,6 +5,7 @@ import {
   Check,
   ChevronRight,
   Loader2,
+  Phone,
   ShoppingBag,
   Tag,
   X,
@@ -38,7 +39,7 @@ interface CheckoutPageProps {
 interface FieldErrors {
   customerName?: string;
   customerPhone?: string;
-  customerEmail?: string;
+  whatsappNumber?: string;
   streetAddress?: string;
 }
 
@@ -59,7 +60,7 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
 
   const [customerName, setCustomerName] = useState('');
   const [customerPhone, setCustomerPhone] = useState('');
-  const [customerEmail, setCustomerEmail] = useState('');
+  const [whatsappNumber, setWhatsappNumber] = useState('');
   const [streetAddress, setStreetAddress] = useState('');
   const [deliveryInstructions, setDeliveryInstructions] = useState('');
 
@@ -213,11 +214,9 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
       errors.customerPhone = 'Please enter a valid 10–15 digit phone number.';
     }
 
-    if (
-      customerEmail.trim() &&
-      !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(customerEmail.trim())
-    ) {
-      errors.customerEmail = 'Please enter a valid email address.';
+    const normalizedWhatsapp = whatsappNumber.replace(/[\s\-()]/g, '');
+    if (normalizedWhatsapp && !/^\+?[0-9]{10,15}$/.test(normalizedWhatsapp)) {
+      errors.whatsappNumber = 'Please enter a valid 10–15 digit WhatsApp number.';
     }
 
     if (!streetAddress.trim() || streetAddress.trim().length < 5) {
@@ -283,7 +282,7 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
       const result = await submitOrder({
         customer_name: customerName.trim(),
         customer_phone: customerPhone.trim(),
-        customer_email: customerEmail.trim(),
+        whatsapp_number: whatsappNumber.trim() || undefined,
         shipping_address: formattedAddress,
         city_zone: cityZone,
         payment_method: 'cod',
@@ -448,28 +447,34 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
                   >
                     Phone Number *
                   </label>
-                  <input
-                    id="checkout-phone"
-                    type="tel"
-                    autoComplete="tel"
-                    required
-                    value={customerPhone}
-                    onChange={(e) => {
-                      setCustomerPhone(e.target.value);
-                      if (fieldErrors.customerPhone) {
-                        setFieldErrors((prev) => ({
-                          ...prev,
-                          customerPhone: undefined,
-                        }));
-                      }
-                    }}
-                    placeholder="01700000000"
-                    className={`${inputBaseCls} font-mono ${
-                      fieldErrors.customerPhone
-                        ? 'border-[#E10600] focus:border-[#E10600]'
-                        : 'border-zinc-300 focus:border-[#08090B]'
-                    }`}
-                  />
+                  <div className="relative">
+                    <Phone
+                      aria-hidden="true"
+                      className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500"
+                    />
+                    <input
+                      id="checkout-phone"
+                      type="tel"
+                      autoComplete="tel"
+                      required
+                      value={customerPhone}
+                      onChange={(e) => {
+                        setCustomerPhone(e.target.value);
+                        if (fieldErrors.customerPhone) {
+                          setFieldErrors((prev) => ({
+                            ...prev,
+                            customerPhone: undefined,
+                          }));
+                        }
+                      }}
+                      placeholder="01700000000"
+                      className={`${inputBaseCls} pl-10 font-mono ${
+                        fieldErrors.customerPhone
+                          ? 'border-[#E10600] focus:border-[#E10600]'
+                          : 'border-zinc-300 focus:border-[#08090B]'
+                      }`}
+                    />
+                  </div>
                   {fieldErrors.customerPhone && (
                     <p className="text-[11px] text-[#E10600] font-medium">
                       {fieldErrors.customerPhone}
@@ -477,37 +482,46 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
                   )}
                 </div>
 
-                <div className="space-y-1.5" id="field-customerEmail">
+                <div className="space-y-1.5" id="field-whatsappNumber">
                   <label
-                    htmlFor="checkout-email"
+                    htmlFor="checkout-whatsapp"
                     className="block font-mono text-[10px] uppercase tracking-[0.16em] text-zinc-700 font-semibold"
                   >
-                    Email Address (Optional)
+                    WhatsApp Number (Optional)
                   </label>
-                  <input
-                    id="checkout-email"
-                    type="email"
-                    autoComplete="email"
-                    value={customerEmail}
-                    onChange={(e) => {
-                      setCustomerEmail(e.target.value);
-                      if (fieldErrors.customerEmail) {
-                        setFieldErrors((prev) => ({
-                          ...prev,
-                          customerEmail: undefined,
-                        }));
-                      }
-                    }}
-                    placeholder="you@example.com"
-                    className={`${inputBaseCls} ${
-                      fieldErrors.customerEmail
-                        ? 'border-[#E10600] focus:border-[#E10600]'
-                        : 'border-zinc-300 focus:border-[#08090B]'
-                    }`}
-                  />
-                  {fieldErrors.customerEmail && (
+                  <div className="relative">
+                    <svg
+                      aria-hidden="true"
+                      viewBox="0 0 24 24"
+                      className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#25D366] fill-current"
+                    >
+                      <path d="M12.031 2C6.486 2 2 6.486 2 12.031c0 1.771.463 3.498 1.342 5.02L2.05 21.848l4.918-1.29a9.98 9.98 0 0 0 5.063 1.372h.004c5.544 0 10.03-4.486 10.03-10.031C22.065 6.486 17.579 2 12.031 2zm5.847 14.252c-.245.69-1.434 1.318-1.992 1.402-.507.077-1.15.109-1.855-.117-.428-.136-.978-.318-1.685-.622-2.966-1.281-4.904-4.267-5.052-4.464-.148-.197-1.208-1.607-1.208-3.066 0-1.458.764-2.176 1.036-2.472.271-.296.592-.37.789-.37.197 0 .394.002.567.01.182.009.426-.069.666.508.246.591.838 2.043.912 2.191.074.148.123.32.025.518-.099.197-.148.32-.296.493-.148.173-.312.386-.444.518-.148.148-.302.309-.13.605.173.296.767 1.266 1.648 2.051 1.132 1.01 2.087 1.323 2.383 1.471.296.148.468.123.64-.074.173-.197.74-.862.937-1.158.197-.296.394-.247.666-.148.271.099 1.726.814 2.022.962.296.148.493.222.567.345.074.123.074.714-.171 1.405z" />
+                    </svg>
+                    <input
+                      id="checkout-whatsapp"
+                      type="tel"
+                      autoComplete="tel"
+                      value={whatsappNumber}
+                      onChange={(e) => {
+                        setWhatsappNumber(e.target.value);
+                        if (fieldErrors.whatsappNumber) {
+                          setFieldErrors((prev) => ({
+                            ...prev,
+                            whatsappNumber: undefined,
+                          }));
+                        }
+                      }}
+                      placeholder="WhatsApp number (e.g. 01700000000)"
+                      className={`${inputBaseCls} pl-10 font-mono ${
+                        fieldErrors.whatsappNumber
+                          ? 'border-[#E10600] focus:border-[#E10600]'
+                          : 'border-zinc-300 focus:border-[#08090B]'
+                      }`}
+                    />
+                  </div>
+                  {fieldErrors.whatsappNumber && (
                     <p className="text-[11px] text-[#E10600] font-medium">
-                      {fieldErrors.customerEmail}
+                      {fieldErrors.whatsappNumber}
                     </p>
                   )}
                 </div>
@@ -651,14 +665,14 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
                   htmlFor="checkout-instructions"
                   className="block font-mono text-[10px] uppercase tracking-[0.16em] text-zinc-700 font-semibold"
                 >
-                  Delivery Instructions (Optional)
+                  Notes if any (Optional)
                 </label>
                 <input
                   id="checkout-instructions"
                   type="text"
                   value={deliveryInstructions}
                   onChange={(e) => setDeliveryInstructions(e.target.value)}
-                  placeholder="Optional notes for courier or delivery time preference"
+                  placeholder="Notes if any (optional)"
                   className={`${inputBaseCls} border-zinc-300 focus:border-[#08090B]`}
                 />
               </div>

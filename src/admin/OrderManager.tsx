@@ -22,6 +22,7 @@ interface Order {
   order_number: string;
   customer_name: string;
   customer_phone: string;
+  whatsapp_number?: string;
   customer_email?: string;
   shipping_address: string;
   city_zone: string;
@@ -338,6 +339,11 @@ export const OrderManager: React.FC<OrderManagerProps> = ({ csrfToken }) => {
                   <p className="text-zinc-600 dark:text-zinc-300 font-mono tabular-nums">
                     {selectedOrder.customer_phone}
                   </p>
+                  {selectedOrder.whatsapp_number && (
+                    <p className="text-zinc-600 dark:text-zinc-300 font-mono tabular-nums">
+                      WhatsApp: {selectedOrder.whatsapp_number}
+                    </p>
+                  )}
                   {selectedOrder.customer_email && (
                     <p className="text-zinc-500 dark:text-zinc-400">
                       {selectedOrder.customer_email}

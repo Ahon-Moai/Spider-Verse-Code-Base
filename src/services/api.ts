@@ -144,6 +144,7 @@ export async function fetchOrderByNumber(orderNumber: string) {
 export async function submitOrder(orderPayload: {
   customer_name: string;
   customer_phone: string;
+  whatsapp_number?: string;
   customer_email?: string;
   shipping_address: string;
   city_zone: 'inside_dhaka' | 'outside_dhaka';

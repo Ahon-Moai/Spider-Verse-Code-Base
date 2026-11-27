@@ -13,8 +13,6 @@ import {
 import { CartItem, FragranceProduct, OrderQuoteResponse } from '../types';
 import { fetchOrderQuote } from '../services/api';
 import {
-  DeliveryZone,
-  formatZoneLabel,
   getItemMaxStock,
   getShippingConfig,
 } from '../utils/checkout';
@@ -44,7 +42,6 @@ export const ShoppingBagPage: React.FC<ShoppingBagPageProps> = ({
   onNavigateToProduct,
   onProceedToCheckout,
 }) => {
-  const [cityZone, setCityZone] = useState<DeliveryZone>('outside_dhaka');
   const [couponInput, setCouponInput] = useState(appliedCoupon);
   const [couponFeedback, setCouponFeedback] = useState<{
     type: 'success' | 'error';
@@ -62,8 +59,7 @@ export const ShoppingBagPage: React.FC<ShoppingBagPageProps> = ({
     setCouponInput(appliedCoupon);
   }, [appliedCoupon]);
 
-  const { feeInside, feeOutside, freeThreshold, currencySymbol } =
-    getShippingConfig(storeSettings);
+  const { currencySymbol } = getShippingConfig(storeSettings);
 
   useEffect(() => {
     let active = true;
@@ -73,7 +69,7 @@ export const ShoppingBagPage: React.FC<ShoppingBagPageProps> = ({
     }
 
     fetchOrderQuote({
-      city_zone: cityZone,
+      city_zone: 'outside_dhaka',
       coupon_code: appliedCoupon || undefined,
       items: items.map((it) => ({
         product_id: it.product.id,
@@ -96,7 +92,7 @@ export const ShoppingBagPage: React.FC<ShoppingBagPageProps> = ({
     return () => {
       active = false;
     };
-  }, [items, cityZone, appliedCoupon, currencySymbol]);
+  }, [items, appliedCoupon, currencySymbol]);
 
   const totalItemCount = items.reduce((sum, item) => sum + item.quantity, 0);
   const localSubtotal = items.reduce(
@@ -105,28 +101,8 @@ export const ShoppingBagPage: React.FC<ShoppingBagPageProps> = ({
   );
 
   const subtotal = quote ? quote.subtotal : localSubtotal;
-  const effectiveThreshold = quote?.free_shipping_threshold ?? freeThreshold;
-  const effectiveFeeInside = quote?.shipping_fee_dhaka ?? feeInside;
-  const effectiveFeeOutside = quote?.shipping_fee_outside_dhaka ?? feeOutside;
-
-  const localDeliveryFee =
-    subtotal >= effectiveThreshold
-      ? 0
-      : cityZone === 'outside_dhaka'
-      ? effectiveFeeOutside
-      : effectiveFeeInside;
-
-  const deliveryFee = quote ? quote.delivery_fee : localDeliveryFee;
   const discount = quote ? quote.discount : 0;
-  const finalTotal = quote
-    ? quote.total_amount
-    : Math.max(0, subtotal - discount) + deliveryFee;
-
-  const remainingForFreeShipping = Math.max(0, effectiveThreshold - subtotal);
-  const freeShippingProgress =
-    effectiveThreshold > 0
-      ? Math.min(100, Math.round((subtotal / effectiveThreshold) * 100))
-      : 100;
+  const finalTotal = Math.max(0, subtotal - discount);
 
   const handleApplyCoupon = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -143,7 +119,7 @@ export const ShoppingBagPage: React.FC<ShoppingBagPageProps> = ({
     setCouponFeedback(null);
     try {
       const res = await fetchOrderQuote({
-        city_zone: cityZone,
+        city_zone: 'outside_dhaka',
         coupon_code: cleaned,
         items: items.map((it) => ({
           product_id: it.product.id,
@@ -270,38 +246,6 @@ export const ShoppingBagPage: React.FC<ShoppingBagPageProps> = ({
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-start">
             {/* Left Column: Shopping Bag Items */}
             <div className="lg:col-span-8 space-y-4">
-              {/* Free Shipping Progress Strip */}
-              <div className="bg-white border border-zinc-300 p-4 sm:p-5">
-                <div className="flex items-center justify-between gap-4 text-xs mb-2.5">
-                  <span className="text-[#08090B] font-medium">
-                    {remainingForFreeShipping === 0 ? (
-                      <span className="text-emerald-700 font-semibold">
-                        Free nationwide delivery unlocked on this order.
-                      </span>
-                    ) : (
-                      <>
-                        Add{' '}
-                        <strong className="font-mono text-[#08090B] tabular-nums">
-                          {currencySymbol} {remainingForFreeShipping.toLocaleString()}
-                        </strong>{' '}
-                        more to unlock free nationwide delivery.
-                      </>
-                    )}
-                  </span>
-                  <span className="font-mono text-[11px] font-semibold text-[#E10600] tabular-nums shrink-0">
-                    {freeShippingProgress}%
-                  </span>
-                </div>
-                <div className="w-full h-1.5 bg-[#F4F2EE] overflow-hidden">
-                  <div
-                    className={`h-full transition-all duration-300 ${
-                      remainingForFreeShipping === 0 ? 'bg-emerald-600' : 'bg-[#E10600]'
-                    }`}
-                    style={{ width: `${freeShippingProgress}%` }}
-                  />
-                </div>
-              </div>
-
               {/* Cart Items List */}
               <div className="bg-white border border-zinc-300 divide-y divide-zinc-200">
                 {items.map((item) => {
@@ -494,59 +438,6 @@ export const ShoppingBagPage: React.FC<ShoppingBagPageProps> = ({
                   </span>
                 </div>
 
-                {/* Delivery Location Estimate */}
-                <div className="space-y-2">
-                  <label className="block font-mono text-[10px] uppercase tracking-[0.16em] text-zinc-600 font-semibold">
-                    Estimated Delivery Location
-                  </label>
-                  <div className="grid grid-cols-2 gap-2" role="radiogroup" aria-label="Estimated delivery location">
-                    <button
-                      type="button"
-                      role="radio"
-                      aria-checked={cityZone === 'outside_dhaka'}
-                      onClick={() => setCityZone('outside_dhaka')}
-                      className={`py-2.5 px-3 border text-left transition-colors cursor-pointer ${
-                        cityZone === 'outside_dhaka'
-                          ? 'border-[#08090B] bg-[#08090B] text-white'
-                          : 'border-zinc-300 bg-[#F4F2EE] text-[#08090B] hover:border-[#08090B]'
-                      }`}
-                    >
-                      <span className="text-xs font-semibold block">Outside Chittagong</span>
-                      <span
-                        className={`text-[11px] font-mono tabular-nums ${
-                          cityZone === 'outside_dhaka' ? 'text-[#C4C9D4]' : 'text-zinc-500'
-                        }`}
-                      >
-                        {subtotal >= effectiveThreshold
-                          ? 'FREE'
-                          : `${currencySymbol} ${effectiveFeeOutside}`}
-                      </span>
-                    </button>
-                    <button
-                      type="button"
-                      role="radio"
-                      aria-checked={cityZone === 'inside_dhaka'}
-                      onClick={() => setCityZone('inside_dhaka')}
-                      className={`py-2.5 px-3 border text-left transition-colors cursor-pointer ${
-                        cityZone === 'inside_dhaka'
-                          ? 'border-[#08090B] bg-[#08090B] text-white'
-                          : 'border-zinc-300 bg-[#F4F2EE] text-[#08090B] hover:border-[#08090B]'
-                      }`}
-                    >
-                      <span className="text-xs font-semibold block">Inside Chittagong</span>
-                      <span
-                        className={`text-[11px] font-mono tabular-nums ${
-                          cityZone === 'inside_dhaka' ? 'text-[#C4C9D4]' : 'text-zinc-500'
-                        }`}
-                      >
-                        {subtotal >= effectiveThreshold
-                          ? 'FREE'
-                          : `${currencySymbol} ${effectiveFeeInside}`}
-                      </span>
-                    </button>
-                  </div>
-                </div>
-
                 {/* Coupon / Promo Code */}
                 <div className="space-y-2">
                   <label
@@ -615,20 +506,6 @@ export const ShoppingBagPage: React.FC<ShoppingBagPageProps> = ({
                     </span>
                   </div>
 
-                  <div className="flex items-center justify-between text-zinc-600">
-                    <span>Delivery Location</span>
-                    <span className="font-medium text-[#08090B]">
-                      {formatZoneLabel(cityZone)}
-                    </span>
-                  </div>
-
-                  <div className="flex items-center justify-between text-zinc-600">
-                    <span>Delivery Charge</span>
-                    <span className="font-mono font-medium text-[#08090B] tabular-nums">
-                      {deliveryFee === 0 ? 'FREE' : `${currencySymbol} ${deliveryFee.toLocaleString()}`}
-                    </span>
-                  </div>
-
                   {discount > 0 && (
                     <div className="flex items-center justify-between text-emerald-700">
                       <span>Discount{appliedCoupon ? ` (${appliedCoupon})` : ''}</span>
@@ -640,7 +517,7 @@ export const ShoppingBagPage: React.FC<ShoppingBagPageProps> = ({
 
                   <div className="flex items-baseline justify-between pt-3 border-t border-zinc-300">
                     <span className="font-mono text-xs font-bold uppercase tracking-wider text-[#08090B]">
-                      Total Payable
+                      Subtotal
                     </span>
                     <span className="font-mono text-2xl font-bold text-[#08090B] tabular-nums">
                       {currencySymbol} {finalTotal.toLocaleString()}

@@ -29,12 +29,12 @@ const CustomProductCard: React.FC<{
   const [selectedSize, setSelectedSize] = useState<DecantSize>(defaultSize);
 
   return (
-    <div className="group bg-white border border-zinc-200/90 hover:border-[#08090B] flex flex-col justify-between transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_14px_30px_-10px_rgba(8,9,11,0.12)] relative h-full">
+    <div className="group bg-transparent border-0 sm:bg-white sm:border sm:border-zinc-200/90 sm:hover:border-[#08090B] flex flex-col justify-between transition-all duration-200 sm:hover:-translate-y-0.5 sm:hover:shadow-[0_14px_30px_-10px_rgba(8,9,11,0.12)] relative h-full">
       <div>
         {/* Image Stage */}
         <div
           onClick={() => onSelectProduct(product)}
-          className="aspect-square w-full flex items-center justify-center cursor-pointer overflow-hidden relative bg-[#FAF9F6] border-b border-zinc-200/60"
+          className="aspect-square w-full flex items-center justify-center cursor-pointer overflow-hidden relative bg-transparent sm:bg-[#FAF9F6] border-0 sm:border-b sm:border-zinc-200/60"
         >
           <img
             src={product.image}
@@ -45,7 +45,7 @@ const CustomProductCard: React.FC<{
             referrerPolicy="no-referrer"
           />
 
-          <div className="absolute inset-0 bg-[#08090B]/10 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+          <div className="hidden sm:flex absolute inset-0 bg-[#08090B]/10 opacity-0 group-hover:opacity-100 transition-opacity items-center justify-center">
             <span className="bg-[#08090B] text-white text-[10px] font-mono tracking-[0.18em] uppercase px-3.5 py-2 flex items-center gap-1.5 shadow-lg">
               <Eye className="w-3.5 h-3.5 text-[#E10600]" />
               <span>Inspect</span>
@@ -54,26 +54,26 @@ const CustomProductCard: React.FC<{
         </div>
 
         {/* Clean Unboxed Details */}
-        <div className="p-4 pb-2 space-y-1.5 text-left">
-          <div className="flex items-center justify-between text-[10px] font-mono text-zinc-500 uppercase tracking-[0.14em]">
+        <div className="px-0 pt-2.5 pb-1.5 sm:p-4 sm:pb-2 space-y-1 sm:space-y-1.5 text-left">
+          <div className="flex items-center justify-between gap-2 text-[10px] font-mono text-zinc-500 uppercase tracking-[0.12em] sm:tracking-[0.14em]">
             <span className="truncate">{product.brand}</span>
-            <span className="truncate text-zinc-400 ml-2">
+            <span className="truncate text-zinc-400 shrink-0">
               {product.concentration || 'Diecast Alloy'}
             </span>
           </div>
 
           <h3
             onClick={() => onSelectProduct(product)}
-            className="font-display text-lg sm:text-xl font-bold uppercase tracking-wide text-[#08090B] hover:text-[#E10600] transition-colors cursor-pointer truncate"
+            className="font-display text-base sm:text-xl font-bold uppercase tracking-wide text-[#08090B] hover:text-[#E10600] transition-colors cursor-pointer line-clamp-2 sm:line-clamp-1 leading-tight"
           >
             {product.name}
           </h3>
 
-          <div className="flex items-baseline justify-between tabular-nums">
-            <span className="font-mono text-sm font-bold text-[#08090B]">
+          <div className="flex items-baseline justify-between gap-2 tabular-nums">
+            <span className="font-mono text-sm font-bold text-[#08090B] shrink-0">
               ৳ {selectedSize.price.toLocaleString()}
             </span>
-            <span className="font-mono text-[11px] text-zinc-500">{selectedSize.size}</span>
+            <span className="font-mono text-[10px] sm:text-[11px] text-zinc-500 truncate">{selectedSize.size}</span>
           </div>
 
           {/* Scale / Edition Selector */}
@@ -86,7 +86,7 @@ const CustomProductCard: React.FC<{
                   if (matched) setSelectedSize(matched);
                 }}
                 aria-label={`Select scale for ${product.name}`}
-                className="w-full appearance-none bg-[#F4F2EE] hover:bg-zinc-200/70 border border-zinc-300/80 text-[#08090B] text-[11px] font-mono py-2 pl-2.5 pr-7 focus:outline-none focus:border-[#08090B] cursor-pointer transition-colors"
+                className="w-full appearance-none bg-white/80 sm:bg-[#F4F2EE] hover:bg-zinc-200/70 border border-zinc-300/80 text-[#08090B] text-[11px] font-mono py-2 pl-2 sm:pl-2.5 pr-6 sm:pr-7 focus:outline-none focus:border-[#08090B] cursor-pointer transition-colors"
               >
                 {product.sizes.map((sz, idx) => (
                   <option key={sz.size || idx} value={sz.size}>
@@ -94,7 +94,7 @@ const CustomProductCard: React.FC<{
                   </option>
                 ))}
               </select>
-              <ChevronDown className="w-3.5 h-3.5 text-zinc-600 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+              <ChevronDown className="w-3.5 h-3.5 text-zinc-600 absolute right-2 sm:right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
             </div>
           </div>
 
@@ -107,11 +107,11 @@ const CustomProductCard: React.FC<{
       </div>
 
       {/* Action Bar */}
-      <div className="p-4 pt-3 mt-2 border-t border-zinc-200/80 flex items-center gap-2.5">
+      <div className="px-0 pt-2 pb-1 sm:p-4 sm:pt-3 sm:mt-2 border-0 sm:border-t sm:border-zinc-200/80 flex items-center gap-2 sm:gap-2.5">
         <button
           type="button"
           onClick={() => onSelectProduct(product)}
-          className="btn-f1 flex-1 bg-[#F4F2EE] hover:bg-zinc-200 text-[#08090B] py-2.5 font-display text-sm font-bold tracking-[0.08em] uppercase transition-colors text-center cursor-pointer"
+          className="btn-f1 flex-1 bg-white/85 sm:bg-[#F4F2EE] hover:bg-zinc-200 text-[#08090B] py-2 sm:py-2.5 font-display text-xs sm:text-sm font-bold tracking-[0.08em] uppercase transition-colors text-center cursor-pointer"
         >
           <span className="btn-f1-inner">Details</span>
         </button>
@@ -119,7 +119,7 @@ const CustomProductCard: React.FC<{
         <button
           type="button"
           onClick={() => onAddToCart(product, selectedSize.size, selectedSize.price)}
-          className="btn-f1 bg-[#E10600] hover:bg-[#ff1e18] text-white px-4 py-2.5 transition-colors cursor-pointer"
+          className="btn-f1 bg-[#E10600] hover:bg-[#ff1e18] text-white px-3 sm:px-4 py-2 sm:py-2.5 transition-colors cursor-pointer shrink-0"
           title={`Add ${selectedSize.size} to Bag`}
           aria-label={`Add ${selectedSize.size} ${product.name} to bag`}
         >
@@ -201,7 +201,7 @@ export const CustomProductSections: React.FC<CustomProductSectionsProps> = ({
               </div>
             </div>
 
-            <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
+            <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-3.5 gap-y-7 sm:gap-6">
               {displayedProducts.map((product) => (
                 <CustomProductCard
                   key={product.id}

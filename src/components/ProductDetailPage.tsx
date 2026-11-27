@@ -705,14 +705,14 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
             </h2>
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-5">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-x-3.5 gap-y-7 sm:gap-5">
             {relatedProducts.map((relProd) => (
               <div
                 key={relProd.id}
                 onClick={() => onNavigateToProduct(relProd)}
-                className="bg-white border border-zinc-300 hover:border-[#08090B] flex flex-col justify-between cursor-pointer group transition-colors"
+                className="bg-transparent border-0 sm:bg-white sm:border sm:border-zinc-300 sm:hover:border-[#08090B] flex flex-col justify-between cursor-pointer group transition-colors"
               >
-                <div className="w-full aspect-square bg-[#FAF9F6] flex items-center justify-center overflow-hidden border-b border-zinc-200/70">
+                <div className="w-full aspect-square bg-transparent sm:bg-[#FAF9F6] flex items-center justify-center overflow-hidden border-0 sm:border-b sm:border-zinc-200/70">
                   <img
                     src={relProd.image}
                     alt={relProd.name}
@@ -720,13 +720,13 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
                     referrerPolicy="no-referrer"
                   />
                 </div>
-                <div className="p-4">
+                <div className="px-0 pt-2.5 pb-1 sm:p-4">
                   {relProd.category && (
                     <span className="text-[10px] font-mono tracking-[0.14em] text-zinc-500 uppercase">
                       {relProd.category}
                     </span>
                   )}
-                  <h4 className="font-display text-lg font-bold uppercase text-[#08090B] mt-0.5 line-clamp-1 group-hover:text-[#E10600] transition-colors">
+                  <h4 className="font-display text-base sm:text-lg font-bold uppercase text-[#08090B] mt-0.5 line-clamp-2 sm:line-clamp-1 group-hover:text-[#E10600] transition-colors">
                     {relProd.name}
                   </h4>
                   <p className="text-xs font-mono font-bold text-[#08090B] mt-1 tabular-nums">

@@ -37,10 +37,10 @@ const CollectionProductCard: React.FC<{
   return (
     <div
       onClick={() => onNavigateToProduct(product)}
-      className="group bg-white border border-zinc-200/90 hover:border-[#08090B] transition-all duration-200 hover:-translate-y-0.5 flex flex-col justify-between cursor-pointer"
+      className="group bg-transparent border-0 sm:bg-white sm:border sm:border-zinc-200/90 sm:hover:border-[#08090B] transition-all duration-200 sm:hover:-translate-y-0.5 flex flex-col justify-between cursor-pointer h-full"
     >
       <div>
-        <div className="relative w-full aspect-square bg-[#FAF9F6] border-b border-zinc-200/70 flex items-center justify-center overflow-hidden">
+        <div className="relative w-full aspect-square bg-transparent sm:bg-[#FAF9F6] border-0 sm:border-b sm:border-zinc-200/70 flex items-center justify-center overflow-hidden">
           <img
             src={product.image}
             alt={product.name}
@@ -56,7 +56,7 @@ const CollectionProductCard: React.FC<{
               e.stopPropagation();
               onAddToCart(product, selectedSize.size, selectedSize.price, 1);
             }}
-            className="absolute bottom-2.5 right-2.5 bg-[#08090B] hover:bg-[#E10600] text-white p-2 opacity-90 sm:opacity-0 group-hover:opacity-100 transition-all duration-200 cursor-pointer"
+            className="absolute bottom-2 right-2 sm:bottom-2.5 sm:right-2.5 bg-[#08090B] hover:bg-[#E10600] text-white p-2 opacity-90 sm:opacity-0 group-hover:opacity-100 transition-all duration-200 cursor-pointer"
             aria-label={`Quick add ${selectedSize.size} ${product.name}`}
             title={`Quick add ${selectedSize.size}`}
           >
@@ -64,16 +64,16 @@ const CollectionProductCard: React.FC<{
           </button>
         </div>
 
-        <div className="p-4 pb-2 space-y-1">
-          <div className="flex items-center justify-between text-[10px] font-mono tracking-[0.14em] text-zinc-500 uppercase">
+        <div className="px-0 pt-2.5 pb-1.5 sm:p-4 sm:pb-2 space-y-1">
+          <div className="flex items-center justify-between gap-2 text-[10px] font-mono tracking-[0.12em] sm:tracking-[0.14em] text-zinc-500 uppercase">
             <span className="truncate">{product.brand}</span>
             {product.gender && (
-              <span className="text-[#E10600] font-semibold">
+              <span className="text-[#E10600] font-semibold shrink-0">
                 {formatDivisionLabel(product.gender)}
               </span>
             )}
           </div>
-          <h3 className="font-display text-lg sm:text-xl font-bold uppercase text-[#08090B] leading-tight line-clamp-1 group-hover:text-[#E10600] transition-colors">
+          <h3 className="font-display text-base sm:text-xl font-bold uppercase text-[#08090B] leading-tight line-clamp-2 sm:line-clamp-1 group-hover:text-[#E10600] transition-colors">
             {product.name}
           </h3>
           <p className="text-[11px] font-mono text-zinc-500 uppercase truncate">
@@ -82,12 +82,12 @@ const CollectionProductCard: React.FC<{
         </div>
       </div>
 
-      <div className="p-4 pt-3 mt-1 border-t border-zinc-200/80 space-y-2.5" onClick={(e) => e.stopPropagation()}>
-        <div className="flex items-baseline justify-between tabular-nums">
-          <span className="font-mono text-sm font-bold text-[#08090B]">
+      <div className="px-0 pt-1.5 pb-1 sm:p-4 sm:pt-3 sm:mt-1 border-0 sm:border-t sm:border-zinc-200/80 space-y-2 sm:space-y-2.5" onClick={(e) => e.stopPropagation()}>
+        <div className="flex items-baseline justify-between gap-2 tabular-nums">
+          <span className="font-mono text-sm font-bold text-[#08090B] shrink-0">
             ৳ {selectedSize.price.toLocaleString()}
           </span>
-          <span className="font-mono text-[11px] text-zinc-500">{selectedSize.size}</span>
+          <span className="font-mono text-[10px] sm:text-[11px] text-zinc-500 truncate">{selectedSize.size}</span>
         </div>
 
         {product.sizes && product.sizes.length > 0 && (
@@ -99,7 +99,7 @@ const CollectionProductCard: React.FC<{
                 if (matched) setSelectedSize(matched);
               }}
               aria-label={`Select scale for ${product.name}`}
-              className="w-full appearance-none bg-[#F4F2EE] hover:bg-zinc-200/70 border border-zinc-300 text-[#08090B] text-[11px] font-mono py-2 pl-2.5 pr-7 focus:outline-none focus:border-[#08090B] cursor-pointer transition-colors"
+              className="w-full appearance-none bg-white/80 sm:bg-[#F4F2EE] hover:bg-zinc-200/70 border border-zinc-300 text-[#08090B] text-[11px] font-mono py-2 pl-2 sm:pl-2.5 pr-6 sm:pr-7 focus:outline-none focus:border-[#08090B] cursor-pointer transition-colors"
             >
               {product.sizes.map((sz, idx) => (
                 <option key={sz.size || idx} value={sz.size}>
@@ -107,14 +107,14 @@ const CollectionProductCard: React.FC<{
                 </option>
               ))}
             </select>
-            <ChevronDown className="w-3.5 h-3.5 text-zinc-600 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+            <ChevronDown className="w-3.5 h-3.5 text-zinc-600 absolute right-2 sm:right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
           </div>
         )}
 
         <button
           type="button"
           onClick={() => onAddToCart(product, selectedSize.size, selectedSize.price, 1)}
-          className="btn-f1 w-full bg-[#E10600] hover:bg-[#ff1e18] text-white py-2.5 font-display text-sm font-bold uppercase tracking-[0.08em] flex items-center justify-center transition-colors cursor-pointer"
+          className="btn-f1 w-full bg-[#E10600] hover:bg-[#ff1e18] text-white py-2 sm:py-2.5 font-display text-xs sm:text-sm font-bold uppercase tracking-[0.08em] flex items-center justify-center transition-colors cursor-pointer"
         >
           <span className="btn-f1-inner">
             <ShoppingBag className="w-3.5 h-3.5" />
@@ -331,7 +331,7 @@ export const CollectionPage: React.FC<CollectionPageProps> = ({
             </div>
           </div>
         ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-5">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-x-3.5 gap-y-7 sm:gap-5">
             {filteredProducts.map((product) => (
               <CollectionProductCard
                 key={product.id}

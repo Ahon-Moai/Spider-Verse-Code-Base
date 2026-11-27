@@ -36,12 +36,12 @@ const NewArrivalProductCard: React.FC<{
 
   return (
     <div
-      className="group flex flex-col justify-between cursor-pointer bg-white border border-zinc-200/90 hover:border-[#08090B] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_14px_30px_-10px_rgba(8,9,11,0.12)] h-full"
+      className="group flex flex-col justify-between cursor-pointer bg-transparent border-0 sm:bg-white sm:border sm:border-zinc-200/90 sm:hover:border-[#08090B] transition-all duration-200 sm:hover:-translate-y-0.5 sm:hover:shadow-[0_14px_30px_-10px_rgba(8,9,11,0.12)] h-full"
       onClick={() => onSelectProduct(product)}
     >
       <div>
         {/* Uniform Square Studio Image Stage */}
-        <div className="relative w-full aspect-square bg-[#FAF9F6] overflow-hidden flex items-center justify-center border-b border-zinc-200/70">
+        <div className="relative w-full aspect-square bg-transparent sm:bg-[#FAF9F6] overflow-hidden flex items-center justify-center border-0 sm:border-b sm:border-zinc-200/70">
           <img
             src={product.image}
             alt={product.name}
@@ -58,7 +58,7 @@ const NewArrivalProductCard: React.FC<{
               e.stopPropagation();
               onAddToCart(product, selectedSize.size, selectedSize.price);
             }}
-            className="absolute bottom-2.5 right-2.5 bg-[#08090B] hover:bg-[#E10600] text-white p-2.5 opacity-90 sm:opacity-0 group-hover:opacity-100 transition-all duration-200 shadow-md cursor-pointer"
+            className="absolute bottom-2 right-2 sm:bottom-2.5 sm:right-2.5 bg-[#08090B] hover:bg-[#E10600] text-white p-2 sm:p-2.5 opacity-90 sm:opacity-0 group-hover:opacity-100 transition-all duration-200 shadow-md cursor-pointer"
             aria-label={`Quick add ${selectedSize.size} ${product.name}`}
             title={`Quick add ${selectedSize.size}`}
           >
@@ -66,12 +66,12 @@ const NewArrivalProductCard: React.FC<{
           </button>
 
           {/* Subtle Red Corner Indicator on Hover */}
-          <div className="absolute top-0 left-0 w-0 group-hover:w-full h-[2px] bg-[#E10600] transition-all duration-300" />
+          <div className="hidden sm:block absolute top-0 left-0 w-0 group-hover:w-full h-[2px] bg-[#E10600] transition-all duration-300" />
         </div>
 
         {/* Clean Unboxed Metadata & Title */}
-        <div className="p-4 pb-2 space-y-1.5">
-          <div className="flex items-center justify-between gap-2 text-[10px] font-mono tracking-[0.14em] text-zinc-500 uppercase">
+        <div className="px-0 pt-2.5 pb-1.5 sm:p-4 sm:pb-2 space-y-1 sm:space-y-1.5">
+          <div className="flex items-center justify-between gap-2 text-[10px] font-mono tracking-[0.12em] sm:tracking-[0.14em] text-zinc-500 uppercase">
             <span className="truncate">{product.brand}</span>
             {product.gender && (
               <span className="shrink-0 text-zinc-400">
@@ -80,15 +80,15 @@ const NewArrivalProductCard: React.FC<{
             )}
           </div>
 
-          <h3 className="font-display text-lg sm:text-xl font-bold uppercase tracking-wide text-[#08090B] group-hover:text-[#E10600] transition-colors line-clamp-1 leading-tight">
+          <h3 className="font-display text-base sm:text-xl font-bold uppercase tracking-wide text-[#08090B] group-hover:text-[#E10600] transition-colors line-clamp-2 sm:line-clamp-1 leading-tight">
             {product.name}
           </h3>
 
-          <div className="flex items-baseline justify-between pt-0.5 tabular-nums">
-            <span className="font-mono text-sm font-bold text-[#08090B]">
+          <div className="flex items-baseline justify-between gap-2 pt-0.5 tabular-nums">
+            <span className="font-mono text-sm font-bold text-[#08090B] shrink-0">
               ৳ {selectedSize.price.toLocaleString()}
             </span>
-            <span className="font-mono text-[11px] text-zinc-500">
+            <span className="font-mono text-[10px] sm:text-[11px] text-zinc-500 truncate">
               {selectedSize.size}
             </span>
           </div>
@@ -96,7 +96,7 @@ const NewArrivalProductCard: React.FC<{
       </div>
 
       {/* Scale / Edition Selector */}
-      <div className="p-4 pt-2" onClick={(e) => e.stopPropagation()}>
+      <div className="px-0 pt-1.5 pb-1 sm:p-4 sm:pt-2" onClick={(e) => e.stopPropagation()}>
         <div className="relative">
           <select
             value={selectedSize.size}
@@ -105,7 +105,7 @@ const NewArrivalProductCard: React.FC<{
               if (matched) setSelectedSize(matched);
             }}
             aria-label={`Select scale for ${product.name}`}
-            className="w-full appearance-none bg-[#F4F2EE] hover:bg-zinc-200/70 border border-zinc-300/80 text-[#08090B] text-[11px] font-mono py-2 pl-2.5 pr-7 focus:outline-none focus:border-[#08090B] cursor-pointer transition-colors"
+            className="w-full appearance-none bg-white/80 sm:bg-[#F4F2EE] hover:bg-zinc-200/70 border border-zinc-300/80 text-[#08090B] text-[11px] font-mono py-2 pl-2 sm:pl-2.5 pr-6 sm:pr-7 focus:outline-none focus:border-[#08090B] cursor-pointer transition-colors"
           >
             {product.sizes.map((sz, idx) => (
               <option key={sz.size || idx} value={sz.size}>
@@ -113,7 +113,7 @@ const NewArrivalProductCard: React.FC<{
               </option>
             ))}
           </select>
-          <ChevronDown className="w-3.5 h-3.5 text-zinc-600 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+          <ChevronDown className="w-3.5 h-3.5 text-zinc-600 absolute right-2 sm:right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
         </div>
       </div>
     </div>
@@ -172,7 +172,7 @@ export const NewArrivals: React.FC<NewArrivalsProps> = ({
 
         {/* Product Grid */}
         {displayedProducts.length > 0 ? (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 sm:gap-5">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-x-3.5 gap-y-7 sm:gap-5">
             {displayedProducts.map((product) => (
               <NewArrivalProductCard
                 key={product.id}

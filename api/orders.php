@@ -156,6 +156,7 @@ if ($method === 'GET') {
 
     $customerName = sanitizeString($input['customer_name'] ?? '');
     $customerPhone = sanitizeString($input['customer_phone'] ?? '');
+    $whatsappNumber = sanitizeString($input['whatsapp_number'] ?? '');
     $customerEmail = sanitizeString($input['customer_email'] ?? '');
     $shippingAddress = sanitizeString($input['shipping_address'] ?? '');
     $cityZone = sanitizeString($input['city_zone'] ?? 'outside_dhaka'); // outside_dhaka | inside_dhaka
@@ -281,12 +282,13 @@ if ($method === 'GET') {
         $orderNumber = "ORD-$year-$randomSuffix";
 
         // 3. Insert Order
-        $ordStmt = $db->prepare("INSERT INTO orders (order_number, customer_id, customer_name, customer_phone, customer_email, shipping_address, city_zone, subtotal, discount, delivery_fee, total_amount, payment_method, payment_status, order_status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'unpaid', 'pending')");
+        $ordStmt = $db->prepare("INSERT INTO orders (order_number, customer_id, customer_name, customer_phone, whatsapp_number, customer_email, shipping_address, city_zone, subtotal, discount, delivery_fee, total_amount, payment_method, payment_status, order_status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'unpaid', 'pending')");
         $ordStmt->execute([
             $orderNumber,
             $customerId,
             $customerName,
             $customerPhone,
+            $whatsappNumber,
             $customerEmail,
             $shippingAddress,
             $cityZone,
@@ -332,6 +334,7 @@ if ($method === 'GET') {
             'order_number' => $orderNumber,
             'customer_name' => $customerName,
             'customer_phone' => $customerPhone,
+            'whatsapp_number' => $whatsappNumber,
             'customer_email' => $customerEmail,
             'shipping_address' => $shippingAddress,
             'city_zone' => $cityZone,

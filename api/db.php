@@ -51,6 +51,12 @@ class Database {
                     // Column already exists
                 }
 
+                try {
+                    self::$instance->exec("ALTER TABLE orders ADD COLUMN whatsapp_number VARCHAR(50) NULL");
+                } catch (\Exception $e) {
+                    // Column already exists
+                }
+
                 // Auto-create collections tables if missing
                 try {
                     self::$instance->exec("CREATE TABLE IF NOT EXISTS collections (

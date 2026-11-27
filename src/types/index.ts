@@ -109,6 +109,7 @@ export interface CompletedOrderData {
   order_number: string;
   customer_name: string;
   customer_phone?: string;
+  whatsapp_number?: string;
   customer_email?: string;
   shipping_address?: string;
   city_zone?: string;

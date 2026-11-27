@@ -170,6 +170,11 @@ export const OrderConfirmationPage: React.FC<OrderConfirmationPageProps> = ({
                 {order.customer_phone && (
                   <p className="font-mono text-zinc-700">{order.customer_phone}</p>
                 )}
+                {order.whatsapp_number && (
+                  <p className="font-mono text-zinc-700">
+                    WhatsApp: {order.whatsapp_number}
+                  </p>
+                )}
                 {order.customer_email && (
                   <p className="text-zinc-600">{order.customer_email}</p>
                 )}
