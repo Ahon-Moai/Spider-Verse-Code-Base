@@ -3,15 +3,21 @@ import {
   ArrowRight,
   CheckCircle2,
   ChevronRight,
+  Clock,
   Loader2,
+  XCircle,
 } from 'lucide-react';
 import { CompletedOrderData } from '../types';
 import { fetchOrderByNumber } from '../services/api';
 import {
-  formatPaymentLabel,
   formatZoneLabel,
   getShippingConfig,
 } from '../utils/checkout';
+import {
+  REQUIRED_ADVANCE_AMOUNT,
+  formatAdvancePaymentMethod,
+  formatVerificationStatus,
+} from '../utils/advancePayment';
 
 interface OrderConfirmationPageProps {
   orderNumber?: string;
@@ -36,7 +42,7 @@ export const OrderConfirmationPage: React.FC<OrderConfirmationPageProps> = ({
 
   useEffect(() => {
     document.title = order?.order_number
-      ? `Order ${order.order_number} Confirmed — SPIDER VERSE`
+      ? `Order ${order.order_number} Submitted — SPIDER VERSE`
       : 'Order Confirmation — SPIDER VERSE';
   }, [order?.order_number]);
 
@@ -56,13 +62,25 @@ export const OrderConfirmationPage: React.FC<OrderConfirmationPageProps> = ({
     fetchOrderByNumber(orderNumber).then((data) => {
       if (!active) return;
       if (data && data.order) {
+        const totalAmt = Number(data.order.total_amount || 0);
+        const advAmt = Number(data.order.advance_amount || REQUIRED_ADVANCE_AMOUNT) || REQUIRED_ADVANCE_AMOUNT;
+        const remCod =
+          data.order.remaining_cod_amount !== undefined &&
+          data.order.remaining_cod_amount !== null
+            ? Number(data.order.remaining_cod_amount)
+            : Math.max(0, totalAmt - advAmt);
+
         setOrder({
           ...data.order,
           status: data.order.order_status || data.order.status || 'pending',
           subtotal: Number(data.order.subtotal || 0),
           discount: Number(data.order.discount || 0),
           delivery_fee: Number(data.order.delivery_fee || 0),
-          total_amount: Number(data.order.total_amount || 0),
+          total_amount: totalAmt,
+          advance_amount: advAmt,
+          remaining_cod_amount: remCod,
+          payment_verification_status:
+            data.order.payment_verification_status || 'pending_verification',
           items: Array.isArray(data.items)
             ? data.items.map((it: any) => ({
                 ...it,
@@ -81,6 +99,15 @@ export const OrderConfirmationPage: React.FC<OrderConfirmationPageProps> = ({
     };
   }, [orderNumber, initialOrder]);
 
+  const totalAmount = Number(order?.total_amount || 0);
+  const advanceAmount = Number(order?.advance_amount || REQUIRED_ADVANCE_AMOUNT) || REQUIRED_ADVANCE_AMOUNT;
+  const remainingCodAmount =
+    order?.remaining_cod_amount !== undefined && order?.remaining_cod_amount !== null
+      ? Number(order.remaining_cod_amount)
+      : Math.max(0, totalAmount - advanceAmount);
+
+  const verificationInfo = formatVerificationStatus(order?.payment_verification_status);
+
   return (
     <div className="bg-[#F4F2EE] text-[#08090B] min-h-[75vh] selection:bg-[#E10600] selection:text-white">
       {/* Breadcrumb Bar */}
@@ -96,7 +123,7 @@ export const OrderConfirmationPage: React.FC<OrderConfirmationPageProps> = ({
             </button>
             <ChevronRight className="w-3 h-3 text-zinc-500 shrink-0" />
             <span className="text-white font-semibold uppercase tracking-wider truncate">
-              Order Confirmation
+              Order Submitted
             </span>
           </div>
         </div>
@@ -132,29 +159,131 @@ export const OrderConfirmationPage: React.FC<OrderConfirmationPageProps> = ({
             </div>
           </div>
         ) : (
-          <div className="bg-white border border-zinc-300 p-6 sm:p-10 space-y-8">
+          <div className="bg-white border border-zinc-300 p-6 sm:p-10 space-y-7">
             {/* Top Confirmation Banner */}
             <div className="border-b border-zinc-200 pb-6 flex flex-col sm:flex-row sm:items-start justify-between gap-4">
               <div className="space-y-2">
                 <div className="inline-flex items-center gap-2 text-emerald-700 font-mono text-xs font-bold uppercase tracking-wider">
                   <CheckCircle2 className="w-4 h-4" />
-                  <span>Order Confirmed</span>
+                  <span>Order Submitted Successfully!</span>
                 </div>
                 <h1 className="font-display font-black text-3xl sm:text-5xl uppercase text-[#08090B] tracking-tight leading-none tabular-nums">
                   {order.order_number}
                 </h1>
-                <p className="text-sm text-zinc-600 leading-relaxed pt-1">
-                  Thank you, <strong className="text-[#08090B]">{order.customer_name}</strong>. Your order has been received and queued for dispatch verification.
+                <p className="text-sm text-zinc-700 leading-relaxed pt-1">
+                  Your order has been submitted and is awaiting advance-payment verification.
                 </p>
               </div>
 
-              <div className="bg-[#FAF9F6] border border-zinc-200 px-4 py-3 text-left sm:text-right shrink-0">
+              <div className="bg-[#FAF9F6] border border-zinc-300 px-4 py-3 text-left sm:text-right shrink-0 space-y-1">
                 <span className="font-mono text-[10px] uppercase tracking-wider text-zinc-500 block">
-                  Order Status
+                  Payment Verification
                 </span>
-                <span className="font-mono text-xs font-bold uppercase text-emerald-700">
-                  {order.status || order.order_status || 'pending'}
+                <span
+                  className={`inline-flex items-center gap-1.5 font-mono text-xs font-bold uppercase ${
+                    verificationInfo.tone === 'verified'
+                      ? 'text-emerald-700'
+                      : verificationInfo.tone === 'rejected'
+                      ? 'text-[#E10600]'
+                      : 'text-amber-700'
+                  }`}
+                >
+                  {verificationInfo.tone === 'verified' ? (
+                    <CheckCircle2 className="w-3.5 h-3.5" />
+                  ) : verificationInfo.tone === 'rejected' ? (
+                    <XCircle className="w-3.5 h-3.5" />
+                  ) : (
+                    <Clock className="w-3.5 h-3.5" />
+                  )}
+                  <span>{verificationInfo.label}</span>
                 </span>
+              </div>
+            </div>
+
+            {/* Verification Notice */}
+            {verificationInfo.tone === 'rejected' ? (
+              <div className="bg-red-50 border border-[#E10600] px-4 py-3.5 text-xs sm:text-sm text-[#E10600] space-y-1">
+                <p className="font-semibold">
+                  Advance payment verification was rejected by admin.
+                </p>
+                {order.payment_rejection_reason && (
+                  <p className="text-xs text-zinc-800">
+                    Reason: {order.payment_rejection_reason}
+                  </p>
+                )}
+              </div>
+            ) : verificationInfo.tone === 'verified' ? (
+              <div className="bg-emerald-50 border border-emerald-200 px-4 py-3.5 text-xs sm:text-sm text-emerald-900">
+                Your {currencySymbol}
+                {advanceAmount} advance payment has been verified. Remaining{' '}
+                <strong className="font-mono tabular-nums">
+                  {currencySymbol} {remainingCodAmount.toLocaleString()}
+                </strong>{' '}
+                will be collected upon delivery.
+              </div>
+            ) : (
+              <div className="bg-amber-50 border border-amber-200 px-4 py-3.5 text-xs sm:text-sm text-amber-950 leading-relaxed">
+                We will verify your advance payment and confirm your order shortly. The remaining amount will be paid upon delivery.
+              </div>
+            )}
+
+            {/* Advance Payment Verification Summary */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-[#FAF9F6] border border-zinc-300 p-4 sm:p-5 text-xs">
+              <div className="space-y-1.5">
+                <span className="font-mono text-[10px] uppercase tracking-[0.16em] text-zinc-500 block">
+                  Advance Payment Proof
+                </span>
+                <p className="font-semibold text-[#08090B]">
+                  Method: {formatAdvancePaymentMethod(order.payment_method)}
+                </p>
+                {order.sender_number && (
+                  <p className="font-mono text-zinc-700 tabular-nums">
+                    Sender Number: {order.sender_number}
+                  </p>
+                )}
+                {order.transaction_ref && (
+                  <p className="font-mono text-[#08090B] font-semibold">
+                    Transaction ID / Ref: {order.transaction_ref}
+                  </p>
+                )}
+                <p className="text-zinc-600">
+                  Verification Status:{' '}
+                  <strong
+                    className={
+                      verificationInfo.tone === 'verified'
+                        ? 'text-emerald-700'
+                        : verificationInfo.tone === 'rejected'
+                        ? 'text-[#E10600]'
+                        : 'text-amber-700'
+                    }
+                  >
+                    {verificationInfo.label}
+                  </strong>
+                </p>
+              </div>
+
+              <div className="space-y-1.5 sm:text-right">
+                <span className="font-mono text-[10px] uppercase tracking-[0.16em] text-zinc-500 block">
+                  Payment Split
+                </span>
+                <p className="text-zinc-700">
+                  Total Order Amount:{' '}
+                  <strong className="font-mono text-[#08090B] tabular-nums">
+                    {currencySymbol} {totalAmount.toLocaleString()}
+                  </strong>
+                </p>
+                <p className="text-zinc-700">
+                  Advance Payment:{' '}
+                  <strong className="font-mono text-[#E10600] tabular-nums">
+                    {currencySymbol} {advanceAmount.toLocaleString()}
+                  </strong>
+                </p>
+                <p className="text-zinc-900 font-semibold pt-1">
+                  Remaining Payable on Delivery:{' '}
+                  <strong className="font-mono text-base text-[#08090B] tabular-nums">
+                    {currencySymbol} {remainingCodAmount.toLocaleString()}
+                  </strong>
+                </p>
               </div>
             </div>
 
@@ -162,28 +291,19 @@ export const OrderConfirmationPage: React.FC<OrderConfirmationPageProps> = ({
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 text-xs">
               <div className="space-y-1.5">
                 <span className="font-mono text-[10px] uppercase tracking-[0.16em] text-zinc-500 block">
-                  Customer &amp; Payment
+                  Customer Information
                 </span>
                 <p className="font-semibold text-sm text-[#08090B]">
                   {order.customer_name}
                 </p>
                 {order.customer_phone && (
-                  <p className="font-mono text-zinc-700">{order.customer_phone}</p>
+                  <p className="font-mono text-zinc-700 tabular-nums">{order.customer_phone}</p>
                 )}
                 {order.whatsapp_number && (
-                  <p className="font-mono text-zinc-700">
+                  <p className="font-mono text-zinc-700 tabular-nums">
                     WhatsApp: {order.whatsapp_number}
                   </p>
                 )}
-                {order.customer_email && (
-                  <p className="text-zinc-600">{order.customer_email}</p>
-                )}
-                <p className="text-zinc-700 pt-1">
-                  Payment:{' '}
-                  <strong className="text-[#08090B]">
-                    {formatPaymentLabel(order.payment_method)}
-                  </strong>
-                </p>
               </div>
 
               <div className="space-y-1.5">
@@ -260,12 +380,26 @@ export const OrderConfirmationPage: React.FC<OrderConfirmationPageProps> = ({
                 </span>
               </div>
 
+              <div className="flex justify-between text-[#08090B] font-semibold pt-2 border-t border-zinc-200">
+                <span>Total Order Amount</span>
+                <span className="font-mono tabular-nums">
+                  {currencySymbol} {totalAmount.toLocaleString()}
+                </span>
+              </div>
+
+              <div className="flex justify-between text-[#E10600] font-semibold">
+                <span>Advance Payment</span>
+                <span className="font-mono tabular-nums">
+                  -{currencySymbol} {advanceAmount.toLocaleString()}
+                </span>
+              </div>
+
               <div className="flex items-baseline justify-between pt-3 border-t border-zinc-300">
                 <span className="font-mono font-bold uppercase tracking-wider text-[#08090B]">
-                  Order Total
+                  Remaining COD on Delivery
                 </span>
                 <span className="font-mono text-2xl font-bold text-[#08090B] tabular-nums">
-                  {currencySymbol} {Number(order.total_amount || 0).toLocaleString()}
+                  {currencySymbol} {remainingCodAmount.toLocaleString()}
                 </span>
               </div>
             </div>

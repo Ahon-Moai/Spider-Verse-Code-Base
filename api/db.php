@@ -57,6 +57,25 @@ class Database {
                     // Column already exists
                 }
 
+                $orderPaymentColumns = [
+                    "advance_amount DECIMAL(10,2) NOT NULL DEFAULT 250.00",
+                    "remaining_cod_amount DECIMAL(10,2) NOT NULL DEFAULT 0.00",
+                    "sender_number VARCHAR(50) NULL",
+                    "payment_note TEXT NULL",
+                    "payment_verification_status VARCHAR(50) NOT NULL DEFAULT 'pending_verification'",
+                    "payment_verified_at DATETIME NULL",
+                    "payment_verified_by VARCHAR(100) NULL",
+                    "payment_rejection_reason TEXT NULL",
+                    "idempotency_key VARCHAR(64) NULL",
+                ];
+                foreach ($orderPaymentColumns as $colDef) {
+                    try {
+                        self::$instance->exec("ALTER TABLE orders ADD COLUMN {$colDef}");
+                    } catch (\Exception $e) {
+                        // Column already exists
+                    }
+                }
+
                 // Auto-create collections tables if missing
                 try {
                     self::$instance->exec("CREATE TABLE IF NOT EXISTS collections (

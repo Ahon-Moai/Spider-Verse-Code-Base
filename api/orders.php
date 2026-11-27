@@ -9,6 +9,13 @@ require_once __DIR__ . '/inventory_helpers.php';
 
 sendCorsAndHeaders();
 
+const REQUIRED_ADVANCE_BDT = 250.00;
+
+function isValidBangladeshPhone(string $phone): bool {
+    $cleaned = preg_replace('/[\s\-()]/', '', trim($phone));
+    return (bool)preg_match('/^(?:\+?88)?01[3-9][0-9]{8}$/', $cleaned);
+}
+
 $db = Database::getConnection();
 $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
 
@@ -18,7 +25,35 @@ if ($method === 'GET') {
         jsonError('Order number required', 400);
     }
 
-    $stmt = $db->prepare("SELECT * FROM orders WHERE order_number = ? LIMIT 1");
+    $stmt = $db->prepare("
+        SELECT
+            id,
+            order_number,
+            customer_name,
+            customer_phone,
+            whatsapp_number,
+            customer_email,
+            shipping_address,
+            city_zone,
+            subtotal,
+            discount,
+            delivery_fee,
+            total_amount,
+            advance_amount,
+            remaining_cod_amount,
+            payment_method,
+            sender_number,
+            payment_status,
+            transaction_ref,
+            payment_note,
+            payment_verification_status,
+            payment_rejection_reason,
+            order_status,
+            created_at
+        FROM orders
+        WHERE order_number = ?
+        LIMIT 1
+    ");
     $stmt->execute([$orderNumber]);
     $order = $stmt->fetch();
 
@@ -26,9 +61,24 @@ if ($method === 'GET') {
         jsonError('Order not found', 404);
     }
 
-    $itemStmt = $db->prepare("SELECT * FROM order_items WHERE order_id = ?");
+    $totalAmount = (float)($order['total_amount'] ?? 0);
+    $advanceAmount = isset($order['advance_amount']) ? (float)$order['advance_amount'] : REQUIRED_ADVANCE_BDT;
+    if ($advanceAmount <= 0) {
+        $advanceAmount = REQUIRED_ADVANCE_BDT;
+    }
+    $remainingCod = isset($order['remaining_cod_amount']) && (float)$order['remaining_cod_amount'] >= 0
+        ? (float)$order['remaining_cod_amount']
+        : max(0.00, $totalAmount - $advanceAmount);
+
+    $order['advance_amount'] = $advanceAmount;
+    $order['remaining_cod_amount'] = $remainingCod;
+    $order['payment_verification_status'] = $order['payment_verification_status'] ?: 'pending_verification';
+
+    $itemStmt = $db->prepare("SELECT id, product_id, product_name, brand_name, selected_size, quantity, unit_price, line_total FROM order_items WHERE order_id = ?");
     $itemStmt->execute([$order['id']]);
     $items = $itemStmt->fetchAll();
+
+    unset($order['id']);
 
     jsonResponse([
         'order' => $order,
@@ -39,7 +89,7 @@ if ($method === 'GET') {
     $input = getJsonInput();
     $action = sanitizeString($_GET['action'] ?? $input['action'] ?? '');
 
-    // Server-side Quote & Validation (Pricing, Delivery, Coupon, Stock)
+    // Server-side Quote & Validation (Pricing, Delivery, Coupon, Stock, Advance)
     if ($action === 'quote') {
         $cityZone = sanitizeString($input['city_zone'] ?? 'outside_dhaka');
         $couponCode = sanitizeString($input['coupon_code'] ?? null);
@@ -137,6 +187,8 @@ if ($method === 'GET') {
         }
 
         $totalAmount = max(0, ($subtotal - $discount)) + $deliveryFee;
+        $advanceAmount = REQUIRED_ADVANCE_BDT;
+        $remainingCodAmount = round(max(0.00, $totalAmount - $advanceAmount), 2);
 
         jsonResponse([
             'items' => $validatedItems,
@@ -144,6 +196,8 @@ if ($method === 'GET') {
             'discount' => $discount,
             'delivery_fee' => $deliveryFee,
             'total_amount' => $totalAmount,
+            'advance_amount' => $advanceAmount,
+            'remaining_cod_amount' => $remainingCodAmount,
             'shipping_fee_dhaka' => $feeDhaka,
             'shipping_fee_outside_dhaka' => $feeOutside,
             'free_shipping_threshold' => $freeThreshold,
@@ -160,16 +214,102 @@ if ($method === 'GET') {
     $customerEmail = sanitizeString($input['customer_email'] ?? '');
     $shippingAddress = sanitizeString($input['shipping_address'] ?? '');
     $cityZone = sanitizeString($input['city_zone'] ?? 'outside_dhaka'); // outside_dhaka | inside_dhaka
-    $paymentMethod = 'cod';
     $couponCode = sanitizeString($input['coupon_code'] ?? null);
     $itemsInput = $input['items'] ?? [];
 
-    if (empty($customerName) || empty($customerPhone) || empty($shippingAddress)) {
-        jsonError('Customer name, phone number, and delivery address are required', 400);
+    // Advance payment verification fields
+    $rawPaymentMethod = strtolower(trim((string)($input['payment_method'] ?? '')));
+    $paymentMethod = in_array($rawPaymentMethod, ['bkash', 'nagad', 'bank_transfer'], true) ? $rawPaymentMethod : '';
+    $senderNumber = sanitizeString($input['sender_number'] ?? '');
+    $transactionRef = sanitizeString($input['transaction_id'] ?? $input['transaction_ref'] ?? '');
+    $paymentNote = sanitizeString($input['payment_note'] ?? '');
+    $idempotencyKey = sanitizeString($input['idempotency_key'] ?? '');
+    if ($idempotencyKey) {
+        $idempotencyKey = substr(preg_replace('/[^a-zA-Z0-9_-]/', '', $idempotencyKey), 0, 64);
+    }
+
+    if (empty($customerName) || strlen($customerName) < 2) {
+        jsonError('Please enter your full name.', 400);
+    }
+    if (empty($customerPhone) || !isValidBangladeshPhone($customerPhone)) {
+        jsonError('Please enter a valid Bangladeshi phone number (e.g. 01700000000).', 400);
+    }
+    if (!empty($whatsappNumber) && !isValidBangladeshPhone($whatsappNumber)) {
+        jsonError('Please enter a valid Bangladeshi WhatsApp number (e.g. 01700000000).', 400);
+    }
+    if (empty($shippingAddress) || strlen($shippingAddress) < 5) {
+        jsonError('Please enter your complete delivery address.', 400);
+    }
+    if (empty($paymentMethod)) {
+        jsonError('Please select a valid advance payment method (bKash, Nagad, or Bank Transfer).', 400);
+    }
+
+    if ($paymentMethod === 'bkash' || $paymentMethod === 'nagad') {
+        if (empty($senderNumber) || !isValidBangladeshPhone($senderNumber)) {
+            jsonError('Please enter a valid 11-digit Bangladeshi sender mobile number for your ' . ($paymentMethod === 'bkash' ? 'bKash' : 'Nagad') . ' transfer.', 400);
+        }
+        if (empty($transactionRef) || strlen(trim($transactionRef)) < 3) {
+            jsonError('Please enter the Transaction ID from your ' . ($paymentMethod === 'bkash' ? 'bKash' : 'Nagad') . ' payment.', 400);
+        }
+    } else {
+        if (empty($transactionRef) || strlen(trim($transactionRef)) < 3) {
+            jsonError('Please enter your Bank Transfer Reference or Transaction ID.', 400);
+        }
     }
 
     if (empty($itemsInput) || !is_array($itemsInput)) {
         jsonError('Cart is empty', 400);
+    }
+
+    // Idempotency protection: return previously created order if same request retries
+    if (!empty($idempotencyKey)) {
+        $dupStmt = $db->prepare("SELECT * FROM orders WHERE idempotency_key = ? LIMIT 1");
+        $dupStmt->execute([$idempotencyKey]);
+        $existingOrder = $dupStmt->fetch();
+        if ($existingOrder) {
+            $existingItemsStmt = $db->prepare("SELECT product_id, product_name, brand_name, selected_size, quantity, unit_price, line_total FROM order_items WHERE order_id = ?");
+            $existingItemsStmt->execute([$existingOrder['id']]);
+            $existingItems = $existingItemsStmt->fetchAll();
+
+            jsonResponse([
+                'order_number' => $existingOrder['order_number'],
+                'customer_name' => $existingOrder['customer_name'],
+                'customer_phone' => $existingOrder['customer_phone'],
+                'whatsapp_number' => $existingOrder['whatsapp_number'] ?? '',
+                'customer_email' => $existingOrder['customer_email'] ?? '',
+                'shipping_address' => $existingOrder['shipping_address'],
+                'city_zone' => $existingOrder['city_zone'],
+                'subtotal' => (float)$existingOrder['subtotal'],
+                'discount' => (float)$existingOrder['discount'],
+                'delivery_fee' => (float)$existingOrder['delivery_fee'],
+                'total_amount' => (float)$existingOrder['total_amount'],
+                'advance_amount' => (float)($existingOrder['advance_amount'] ?? REQUIRED_ADVANCE_BDT),
+                'remaining_cod_amount' => (float)($existingOrder['remaining_cod_amount'] ?? max(0.00, (float)$existingOrder['total_amount'] - REQUIRED_ADVANCE_BDT)),
+                'payment_method' => $existingOrder['payment_method'],
+                'sender_number' => $existingOrder['sender_number'] ?? '',
+                'transaction_ref' => $existingOrder['transaction_ref'] ?? '',
+                'payment_note' => $existingOrder['payment_note'] ?? '',
+                'payment_verification_status' => $existingOrder['payment_verification_status'] ?: 'pending_verification',
+                'payment_rejection_reason' => $existingOrder['payment_rejection_reason'] ?? null,
+                'status' => $existingOrder['order_status'] ?? 'pending',
+                'items' => $existingItems
+            ], 200, 'Order already submitted');
+        }
+    }
+
+    // Prevent duplicate active orders using the exact same transaction reference
+    $txCheckStmt = $db->prepare("
+        SELECT id, order_number
+        FROM orders
+        WHERE payment_method = ?
+          AND LOWER(TRIM(transaction_ref)) = LOWER(TRIM(?))
+          AND COALESCE(payment_verification_status, 'pending_verification') != 'rejected'
+          AND order_status != 'cancelled'
+        LIMIT 1
+    ");
+    $txCheckStmt->execute([$paymentMethod, $transactionRef]);
+    if ($txCheckStmt->fetch()) {
+        jsonError('This Transaction ID / Reference has already been submitted for an active order. Please check your transaction details.', 409);
     }
 
     // Fetch store settings for shipping rules
@@ -207,7 +347,7 @@ if ($method === 'GET') {
         $variant = $vStmt->fetch();
 
         if (!$variant) {
-            jsonError("Size variant $size for product {$prod['name']} not found", 400);
+            jsonError("Variant $size for product {$prod['name']} not found", 400);
         }
 
         $availableStock = (int)$variant['stock_qty'];
@@ -255,7 +395,12 @@ if ($method === 'GET') {
         }
     }
 
-    $totalAmount = max(0, ($subtotal - $discount)) + $deliveryFee;
+    // Server-authoritative totals and mandatory ৳250 advance deduction
+    $totalAmount = round(max(0, ($subtotal - $discount)) + $deliveryFee, 2);
+    $advanceAmount = REQUIRED_ADVANCE_BDT;
+    $remainingCodAmount = round(max(0.00, $totalAmount - $advanceAmount), 2);
+    $paymentVerificationStatus = 'pending_verification';
+    $paymentStatus = 'unpaid';
 
     // DATABASE TRANSACTION
     try {
@@ -281,8 +426,33 @@ if ($method === 'GET') {
         $randomSuffix = strtoupper(bin2hex(random_bytes(3)));
         $orderNumber = "ORD-$year-$randomSuffix";
 
-        // 3. Insert Order
-        $ordStmt = $db->prepare("INSERT INTO orders (order_number, customer_id, customer_name, customer_phone, whatsapp_number, customer_email, shipping_address, city_zone, subtotal, discount, delivery_fee, total_amount, payment_method, payment_status, order_status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'unpaid', 'pending')");
+        // 3. Insert Order (strictly awaiting manual admin payment verification)
+        $ordStmt = $db->prepare("
+            INSERT INTO orders (
+                order_number,
+                customer_id,
+                customer_name,
+                customer_phone,
+                whatsapp_number,
+                customer_email,
+                shipping_address,
+                city_zone,
+                subtotal,
+                discount,
+                delivery_fee,
+                total_amount,
+                advance_amount,
+                remaining_cod_amount,
+                payment_method,
+                sender_number,
+                payment_status,
+                transaction_ref,
+                payment_note,
+                payment_verification_status,
+                idempotency_key,
+                order_status
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending')
+        ");
         $ordStmt->execute([
             $orderNumber,
             $customerId,
@@ -296,7 +466,15 @@ if ($method === 'GET') {
             $discount,
             $deliveryFee,
             $totalAmount,
-            $paymentMethod
+            $advanceAmount,
+            $remainingCodAmount,
+            $paymentMethod,
+            $senderNumber ?: null,
+            $paymentStatus,
+            $transactionRef,
+            $paymentNote ?: null,
+            $paymentVerificationStatus,
+            $idempotencyKey ?: null
         ]);
         $orderId = $db->lastInsertId();
 
@@ -318,15 +496,15 @@ if ($method === 'GET') {
                 $vItem['line_total']
             ]);
 
-            // Deduct variant and main product stock
             $stockDeductVar->execute([$vItem['quantity'], $vItem['quantity'], $vItem['variant_id']]);
             $stockDeductProd->execute([$vItem['quantity'], $vItem['quantity'], $vItem['product_id']]);
             $logIns->execute([$vItem['product_id'], $vItem['variant_id'], -$vItem['quantity']]);
         }
 
         // 5. Status History
-        $histStmt = $db->prepare("INSERT INTO order_status_history (order_id, old_status, new_status, note, changed_by) VALUES (?, NULL, 'pending', 'Order created at checkout', 'customer')");
-        $histStmt->execute([$orderId]);
+        $histNote = "Order submitted with ৳250 {$paymentMethod} advance (Ref: {$transactionRef}) — Pending Verification";
+        $histStmt = $db->prepare("INSERT INTO order_status_history (order_id, old_status, new_status, note, changed_by) VALUES (?, NULL, 'pending', ?, 'customer')");
+        $histStmt->execute([$orderId, $histNote]);
 
         $db->commit();
 
@@ -342,16 +520,23 @@ if ($method === 'GET') {
             'discount' => $discount,
             'delivery_fee' => $deliveryFee,
             'total_amount' => $totalAmount,
+            'advance_amount' => $advanceAmount,
+            'remaining_cod_amount' => $remainingCodAmount,
             'payment_method' => $paymentMethod,
+            'sender_number' => $senderNumber,
+            'transaction_ref' => $transactionRef,
+            'payment_note' => $paymentNote,
+            'payment_verification_status' => $paymentVerificationStatus,
+            'payment_rejection_reason' => null,
             'status' => 'pending',
             'items' => $validatedItems
-        ], 201, 'Order placed successfully');
+        ], 201, 'Order submitted and awaiting advance payment verification');
 
     } catch (\Exception $e) {
         if ($db->inTransaction()) {
             $db->rollBack();
         }
-        jsonError('Failed to process checkout: ' . $e->getMessage(), 500);
+        jsonError('Failed to process order submission. Please try again.', 500);
     }
 
 } else {

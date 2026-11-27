@@ -6,6 +6,7 @@ import {
   ChevronRight,
   Loader2,
   Phone,
+  ShieldCheck,
   ShoppingBag,
   Tag,
   X,
@@ -25,6 +26,16 @@ import {
   formatZoneLabel,
   getShippingConfig,
 } from '../utils/checkout';
+import {
+  REQUIRED_ADVANCE_AMOUNT,
+  computeAdvanceSplit,
+  generateIdempotencyKey,
+  isValidBangladeshMobile,
+} from '../utils/advancePayment';
+import {
+  AdvancePaymentModal,
+  AdvancePaymentSubmissionPayload,
+} from './AdvancePaymentModal';
 
 interface CheckoutPageProps {
   items: CartItem[];
@@ -74,8 +85,14 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
   const [quote, setQuote] = useState<OrderQuoteResponse | null>(null);
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [submitError, setSubmitError] = useState<string | null>(null);
-  const [submitting, setSubmitting] = useState(false);
+  const [checkingQuote, setCheckingQuote] = useState(false);
+
+  // Step 2: Advance payment modal state
+  const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
+  const [paymentSubmitting, setPaymentSubmitting] = useState(false);
+  const [paymentSubmitError, setPaymentSubmitError] = useState<string | null>(null);
   const submittingLockRef = useRef(false);
+  const idempotencyKeyRef = useRef<string>(generateIdempotencyKey());
 
   useEffect(() => {
     document.title = 'Checkout — SPIDER VERSE';
@@ -144,6 +161,7 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
 
   const discount = quote ? quote.discount : 0;
   const totalPayable = Math.max(0, subtotal - discount) + deliveryFee;
+  const { advanceAmount, remainingCodAmount } = computeAdvanceSplit(totalPayable);
   const totalUnits = items.reduce((sum, it) => sum + it.quantity, 0);
 
   const handleApplyCoupon = async () => {
@@ -209,14 +227,12 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
       errors.customerName = 'Please enter your full name.';
     }
 
-    const normalizedPhone = customerPhone.replace(/[\s\-()]/g, '');
-    if (!normalizedPhone || !/^\+?[0-9]{10,15}$/.test(normalizedPhone)) {
-      errors.customerPhone = 'Please enter a valid 10–15 digit phone number.';
+    if (!customerPhone.trim() || !isValidBangladeshMobile(customerPhone)) {
+      errors.customerPhone = 'Please enter a valid 11-digit Bangladeshi phone number (e.g. 01700000000).';
     }
 
-    const normalizedWhatsapp = whatsappNumber.replace(/[\s\-()]/g, '');
-    if (normalizedWhatsapp && !/^\+?[0-9]{10,15}$/.test(normalizedWhatsapp)) {
-      errors.whatsappNumber = 'Please enter a valid 10–15 digit WhatsApp number.';
+    if (whatsappNumber.trim() && !isValidBangladeshMobile(whatsappNumber)) {
+      errors.whatsappNumber = 'Please enter a valid 11-digit Bangladeshi WhatsApp number.';
     }
 
     if (!streetAddress.trim() || streetAddress.trim().length < 5) {
@@ -226,11 +242,13 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
     return errors;
   };
 
-  const handlePlaceOrder = async (e: React.FormEvent) => {
+  // Step 1 submit -> validate details, check live stock, and open Step 2 Advance Payment modal
+  const handleProceedToPayment = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (submittingLockRef.current || submitting) return;
+    if (checkingQuote || paymentSubmitting) return;
 
     setSubmitError(null);
+    setPaymentSubmitError(null);
     const errors = validateForm();
     setFieldErrors(errors);
 
@@ -247,9 +265,7 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
       return;
     }
 
-    submittingLockRef.current = true;
-    setSubmitting(true);
-
+    setCheckingQuote(true);
     try {
       const cartPayloadItems = items.map((it) => ({
         product_id: it.product.id,
@@ -257,7 +273,6 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
         quantity: it.quantity,
       }));
 
-      // Validate latest pricing & stock with backend prior to submission
       const latestQuote = await fetchOrderQuote({
         city_zone: cityZone,
         coupon_code: appliedCoupon || undefined,
@@ -269,7 +284,48 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
         if (latestQuote.stock_issues && latestQuote.stock_issues.length > 0) {
           const issue = latestQuote.stock_issues[0];
           setSubmitError(
-            `Only ${issue.available_stock} unit(s) available for ${issue.product_name} (${issue.selected_size}). Please update your bag quantity before placing the order.`
+            `Only ${issue.available_stock} unit(s) available for ${issue.product_name} (${issue.selected_size}). Please update your bag quantity before proceeding.`
+          );
+          return;
+        }
+      }
+
+      setIsPaymentModalOpen(true);
+    } catch {
+      // Allow opening payment step even if quote endpoint is temporarily slow; final server submit validates all totals
+      setIsPaymentModalOpen(true);
+    } finally {
+      setCheckingQuote(false);
+    }
+  };
+
+  // Step 2 submit -> submit order with advance payment details (Pending Verification)
+  const handleSubmitAdvancePayment = async (payload: AdvancePaymentSubmissionPayload) => {
+    if (submittingLockRef.current || paymentSubmitting) return;
+
+    submittingLockRef.current = true;
+    setPaymentSubmitting(true);
+    setPaymentSubmitError(null);
+
+    try {
+      const cartPayloadItems = items.map((it) => ({
+        product_id: it.product.id,
+        selected_size: it.selectedSize,
+        quantity: it.quantity,
+      }));
+
+      const latestQuote = await fetchOrderQuote({
+        city_zone: cityZone,
+        coupon_code: appliedCoupon || undefined,
+        items: cartPayloadItems,
+      });
+
+      if (latestQuote) {
+        setQuote(latestQuote);
+        if (latestQuote.stock_issues && latestQuote.stock_issues.length > 0) {
+          const issue = latestQuote.stock_issues[0];
+          setPaymentSubmitError(
+            `Only ${issue.available_stock} unit(s) available for ${issue.product_name} (${issue.selected_size}). Please go back and update your bag.`
           );
           return;
         }
@@ -285,7 +341,11 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
         whatsapp_number: whatsappNumber.trim() || undefined,
         shipping_address: formattedAddress,
         city_zone: cityZone,
-        payment_method: 'cod',
+        payment_method: payload.paymentMethod,
+        sender_number: payload.senderNumber || undefined,
+        transaction_id: payload.transactionId,
+        payment_note: payload.paymentNote || undefined,
+        idempotency_key: idempotencyKeyRef.current,
         coupon_code:
           latestQuote && appliedCoupon && !latestQuote.coupon_applied
             ? undefined
@@ -294,21 +354,26 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
       });
 
       if (result.success && result.data) {
+        setIsPaymentModalOpen(false);
         onOrderSuccess(result.data as CompletedOrderData);
       } else {
-        setSubmitError(
+        if (result?.status === 400 || result?.status === 409) {
+          // Rotate idempotency key so customer can submit corrected TrxID
+          idempotencyKeyRef.current = generateIdempotencyKey();
+        }
+        setPaymentSubmitError(
           getErrorMessage(
             result?.error || result,
-            'Could not place order. Please review your details and try again.'
+            'Could not submit order. Please check your payment details and try again.'
           )
         );
       }
     } catch {
-      setSubmitError(
-        'Connection error while placing order. Your bag is safe — please try again.'
+      setPaymentSubmitError(
+        'Connection error while submitting order. Your details are saved — please try again.'
       );
     } finally {
-      setSubmitting(false);
+      setPaymentSubmitting(false);
       submittingLockRef.current = false;
     }
   };
@@ -386,7 +451,7 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
 
         <form
           id="dedicated-checkout-form"
-          onSubmit={handlePlaceOrder}
+          onSubmit={handleProceedToPayment}
           noValidate
           className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-start"
         >
@@ -678,35 +743,40 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
               </div>
             </section>
 
-            {/* Section 03 – Payment Method (Cash on Delivery Only) */}
+            {/* Section 03 – Payment Terms (৳250 Advance + Remaining COD) */}
             <section className="bg-white border border-zinc-300 p-6 sm:p-7 space-y-4">
-              <div className="border-b border-zinc-200 pb-3">
+              <div className="border-b border-zinc-200 pb-3 flex items-baseline justify-between">
                 <h2 className="font-display font-bold text-2xl uppercase text-[#08090B]">
-                  03. Payment Method
+                  03. Payment Terms
                 </h2>
+                <span className="font-mono text-[10px] uppercase tracking-wider text-[#E10600] font-semibold">
+                  Step 2 Next
+                </span>
               </div>
 
-              <div className="p-4 sm:p-5 border-2 border-[#08090B] bg-[#FAF9F6] flex items-center justify-between gap-4">
+              <div className="p-4 sm:p-5 border-2 border-[#08090B] bg-[#FAF9F6] flex items-start justify-between gap-4">
                 <div className="flex items-start gap-3">
                   <span
                     aria-hidden="true"
                     className="mt-0.5 w-5 h-5 bg-[#08090B] text-white flex items-center justify-center shrink-0"
                   >
-                    <Check className="w-3.5 h-3.5" />
+                    <ShieldCheck className="w-3.5 h-3.5" />
                   </span>
-                  <div>
+                  <div className="space-y-1">
                     <p className="text-sm font-bold text-[#08090B]">
-                      Cash on Delivery
+                      {currencySymbol}
+                      {REQUIRED_ADVANCE_AMOUNT} Advance Payment + Cash on Delivery
                     </p>
-                    <p className="text-xs text-zinc-600 mt-0.5">
-                      Pay when your order arrives.
+                    <p className="text-xs text-zinc-600 leading-relaxed">
+                      A mandatory {currencySymbol}
+                      {REQUIRED_ADVANCE_AMOUNT} advance via bKash, Nagad, or City Bank transfer is required to confirm your order. The remaining{' '}
+                      <strong className="font-mono text-[#08090B] tabular-nums">
+                        {currencySymbol} {remainingCodAmount.toLocaleString()}
+                      </strong>{' '}
+                      is deducted automatically and paid on delivery.
                     </p>
                   </div>
                 </div>
-
-                <span className="font-mono text-[10px] font-bold uppercase tracking-wider text-zinc-600 shrink-0">
-                  COD
-                </span>
               </div>
             </section>
           </div>
@@ -833,7 +903,7 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
                 )}
               </div>
 
-              {/* Totals */}
+              {/* Totals with ৳250 Advance Deduction */}
               <div className="space-y-2.5 pt-4 border-t border-zinc-200 text-xs">
                 <div className="flex items-center justify-between text-zinc-600">
                   <span>Products Subtotal</span>
@@ -867,38 +937,48 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
                   </div>
                 )}
 
-                <div className="flex items-center justify-between text-zinc-600">
-                  <span>Payment Method</span>
-                  <span className="font-semibold text-[#08090B]">
-                    Cash on Delivery
+                <div className="flex items-center justify-between pt-2.5 border-t border-zinc-200 text-[#08090B] font-semibold">
+                  <span>Total Order Amount</span>
+                  <span className="font-mono font-bold tabular-nums">
+                    {currencySymbol} {totalPayable.toLocaleString()}
+                  </span>
+                </div>
+
+                <div className="flex items-center justify-between text-[#E10600] font-semibold">
+                  <span>Advance Payment Required</span>
+                  <span className="font-mono tabular-nums">
+                    -{currencySymbol} {advanceAmount.toLocaleString()}
                   </span>
                 </div>
 
                 <div className="flex items-baseline justify-between pt-3 border-t border-zinc-300">
                   <span className="font-mono text-xs font-bold uppercase tracking-wider text-[#08090B]">
-                    Final Payable Amount
+                    Remaining COD on Delivery
                   </span>
                   <span className="font-mono text-2xl font-bold text-[#08090B] tabular-nums">
-                    {currencySymbol} {totalPayable.toLocaleString()}
+                    {currencySymbol} {remainingCodAmount.toLocaleString()}
                   </span>
                 </div>
               </div>
 
-              {/* Place Order Button */}
+              {/* Proceed to Advance Payment Button */}
               <button
                 type="submit"
-                disabled={submitting}
+                disabled={checkingQuote || paymentSubmitting}
                 className="btn-f1 w-full bg-[#E10600] hover:bg-[#ff1e18] text-white py-4 px-6 font-display text-base font-bold tracking-[0.08em] uppercase flex items-center justify-center transition-colors cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
               >
                 <span className="btn-f1-inner">
-                  {submitting ? (
+                  {checkingQuote ? (
                     <>
                       <Loader2 className="w-4 h-4 animate-spin" />
-                      <span>Processing Order...</span>
+                      <span>Preparing Payment...</span>
                     </>
                   ) : (
                     <>
-                      <span>Place Order</span>
+                      <span>
+                        Proceed to Advance Payment · {currencySymbol}
+                        {REQUIRED_ADVANCE_AMOUNT}
+                      </span>
                       <ArrowRight className="w-4 h-4" />
                     </>
                   )}
@@ -908,6 +988,26 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
           </aside>
         </form>
       </div>
+
+      {/* Step 2: Advance Payment Verification Modal */}
+      <AdvancePaymentModal
+        isOpen={isPaymentModalOpen}
+        currencySymbol={currencySymbol}
+        subtotal={subtotal}
+        deliveryFee={deliveryFee}
+        discount={discount}
+        totalAmount={totalPayable}
+        remainingCodAmount={remainingCodAmount}
+        submitting={paymentSubmitting}
+        submitError={paymentSubmitError}
+        onClose={() => {
+          if (!paymentSubmitting) {
+            setIsPaymentModalOpen(false);
+            setPaymentSubmitError(null);
+          }
+        }}
+        onSubmitPayment={handleSubmitAdvancePayment}
+      />
     </div>
   );
 };

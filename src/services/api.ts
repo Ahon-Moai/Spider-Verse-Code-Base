@@ -148,7 +148,11 @@ export async function submitOrder(orderPayload: {
   customer_email?: string;
   shipping_address: string;
   city_zone: 'inside_dhaka' | 'outside_dhaka';
-  payment_method: string;
+  payment_method: 'bkash' | 'nagad' | 'bank_transfer';
+  sender_number?: string;
+  transaction_id: string;
+  payment_note?: string;
+  idempotency_key?: string;
   coupon_code?: string;
   items: Array<{
     product_id: string;

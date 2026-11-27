@@ -84,12 +84,18 @@ export interface OrderQuoteItem {
   available_stock: number;
 }
 
+export type AdvancePaymentMethod = 'bkash' | 'nagad' | 'bank_transfer';
+
+export type PaymentVerificationStatus = 'pending_verification' | 'verified' | 'rejected';
+
 export interface OrderQuoteResponse {
   items: OrderQuoteItem[];
   subtotal: number;
   discount: number;
   delivery_fee: number;
   total_amount: number;
+  advance_amount?: number;
+  remaining_cod_amount?: number;
   shipping_fee_dhaka: number;
   shipping_fee_outside_dhaka: number;
   free_shipping_threshold: number;
@@ -117,7 +123,14 @@ export interface CompletedOrderData {
   discount?: number;
   delivery_fee?: number;
   total_amount: number;
+  advance_amount?: number;
+  remaining_cod_amount?: number;
   payment_method: string;
+  sender_number?: string;
+  transaction_ref?: string;
+  payment_note?: string;
+  payment_verification_status?: PaymentVerificationStatus;
+  payment_rejection_reason?: string | null;
   status: string;
   order_status?: string;
   created_at?: string;

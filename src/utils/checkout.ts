@@ -40,6 +40,12 @@ export function formatZoneLabel(zone?: string): string {
   return 'Outside Chittagong';
 }
 
-export function formatPaymentLabel(_method?: string): string {
-  return 'Cash on Delivery';
+export function formatPaymentLabel(method?: string): string {
+  const normalized = (method || '').toLowerCase().trim();
+  if (normalized === 'bkash') return 'bKash (৳250 Advance + Remaining COD)';
+  if (normalized === 'nagad') return 'Nagad (৳250 Advance + Remaining COD)';
+  if (normalized === 'bank_transfer' || normalized === 'bank') {
+    return 'City Bank Transfer (৳250 Advance + Remaining COD)';
+  }
+  return '৳250 Advance + Cash on Delivery';
 }
