@@ -82,9 +82,9 @@ export const OrderConfirmationPage: React.FC<OrderConfirmationPageProps> = ({
   }, [orderNumber, initialOrder]);
 
   return (
-    <div className="bg-[#F4F2EE] text-[#212428] min-h-[75vh] selection:bg-[#E10600] selection:text-white">
+    <div className="bg-[#F4F2EE] text-[#08090B] min-h-[75vh] selection:bg-[#E10600] selection:text-white">
       {/* Breadcrumb Bar */}
-      <div className="bg-[#212428] text-[#C4C9D4] border-b border-white/10">
+      <div className="bg-[#08090B] text-[#C4C9D4] border-b border-white/10">
         <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex items-center justify-between text-[11px] font-mono">
           <div className="flex items-center gap-2 truncate">
             <button
@@ -105,14 +105,14 @@ export const OrderConfirmationPage: React.FC<OrderConfirmationPageProps> = ({
       <div className="max-w-3xl mx-auto px-4 sm:px-6 py-10 sm:py-16">
         {loading ? (
           <div className="bg-white border border-zinc-300 p-12 text-center space-y-3">
-            <Loader2 className="w-7 h-7 animate-spin mx-auto text-[#212428]" />
+            <Loader2 className="w-7 h-7 animate-spin mx-auto text-[#08090B]" />
             <p className="font-mono text-xs uppercase tracking-wider text-zinc-600">
               Loading Order Receipt...
             </p>
           </div>
         ) : !order ? (
           <div className="bg-white border border-zinc-300 p-10 sm:p-14 text-center space-y-5">
-            <h1 className="font-display font-black text-3xl sm:text-4xl uppercase text-[#212428]">
+            <h1 className="font-display font-black text-3xl sm:text-4xl uppercase text-[#08090B]">
               Order Not Found
             </h1>
             <p className="text-sm text-zinc-600 max-w-md mx-auto">
@@ -140,11 +140,11 @@ export const OrderConfirmationPage: React.FC<OrderConfirmationPageProps> = ({
                   <CheckCircle2 className="w-4 h-4" />
                   <span>Order Confirmed</span>
                 </div>
-                <h1 className="font-display font-black text-3xl sm:text-5xl uppercase text-[#212428] tracking-tight leading-none tabular-nums">
+                <h1 className="font-display font-black text-3xl sm:text-5xl uppercase text-[#08090B] tracking-tight leading-none tabular-nums">
                   {order.order_number}
                 </h1>
                 <p className="text-sm text-zinc-600 leading-relaxed pt-1">
-                  Thank you, <strong className="text-[#212428]">{order.customer_name}</strong>. Your order has been received and queued for dispatch verification.
+                  Thank you, <strong className="text-[#08090B]">{order.customer_name}</strong>. Your order has been received and queued for dispatch verification.
                 </p>
               </div>
 
@@ -164,7 +164,7 @@ export const OrderConfirmationPage: React.FC<OrderConfirmationPageProps> = ({
                 <span className="font-mono text-[10px] uppercase tracking-[0.16em] text-zinc-500 block">
                   Customer &amp; Payment
                 </span>
-                <p className="font-semibold text-sm text-[#212428]">
+                <p className="font-semibold text-sm text-[#08090B]">
                   {order.customer_name}
                 </p>
                 {order.customer_phone && (
@@ -175,7 +175,7 @@ export const OrderConfirmationPage: React.FC<OrderConfirmationPageProps> = ({
                 )}
                 <p className="text-zinc-700 pt-1">
                   Payment:{' '}
-                  <strong className="text-[#212428]">
+                  <strong className="text-[#08090B]">
                     {formatPaymentLabel(order.payment_method)}
                   </strong>
                 </p>
@@ -186,7 +186,7 @@ export const OrderConfirmationPage: React.FC<OrderConfirmationPageProps> = ({
                   Delivery Details
                 </span>
                 {order.city_zone && (
-                  <p className="font-semibold text-sm text-[#212428]">
+                  <p className="font-semibold text-sm text-[#08090B]">
                     {formatZoneLabel(order.city_zone)}
                   </p>
                 )}
@@ -211,7 +211,7 @@ export const OrderConfirmationPage: React.FC<OrderConfirmationPageProps> = ({
                       className="px-4 py-3 flex items-center justify-between gap-4 text-xs"
                     >
                       <div className="min-w-0">
-                        <p className="font-semibold text-[#212428] truncate">
+                        <p className="font-semibold text-[#08090B] truncate">
                           {item.product_name}
                         </p>
                         <p className="font-mono text-[11px] text-zinc-500 tabular-nums">
@@ -219,7 +219,7 @@ export const OrderConfirmationPage: React.FC<OrderConfirmationPageProps> = ({
                           {Number(item.unit_price).toLocaleString()}
                         </p>
                       </div>
-                      <span className="font-mono font-bold text-[#212428] tabular-nums shrink-0">
+                      <span className="font-mono font-bold text-[#08090B] tabular-nums shrink-0">
                         {currencySymbol} {Number(item.line_total).toLocaleString()}
                       </span>
                     </div>
@@ -232,7 +232,7 @@ export const OrderConfirmationPage: React.FC<OrderConfirmationPageProps> = ({
             <div className="bg-[#F4F2EE] border border-zinc-300 p-5 space-y-2 text-xs">
               <div className="flex justify-between text-zinc-600">
                 <span>Subtotal</span>
-                <span className="font-mono font-semibold text-[#212428] tabular-nums">
+                <span className="font-mono font-semibold text-[#08090B] tabular-nums">
                   {currencySymbol} {Number(order.subtotal || 0).toLocaleString()}
                 </span>
               </div>
@@ -248,7 +248,7 @@ export const OrderConfirmationPage: React.FC<OrderConfirmationPageProps> = ({
 
               <div className="flex justify-between text-zinc-600">
                 <span>Delivery Charge</span>
-                <span className="font-mono font-medium text-[#212428] tabular-nums">
+                <span className="font-mono font-medium text-[#08090B] tabular-nums">
                   {Number(order.delivery_fee || 0) === 0
                     ? 'FREE'
                     : `${currencySymbol} ${Number(order.delivery_fee).toLocaleString()}`}
@@ -256,10 +256,10 @@ export const OrderConfirmationPage: React.FC<OrderConfirmationPageProps> = ({
               </div>
 
               <div className="flex items-baseline justify-between pt-3 border-t border-zinc-300">
-                <span className="font-mono font-bold uppercase tracking-wider text-[#212428]">
+                <span className="font-mono font-bold uppercase tracking-wider text-[#08090B]">
                   Order Total
                 </span>
-                <span className="font-mono text-2xl font-bold text-[#212428] tabular-nums">
+                <span className="font-mono text-2xl font-bold text-[#08090B] tabular-nums">
                   {currencySymbol} {Number(order.total_amount || 0).toLocaleString()}
                 </span>
               </div>
@@ -280,7 +280,7 @@ export const OrderConfirmationPage: React.FC<OrderConfirmationPageProps> = ({
               <button
                 type="button"
                 onClick={onNavigateHome}
-                className="px-6 py-3.5 border border-zinc-300 hover:border-[#212428] text-[#212428] font-mono text-xs font-semibold uppercase tracking-wider transition-colors cursor-pointer text-center"
+                className="px-6 py-3.5 border border-zinc-300 hover:border-[#08090B] text-[#08090B] font-mono text-xs font-semibold uppercase tracking-wider transition-colors cursor-pointer text-center"
               >
                 Return Home
               </button>

@@ -29,7 +29,7 @@ const CustomProductCard: React.FC<{
   const [selectedSize, setSelectedSize] = useState<DecantSize>(defaultSize);
 
   return (
-    <div className="group bg-white border border-zinc-200/90 hover:border-[#212428] flex flex-col justify-between transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_14px_30px_-10px_rgba(8,9,11,0.12)] relative h-full">
+    <div className="group bg-white border border-zinc-200/90 hover:border-[#08090B] flex flex-col justify-between transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_14px_30px_-10px_rgba(8,9,11,0.12)] relative h-full">
       <div>
         {/* Image Stage */}
         <div
@@ -45,8 +45,8 @@ const CustomProductCard: React.FC<{
             referrerPolicy="no-referrer"
           />
 
-          <div className="absolute inset-0 bg-[#212428]/10 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-            <span className="bg-[#212428] text-white text-[10px] font-mono tracking-[0.18em] uppercase px-3.5 py-2 flex items-center gap-1.5 shadow-lg">
+          <div className="absolute inset-0 bg-[#08090B]/10 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+            <span className="bg-[#08090B] text-white text-[10px] font-mono tracking-[0.18em] uppercase px-3.5 py-2 flex items-center gap-1.5 shadow-lg">
               <Eye className="w-3.5 h-3.5 text-[#E10600]" />
               <span>Inspect</span>
             </span>
@@ -64,13 +64,13 @@ const CustomProductCard: React.FC<{
 
           <h3
             onClick={() => onSelectProduct(product)}
-            className="font-display text-lg sm:text-xl font-bold uppercase tracking-wide text-[#212428] hover:text-[#E10600] transition-colors cursor-pointer truncate"
+            className="font-display text-lg sm:text-xl font-bold uppercase tracking-wide text-[#08090B] hover:text-[#E10600] transition-colors cursor-pointer truncate"
           >
             {product.name}
           </h3>
 
           <div className="flex items-baseline justify-between tabular-nums">
-            <span className="font-mono text-sm font-bold text-[#212428]">
+            <span className="font-mono text-sm font-bold text-[#08090B]">
               ৳ {selectedSize.price.toLocaleString()}
             </span>
             <span className="font-mono text-[11px] text-zinc-500">{selectedSize.size}</span>
@@ -86,7 +86,7 @@ const CustomProductCard: React.FC<{
                   if (matched) setSelectedSize(matched);
                 }}
                 aria-label={`Select scale for ${product.name}`}
-                className="w-full appearance-none bg-[#F4F2EE] hover:bg-zinc-200/70 border border-zinc-300/80 text-[#212428] text-[11px] font-mono py-2 pl-2.5 pr-7 focus:outline-none focus:border-[#212428] cursor-pointer transition-colors"
+                className="w-full appearance-none bg-[#F4F2EE] hover:bg-zinc-200/70 border border-zinc-300/80 text-[#08090B] text-[11px] font-mono py-2 pl-2.5 pr-7 focus:outline-none focus:border-[#08090B] cursor-pointer transition-colors"
               >
                 {product.sizes.map((sz, idx) => (
                   <option key={sz.size || idx} value={sz.size}>
@@ -111,7 +111,7 @@ const CustomProductCard: React.FC<{
         <button
           type="button"
           onClick={() => onSelectProduct(product)}
-          className="btn-f1 flex-1 bg-[#F4F2EE] hover:bg-zinc-200 text-[#212428] py-2.5 font-display text-sm font-bold tracking-[0.08em] uppercase transition-colors text-center cursor-pointer"
+          className="btn-f1 flex-1 bg-[#F4F2EE] hover:bg-zinc-200 text-[#08090B] py-2.5 font-display text-sm font-bold tracking-[0.08em] uppercase transition-colors text-center cursor-pointer"
         >
           <span className="btn-f1-inner">Details</span>
         </button>
@@ -177,7 +177,7 @@ export const CustomProductSections: React.FC<CustomProductSectionsProps> = ({
   };
 
   return (
-    <div className="perf-section w-full bg-[#F4F2EE] text-[#212428] space-y-16 py-14 sm:py-20 border-b border-zinc-300/70">
+    <div className="perf-section w-full bg-[#F4F2EE] text-[#08090B] space-y-16 py-14 sm:py-20 border-b border-zinc-300/70">
       {activeSections.map((sec) => {
         if (!sec) return null;
 
@@ -188,14 +188,14 @@ export const CustomProductSections: React.FC<CustomProductSectionsProps> = ({
 
         return (
           <section key={sec.key} className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex flex-col sm:flex-row sm:items-end justify-between border-b-2 border-[#212428] pb-4 mb-8 gap-2">
+            <div className="flex flex-col sm:flex-row sm:items-end justify-between border-b-2 border-[#08090B] pb-4 mb-8 gap-2">
               <div>
                 {sec.subtitle && (
                   <span className="font-mono text-[11px] tracking-[0.22em] text-[#E10600] uppercase font-semibold block">
                     {sec.subtitle}
                   </span>
                 )}
-                <h2 className="font-display font-black text-3xl sm:text-4xl tracking-tight text-[#212428] uppercase leading-none mt-1">
+                <h2 className="font-display font-black text-3xl sm:text-4xl tracking-tight text-[#08090B] uppercase leading-none mt-1">
                   {sec.title}
                 </h2>
               </div>
@@ -217,7 +217,7 @@ export const CustomProductSections: React.FC<CustomProductSectionsProps> = ({
                 <button
                   type="button"
                   onClick={() => setExpandedSections((prev) => ({ ...prev, [sec.key]: true }))}
-                  className="btn-f1 border-2 border-[#212428] text-[#212428] hover:bg-[#E10600] hover:border-[#E10600] hover:text-white px-8 py-3 font-display text-base font-bold tracking-[0.08em] uppercase transition-colors cursor-pointer"
+                  className="btn-f1 border-2 border-[#08090B] text-[#08090B] hover:bg-[#E10600] hover:border-[#E10600] hover:text-white px-8 py-3 font-display text-base font-bold tracking-[0.08em] uppercase transition-colors cursor-pointer"
                 >
                   <span className="btn-f1-inner">
                     <span>Show More Models</span>
@@ -231,7 +231,7 @@ export const CustomProductSections: React.FC<CustomProductSectionsProps> = ({
                   className="btn-f1 bg-[#E10600] hover:bg-[#ff1e18] text-white px-8 py-3 font-display text-base font-bold tracking-[0.08em] uppercase transition-colors cursor-pointer"
                 >
                   <span className="btn-f1-inner">
-                    <span>See All F1 Models</span>
+                    <span>See More Products</span>
                     <ArrowRight className="w-4 h-4" />
                   </span>
                 </button>

@@ -57,15 +57,15 @@ export const BrandLogo: React.FC<BrandLogoProps> = ({
 
   // Default: 'header'
   return (
-    <span className={`inline-flex items-stretch gap-1.5 select-none ${className}`}>
-      <span className="bg-[#EC1D24] text-white px-1.5 sm:px-2 py-0.5 flex items-center justify-center">
-        <span className="font-logo font-black uppercase text-[24px] sm:text-[28px] md:text-[31px] leading-[0.82] tracking-[-0.025em] scale-y-[1.06] whitespace-nowrap">
+    <span className={`inline-flex items-stretch gap-1.5 select-none h-full ${className}`}>
+      <span className="bg-[#EC1D24] text-white px-2 sm:px-2.5 pt-0 pb-0.5 flex items-center justify-center">
+        <span className="font-logo font-black uppercase text-[28px] sm:text-[32px] md:text-[36px] leading-[0.75] tracking-[-0.025em] scale-y-[1.06] whitespace-nowrap -mt-[2px]">
           {firstWord}
         </span>
       </span>
       {restWords && (
-        <span className="border-y-[2px] border-white px-0.5 py-0.5 flex items-center justify-center">
-          <span className="font-display font-normal uppercase text-white text-[24px] sm:text-[28px] md:text-[31px] leading-[0.82] tracking-[0.03em] scale-y-[1.06] whitespace-nowrap">
+        <span className="border-y-[2px] border-white px-0.5 pt-0 pb-0.5 flex items-center justify-center">
+          <span className="font-display font-normal uppercase text-white text-[28px] sm:text-[32px] md:text-[36px] leading-[0.75] tracking-[0.03em] scale-y-[1.06] whitespace-nowrap -mt-[1px]">
             {restWords}
           </span>
         </span>

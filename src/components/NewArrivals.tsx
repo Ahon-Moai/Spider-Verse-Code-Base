@@ -36,7 +36,7 @@ const NewArrivalProductCard: React.FC<{
 
   return (
     <div
-      className="group flex flex-col justify-between cursor-pointer bg-white border border-zinc-200/90 hover:border-[#212428] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_14px_30px_-10px_rgba(8,9,11,0.12)] h-full"
+      className="group flex flex-col justify-between cursor-pointer bg-white border border-zinc-200/90 hover:border-[#08090B] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_14px_30px_-10px_rgba(8,9,11,0.12)] h-full"
       onClick={() => onSelectProduct(product)}
     >
       <div>
@@ -58,7 +58,7 @@ const NewArrivalProductCard: React.FC<{
               e.stopPropagation();
               onAddToCart(product, selectedSize.size, selectedSize.price);
             }}
-            className="absolute bottom-2.5 right-2.5 bg-[#212428] hover:bg-[#E10600] text-white p-2.5 opacity-90 sm:opacity-0 group-hover:opacity-100 transition-all duration-200 shadow-md cursor-pointer"
+            className="absolute bottom-2.5 right-2.5 bg-[#08090B] hover:bg-[#E10600] text-white p-2.5 opacity-90 sm:opacity-0 group-hover:opacity-100 transition-all duration-200 shadow-md cursor-pointer"
             aria-label={`Quick add ${selectedSize.size} ${product.name}`}
             title={`Quick add ${selectedSize.size}`}
           >
@@ -80,12 +80,12 @@ const NewArrivalProductCard: React.FC<{
             )}
           </div>
 
-          <h3 className="font-display text-lg sm:text-xl font-bold uppercase tracking-wide text-[#212428] group-hover:text-[#E10600] transition-colors line-clamp-1 leading-tight">
+          <h3 className="font-display text-lg sm:text-xl font-bold uppercase tracking-wide text-[#08090B] group-hover:text-[#E10600] transition-colors line-clamp-1 leading-tight">
             {product.name}
           </h3>
 
           <div className="flex items-baseline justify-between pt-0.5 tabular-nums">
-            <span className="font-mono text-sm font-bold text-[#212428]">
+            <span className="font-mono text-sm font-bold text-[#08090B]">
               ৳ {selectedSize.price.toLocaleString()}
             </span>
             <span className="font-mono text-[11px] text-zinc-500">
@@ -105,7 +105,7 @@ const NewArrivalProductCard: React.FC<{
               if (matched) setSelectedSize(matched);
             }}
             aria-label={`Select scale for ${product.name}`}
-            className="w-full appearance-none bg-[#F4F2EE] hover:bg-zinc-200/70 border border-zinc-300/80 text-[#212428] text-[11px] font-mono py-2 pl-2.5 pr-7 focus:outline-none focus:border-[#212428] cursor-pointer transition-colors"
+            className="w-full appearance-none bg-[#F4F2EE] hover:bg-zinc-200/70 border border-zinc-300/80 text-[#08090B] text-[11px] font-mono py-2 pl-2.5 pr-7 focus:outline-none focus:border-[#08090B] cursor-pointer transition-colors"
           >
             {product.sizes.map((sz, idx) => (
               <option key={sz.size || idx} value={sz.size}>
@@ -146,16 +146,16 @@ export const NewArrivals: React.FC<NewArrivalsProps> = ({
   return (
     <section
       id="new-arrivals"
-      className="perf-section w-full bg-[#F4F2EE] text-[#212428] py-14 sm:py-20 border-b border-zinc-300/70 apex-grid-light"
+      className="perf-section w-full bg-[#F4F2EE] text-[#08090B] py-14 sm:py-20 border-b border-zinc-300/70 apex-grid-light"
     >
       <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
-        <div className="flex flex-col sm:flex-row sm:items-end justify-between border-b-2 border-[#212428] pb-4 mb-8 sm:mb-10 gap-3">
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between border-b-2 border-[#08090B] pb-4 mb-8 sm:mb-10 gap-3">
           <div>
             <span className="font-mono text-[11px] tracking-[0.22em] text-[#E10600] uppercase font-semibold block">
               Latest Grid Drops
             </span>
-            <h2 className="font-display font-black text-3xl sm:text-4xl md:text-5xl tracking-tight text-[#212428] uppercase leading-none mt-1">
+            <h2 className="font-display font-black text-3xl sm:text-4xl md:text-5xl tracking-tight text-[#08090B] uppercase leading-none mt-1">
               New Arrivals
             </h2>
           </div>
@@ -163,7 +163,7 @@ export const NewArrivals: React.FC<NewArrivalsProps> = ({
           <button
             type="button"
             onClick={handleSeeAll}
-            className="inline-flex items-center gap-2 text-xs font-mono font-semibold tracking-[0.16em] uppercase text-[#212428] hover:text-[#E10600] transition-colors cursor-pointer self-start sm:self-auto"
+            className="inline-flex items-center gap-2 text-xs font-mono font-semibold tracking-[0.16em] uppercase text-[#08090B] hover:text-[#E10600] transition-colors cursor-pointer self-start sm:self-auto"
           >
             <span>View Full Grid</span>
             <ArrowRight className="w-3.5 h-3.5" />
@@ -184,7 +184,7 @@ export const NewArrivals: React.FC<NewArrivalsProps> = ({
           </div>
         ) : (
           <div className="bg-white border border-zinc-200 p-10 text-center space-y-2">
-            <p className="font-display text-2xl font-bold uppercase text-[#212428]">
+            <p className="font-display text-2xl font-bold uppercase text-[#08090B]">
               Paddock Grid Synchronizing
             </p>
             <p className="text-xs text-zinc-500 max-w-md mx-auto">
@@ -200,7 +200,7 @@ export const NewArrivals: React.FC<NewArrivalsProps> = ({
               <button
                 type="button"
                 onClick={() => setHasExpandedOnce(true)}
-                className="btn-f1 border-2 border-[#212428] text-[#212428] hover:bg-[#E10600] hover:border-[#E10600] hover:text-white px-8 py-3 font-display text-base font-bold tracking-[0.08em] uppercase transition-colors duration-200 cursor-pointer"
+                className="btn-f1 border-2 border-[#08090B] text-[#08090B] hover:bg-[#E10600] hover:border-[#E10600] hover:text-white px-8 py-3 font-display text-base font-bold tracking-[0.08em] uppercase transition-colors duration-200 cursor-pointer"
               >
                 <span className="btn-f1-inner">
                   <span>Show More Models</span>
@@ -214,7 +214,7 @@ export const NewArrivals: React.FC<NewArrivalsProps> = ({
                 className="btn-f1 bg-[#E10600] hover:bg-[#ff1e18] text-white px-8 py-3 font-display text-base font-bold tracking-[0.08em] uppercase transition-colors duration-200 cursor-pointer"
               >
                 <span className="btn-f1-inner">
-                  <span>See All F1 Models</span>
+                  <span>See More Products</span>
                   <ArrowRight className="w-4 h-4" />
                 </span>
               </button>

@@ -162,7 +162,7 @@ export const SeasonsGallery: React.FC<SeasonsGalleryProps> = ({
                 handleBoxClick(card);
               }
             }}
-            className="flex-shrink-0 w-[250px] sm:w-auto relative group overflow-hidden bg-[#2B2F36] border border-white/10 hover:border-[#E10600] cursor-pointer aspect-[3/4] transition-colors duration-300"
+            className="flex-shrink-0 w-[250px] sm:w-auto relative group overflow-hidden bg-[#111317] border border-white/10 hover:border-[#E10600] cursor-pointer aspect-[3/4] transition-colors duration-300"
           >
             <img
               src={card.image}
@@ -174,7 +174,7 @@ export const SeasonsGallery: React.FC<SeasonsGalleryProps> = ({
             />
 
             {/* Measured dark contrast scrim */}
-            <div className="absolute inset-0 bg-gradient-to-t from-[#212428]/95 via-[#212428]/35 to-transparent flex flex-col justify-between p-4 sm:p-5">
+            <div className="absolute inset-0 bg-gradient-to-t from-[#08090B]/95 via-[#08090B]/35 to-transparent flex flex-col justify-between p-4 sm:p-5">
               <div className="flex items-center justify-between gap-2 text-[10px] font-mono tracking-[0.2em] text-[#C4C9D4]">
                 <span>{String(index + 1).padStart(2, '0')}</span>
                 <span className="uppercase truncate">{displayTag}</span>
@@ -215,7 +215,7 @@ export const SeasonsGallery: React.FC<SeasonsGalleryProps> = ({
   return (
     <section
       id="showcase"
-      className="w-full bg-[#212428] text-[#F4F2EE] py-14 border-b border-white/10"
+      className="w-full bg-[#08090B] text-[#F4F2EE] py-14 border-b border-white/10"
     >
       <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-end justify-between border-b border-white/10 pb-4 mb-6">

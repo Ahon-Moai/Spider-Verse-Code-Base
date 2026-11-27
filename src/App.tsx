@@ -17,6 +17,7 @@ import { CheckoutPage } from './components/CheckoutPage';
 import { OrderConfirmationPage } from './components/OrderConfirmationPage';
 import { SearchModal } from './components/SearchModal';
 import { MobileBottomNav } from './components/MobileBottomNav';
+import { WhatsAppFloat } from './components/WhatsAppFloat';
 import { AdminLogin } from './admin/AdminLogin';
 import { AdminLayout } from './admin/AdminLayout';
 import {
@@ -31,7 +32,6 @@ import {
   getErrorMessage,
 } from './services/api';
 import { getItemMaxStock } from './utils/checkout';
-import { Shield } from 'lucide-react';
 
 const CART_STORAGE_KEY = 'spiderverse_cart_v1';
 const COUPON_STORAGE_KEY = 'spiderverse_coupon_v1';
@@ -272,9 +272,10 @@ export default function App() {
   }, []);
 
   const navigateToHome = useCallback(() => {
-    if (window.location.pathname !== '/' && window.location.hash !== '#admin') {
+    if (window.location.pathname !== '/' || window.location.hash === '#admin') {
       window.history.pushState({}, '', '/');
     }
+    setViewMode('storefront');
     setRoute({ path: 'home' });
     window.scrollTo(0, 0);
   }, []);
@@ -496,24 +497,10 @@ export default function App() {
   }
 
   return (
-    <div className="min-h-screen bg-[#212428] text-[#F4F2EE] font-sans flex flex-col selection:bg-[#E10600] selection:text-white relative">
-      {/* Admin CMS Switch Button (preserved) */}
-      <button
-        type="button"
-        onClick={() => {
-          setViewMode('admin');
-          window.location.hash = '#admin';
-        }}
-        className="fixed bottom-16 md:bottom-6 left-4 md:left-6 z-40 bg-[#2B2F36] text-white hover:bg-[#E10600] px-3 py-2 border border-white/15 shadow-2xl text-[10px] font-mono tracking-widest uppercase flex items-center gap-2 transition-colors cursor-pointer"
-        title="Open Admin CMS Dashboard"
-      >
-        <Shield className="w-3.5 h-3.5 text-[#E10600] group-hover:text-white" />
-        <span className="hidden sm:inline">ADMIN CMS</span>
-      </button>
-
+    <div className="min-h-screen bg-[#08090B] text-[#F4F2EE] font-sans flex flex-col selection:bg-[#E10600] selection:text-white relative">
       {/* Toast Notification */}
       {toastMessage && (
-        <div className="fixed bottom-16 md:bottom-6 right-4 md:right-6 z-50 bg-[#212428] text-white border border-[#E10600] px-4 py-3 shadow-2xl text-xs font-mono tracking-wide flex items-center gap-2.5 animate-fade-in">
+        <div className="fixed bottom-32 md:bottom-24 right-4 md:right-6 z-50 bg-[#08090B] text-white border border-[#E10600] px-4 py-3 shadow-2xl text-xs font-mono tracking-wide flex items-center gap-2.5 animate-fade-in">
           <span className="w-2 h-[2px] bg-[#E10600] shrink-0" />
           <span>{toastMessage}</span>
         </div>
@@ -616,6 +603,8 @@ export default function App() {
       </main>
 
       <Footer storeSettings={storeSettings} />
+
+      <WhatsAppFloat storeSettings={storeSettings} hidden={isSearchOpen} />
 
       <MobileBottomNav
         activeTab={

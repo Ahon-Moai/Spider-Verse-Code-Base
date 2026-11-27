@@ -70,6 +70,7 @@ export const Hero: React.FC<HeroProps> = ({
 }) => {
   const [activeSlide, setActiveSlide] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
+  const [isTouching, setIsTouching] = useState(false);
   const [isHovering, setIsHovering] = useState(false);
 
   const trackRef = useRef<HTMLDivElement>(null);
@@ -79,6 +80,12 @@ export const Hero: React.FC<HeroProps> = ({
     startX: 0,
     startScrollLeft: 0,
     moved: false,
+  });
+  const touchStateRef = useRef({
+    active: false,
+    startX: 0,
+    startY: 0,
+    startIndex: 0,
   });
 
   const cmsSlides: HeroSlideConfig[] | null =
@@ -169,6 +176,45 @@ export const Hero: React.FC<HeroProps> = ({
     }
   };
 
+  const handleTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
+    if (e.touches.length !== 1) return;
+    const touch = e.touches[0];
+    setIsTouching(true);
+    touchStateRef.current = {
+      active: true,
+      startX: touch.clientX,
+      startY: touch.clientY,
+      startIndex: activeSlideRef.current,
+    };
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent<HTMLDivElement>) => {
+    setIsTouching(false);
+    if (!touchStateRef.current.active || e.changedTouches.length === 0) return;
+    const touch = e.changedTouches[0];
+    const deltaX = touch.clientX - touchStateRef.current.startX;
+    const deltaY = touch.clientY - touchStateRef.current.startY;
+    const startIdx = touchStateRef.current.startIndex;
+    touchStateRef.current.active = false;
+
+    const track = trackRef.current;
+    if (!track || track.clientWidth <= 0) return;
+
+    const isHorizontalSwipe =
+      Math.abs(deltaX) > 36 && Math.abs(deltaX) > Math.abs(deltaY) * 1.15;
+
+    if (isHorizontalSwipe) {
+      const currentIdx = Math.round(track.scrollLeft / track.clientWidth);
+      if (currentIdx === startIdx) {
+        const targetIdx = Math.min(
+          slides.length - 1,
+          Math.max(0, deltaX < 0 ? startIdx + 1 : startIdx - 1)
+        );
+        scrollToSlide(targetIdx, true);
+      }
+    }
+  };
+
   // Mouse click-and-drag horizontal scrolling (touch uses native scroll-snap swiping)
   const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
     if (e.button !== 0) return;
@@ -250,16 +296,16 @@ export const Hero: React.FC<HeroProps> = ({
   // Gentle auto-advance when idle (resets whenever activeSlide changes or user interacts)
   useEffect(() => {
     const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    if (prefersReducedMotion || isDragging || isHovering || slides.length <= 1) return;
+    if (prefersReducedMotion || isDragging || isTouching || isHovering || slides.length <= 1) return;
 
     const timer = setTimeout(() => {
       scrollToSlide((activeSlide + 1) % slides.length, true);
     }, 6000);
     return () => clearTimeout(timer);
-  }, [activeSlide, isDragging, isHovering, slides.length, scrollToSlide]);
+  }, [activeSlide, isDragging, isTouching, isHovering, slides.length, scrollToSlide]);
 
   return (
-    <section className="relative w-full bg-[#212428] text-[#F4F2EE] overflow-hidden border-b border-white/10">
+    <section className="relative w-full bg-[#08090B] text-[#F4F2EE] overflow-hidden border-b border-white/10">
       {/* Full-bleed Horizontally Scrollable / Swipeable Hero Stage (Locked 2px Red Divider at Bottom Edge) */}
       <div
         className="group/hero relative h-[76svh] sm:h-[80svh] lg:h-[84svh] min-h-[460px] max-h-[820px] overflow-hidden border-b-2 border-[#E10600]"
@@ -270,13 +316,17 @@ export const Hero: React.FC<HeroProps> = ({
         <div
           ref={trackRef}
           onScroll={handleTrackScroll}
+          onTouchStart={handleTouchStart}
+          onTouchEnd={handleTouchEnd}
+          onTouchCancel={() => setIsTouching(false)}
           onMouseDown={handleMouseDown}
           aria-roledescription="carousel"
           aria-label="Featured hero showcase"
-          className={`flex w-full h-full overflow-x-auto overflow-y-hidden no-scrollbar touch-pan-y overscroll-x-contain select-none ${
+          style={{ touchAction: 'pan-x pan-y', WebkitOverflowScrolling: 'touch' }}
+          className={`flex w-full h-full overflow-x-auto overflow-y-hidden no-scrollbar overscroll-x-contain select-none ${
             isDragging
               ? 'cursor-grabbing'
-              : 'snap-x snap-mandatory scroll-smooth cursor-grab'
+              : 'snap-x snap-mandatory cursor-grab'
           }`}
         >
           {slides.map((slide, idx) => {
@@ -313,7 +363,7 @@ export const Hero: React.FC<HeroProps> = ({
                       referrerPolicy="no-referrer"
                     />
                   )}
-                  <div className="absolute inset-0 bg-gradient-to-t from-[#212428]/80 via-[#212428]/20 to-transparent" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#08090B]/80 via-[#08090B]/20 to-transparent" />
                 </div>
 
                 {/* Bottom-Left Editorial Copy + Slanted Racing Buttons */}
@@ -352,7 +402,7 @@ export const Hero: React.FC<HeroProps> = ({
                             onNavigateToCollection?.('all');
                           }
                         }}
-                        className="btn-f1 border border-white/70 bg-[#212428]/80 hover:bg-white hover:text-[#212428] text-white px-8 py-3 font-display text-base sm:text-lg font-bold tracking-[0.08em] uppercase transition-colors duration-200 cursor-pointer"
+                        className="btn-f1 border border-white/70 bg-[#08090B]/80 hover:bg-white hover:text-[#08090B] text-white px-8 py-3 font-display text-base sm:text-lg font-bold tracking-[0.08em] uppercase transition-colors duration-200 cursor-pointer"
                       >
                         <span className="btn-f1-inner">{shopAllText}</span>
                       </button>
@@ -371,7 +421,7 @@ export const Hero: React.FC<HeroProps> = ({
               type="button"
               onClick={() => scrollToSlide(activeSlide - 1, true)}
               aria-label="Previous hero slide"
-              className="hidden md:flex items-center justify-center w-11 h-11 bg-[#212428]/70 hover:bg-[#E10600] border border-white/20 text-white absolute left-5 top-1/2 -translate-y-1/2 z-20 opacity-0 group-hover/hero:opacity-100 focus-visible:opacity-100 transition-all duration-200 cursor-pointer"
+              className="hidden md:flex items-center justify-center w-11 h-11 bg-[#08090B]/70 hover:bg-[#E10600] border border-white/20 text-white absolute left-5 top-1/2 -translate-y-1/2 z-20 opacity-0 group-hover/hero:opacity-100 focus-visible:opacity-100 transition-all duration-200 cursor-pointer"
             >
               <ChevronLeft className="w-5 h-5" />
             </button>
@@ -379,7 +429,7 @@ export const Hero: React.FC<HeroProps> = ({
               type="button"
               onClick={() => scrollToSlide(activeSlide + 1, true)}
               aria-label="Next hero slide"
-              className="hidden md:flex items-center justify-center w-11 h-11 bg-[#212428]/70 hover:bg-[#E10600] border border-white/20 text-white absolute right-5 top-1/2 -translate-y-1/2 z-20 opacity-0 group-hover/hero:opacity-100 focus-visible:opacity-100 transition-all duration-200 cursor-pointer"
+              className="hidden md:flex items-center justify-center w-11 h-11 bg-[#08090B]/70 hover:bg-[#E10600] border border-white/20 text-white absolute right-5 top-1/2 -translate-y-1/2 z-20 opacity-0 group-hover/hero:opacity-100 focus-visible:opacity-100 transition-all duration-200 cursor-pointer"
             >
               <ChevronRight className="w-5 h-5" />
             </button>

@@ -60,7 +60,7 @@ export const Header: React.FC<HeaderProps> = ({
 
   return (
     <header className="sticky top-0 z-40 w-full bg-[#212428]/[0.97] border-b border-white/10 transition-colors duration-200">
-      <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 h-12 md:h-14 flex items-center justify-between gap-4 md:gap-8">
+      <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 h-11 md:h-12 flex items-center justify-between gap-4 md:gap-8">
         {/* Mobile Left: Clean Search Icon (no bg, no border) */}
         <div className="flex items-center justify-start w-10 md:hidden">
           <button
@@ -83,7 +83,7 @@ export const Header: React.FC<HeaderProps> = ({
               onNavigateHome();
             }
           }}
-          className="inline-flex items-center justify-center hover:brightness-110 transition-all whitespace-nowrap shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+          className="self-stretch pt-0 mt-0 inline-flex items-stretch justify-center hover:brightness-110 transition-all whitespace-nowrap shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
           aria-label={`${brandName} Home`}
         >
           <BrandLogo name={brandName} variant="header" />

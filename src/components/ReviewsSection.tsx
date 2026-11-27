@@ -59,7 +59,7 @@ export const ReviewsSection: React.FC<ReviewsSectionProps> = ({ reviews }) => {
     <section
       ref={sectionRef}
       id="reviews"
-      className="perf-section w-full bg-[#212428] text-[#F4F2EE] py-16 sm:py-24 border-b border-white/10"
+      className="perf-section w-full bg-[#08090B] text-[#F4F2EE] py-16 sm:py-24 border-b border-white/10"
     >
       <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
@@ -97,7 +97,7 @@ export const ReviewsSection: React.FC<ReviewsSectionProps> = ({ reviews }) => {
               {reviewsData.map((rev) => (
                 <div
                   key={rev.id}
-                  className="flex-shrink-0 w-[280px] sm:w-[330px] bg-[#2B2F36] border border-white/10 hover:border-white/25 p-6 flex flex-col justify-between min-h-[230px] transition-colors"
+                  className="flex-shrink-0 w-[280px] sm:w-[330px] bg-[#111317] border border-white/10 hover:border-white/25 p-6 flex flex-col justify-between min-h-[230px] transition-colors"
                 >
                   <div className="space-y-3">
                     <Quote className="w-4 h-4 text-[#E10600]" />
@@ -136,7 +136,7 @@ export const ReviewsSection: React.FC<ReviewsSectionProps> = ({ reviews }) => {
                   type="button"
                   onClick={() => setIsPlaying(!isPlaying)}
                   aria-label={isPlaying ? 'Pause review autoplay' : 'Play review autoplay'}
-                  className="w-9 h-9 border border-white/15 bg-[#2B2F36] hover:border-white text-[#C4C9D4] hover:text-white flex items-center justify-center transition-colors cursor-pointer"
+                  className="w-9 h-9 border border-white/15 bg-[#111317] hover:border-white text-[#C4C9D4] hover:text-white flex items-center justify-center transition-colors cursor-pointer"
                 >
                   {isPlaying ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5" />}
                 </button>
@@ -144,7 +144,7 @@ export const ReviewsSection: React.FC<ReviewsSectionProps> = ({ reviews }) => {
                   type="button"
                   onClick={scrollLeft}
                   aria-label="Previous review"
-                  className="w-9 h-9 border border-white/15 bg-[#2B2F36] hover:bg-[#E10600] hover:border-[#E10600] text-white flex items-center justify-center transition-colors cursor-pointer"
+                  className="w-9 h-9 border border-white/15 bg-[#111317] hover:bg-[#E10600] hover:border-[#E10600] text-white flex items-center justify-center transition-colors cursor-pointer"
                 >
                   <ChevronLeft className="w-4 h-4" />
                 </button>
@@ -152,7 +152,7 @@ export const ReviewsSection: React.FC<ReviewsSectionProps> = ({ reviews }) => {
                   type="button"
                   onClick={scrollRight}
                   aria-label="Next review"
-                  className="w-9 h-9 border border-white/15 bg-[#2B2F36] hover:bg-[#E10600] hover:border-[#E10600] text-white flex items-center justify-center transition-colors cursor-pointer"
+                  className="w-9 h-9 border border-white/15 bg-[#111317] hover:bg-[#E10600] hover:border-[#E10600] text-white flex items-center justify-center transition-colors cursor-pointer"
                 >
                   <ChevronRight className="w-4 h-4" />
                 </button>
